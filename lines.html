@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>County Stripes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+<link href="https://mapsmania.github.io/uscounties/style.css" rel="stylesheet">
+</head>
+<body>
+<div id="map"></div>
+<div id="controls">
+  <button id="toggleBtn">Switch to Longitude Bands</button><br>
+  <label for="colorMode">Color by:</label>
+  <select id="colorMode">
+    <option value="area">Area</option>
+    <option value="population">Population</option>
+    <option value="density">Population Density</option>
+  </select><br>
+  <label for="bandWidthSlider">Band Width (°): <span id="bandValue">2</span></label>
+  <input type="range" id="bandWidthSlider" min="1" max="20" step="0.1" value="2">
+  <div id="legend"></div>
+</div>
+
+<script>
+const map = new maplibregl.Map({
+  container: "map",
+  style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+  center: [-98, 38.5],
+  zoom: 4,
+  attributionControl: false
+});
+
+map.addControl(new maplibregl.AttributionControl({
+  compact: true,
+  customAttribution:
+    'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors | ' +
+    '<a href="https://googlemapsmania.blogspot.com/2025/10/county-stripes.html" target="_blank">About this map</a>'
+}));
+
+let counties;
+let bandWidth = 2;
+let colorMode = "area";
+let bandGeoJSON;
+
+map.on("load", async () => {
+  const response = await fetch("countypops.geojson");
+  counties = await response.json();
+  const usBoundaryResp = await fetch("custom.geo.json");
+  const usBoundary = await usBoundaryResp.json();
+
+  // --- Derived properties ---
+  counties.features.forEach(f => {
+    const areaSqMiles = turf.area(f) / 2_589_988.11;
+    const centroid = turf.centroid(f);
+    const pop = Number(f.properties["Total Population"]) || 0;
+    const density = pop / areaSqMiles;
+    f.properties.area_sq_miles = parseFloat(areaSqMiles.toFixed(1));
+    f.properties.centroid_lon = centroid.geometry.coordinates[0];
+    f.properties.centroid_lat = centroid.geometry.coordinates[1];
+    f.properties.population = pop;
+    f.properties.density = parseFloat(density.toFixed(2));
+  });
+
+  // --- Create longitude bands ---
+  function createLongitudeBands(data, width, mode) {
+    const bands = {};
+    for (const f of data.features) {
+      const lon = f.properties.centroid_lon;
+      const bandStart = Math.floor(lon / width) * width;
+      const key = `${bandStart}`;
+      if (!bands[key]) bands[key] = [];
+      if (mode === "population") bands[key].push(f.properties.population);
+      else if (mode === "density") bands[key].push(f.properties.density);
+      else bands[key].push(f.properties.area_sq_miles);
+    }
+
+    const features = [];
+    for (const [bandStart, values] of Object.entries(bands)) {
+      const bandStartNum = parseFloat(bandStart);
+      const bandEnd = bandStartNum + width;
+      const validVals = values.filter(v => v > 0);
+      const avg = validVals.reduce((a, b) => a + b, 0) / (validVals.length || 1);
+      features.push({
+        type: "Feature",
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [bandStartNum, 15],
+            [bandEnd, 15],
+            [bandEnd, 55],
+            [bandStartNum, 55],
+            [bandStartNum, 15]
+          ]]
+        },
+        properties: { avg_value: avg, bandStart: bandStartNum, bandEnd: bandEnd }
+      });
+    }
+    return { type: "FeatureCollection", features };
+  }
+
+  // --- Create latitude bands ---
+  function createLatitudeBands(data, width, mode) {
+    const bands = {};
+    for (const f of data.features) {
+      const lat = f.properties.centroid_lat;
+      const bandStart = Math.floor(lat / width) * width;
+      const key = `${bandStart}`;
+      if (!bands[key]) bands[key] = [];
+      if (mode === "population") bands[key].push(f.properties.population);
+      else if (mode === "density") bands[key].push(f.properties.density);
+      else bands[key].push(f.properties.area_sq_miles);
+    }
+
+    const features = [];
+    for (const [bandStart, values] of Object.entries(bands)) {
+      const bandStartNum = parseFloat(bandStart);
+      const bandEnd = bandStartNum + width;
+      const validVals = values.filter(v => v > 0);
+      const avg = validVals.reduce((a, b) => a + b, 0) / (validVals.length || 1);
+      features.push({
+        type: "Feature",
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [-130, bandStartNum],
+            [-60, bandStartNum],
+            [-60, bandEnd],
+            [-130, bandEnd],
+            [-130, bandStartNum]
+          ]]
+        },
+        properties: { avg_value: avg, bandStart: bandStartNum, bandEnd: bandEnd }
+      });
+    }
+    return { type: "FeatureCollection", features };
+  }
+
+  // --- Color scales ---
+  const countyPaints = {
+    area: ["interpolate", ["linear"], ["get", "area_sq_miles"],
+      0, "#edf8fb", 500, "#b2e2e2", 1000, "#66c2a4", 2000, "#238b45", 4000, "#00441b"],
+    population: ["interpolate", ["linear"], ["get", "population"],
+      0, "#fff5f0", 10000, "#fcbba1", 50000, "#fc9272", 200000, "#fb6a4a", 1000000, "#a50f15"],
+    density: ["interpolate", ["linear"], ["get", "density"],
+      0, "#cceeff", 5, "#aad8f0", 25, "#88c0e0", 100, "#ffb3b3", 250, "#ff8080", 500, "#ff4d4d", 1000, "#cc0000", 2000, "#660000"]
+  };
+
+  // --- Color scales for bands ---
+const bandPaints = {
+  area: ["interpolate", ["linear"], ["get", "avg_value"],
+    0, "#edf8fb", 500, "#b2e2e2", 1000, "#66c2a4", 2000, "#238b45", 4000, "#00441b"],
+  population: ["interpolate", ["linear"], ["get", "avg_value"],
+    0, "#fff5f0", 10000, "#fcbba1", 50000, "#fc9272", 200000, "#fb6a4a", 1000000, "#a50f15"],
+  density: ["interpolate", ["linear"], ["get", "avg_value"],
+    0, "#cceeff",
+    5, "#aad8f0",
+    25, "#88c0e0",
+    100, "#ffb3b3",
+    250, "#ff8080",
+    500, "#ff4d4d",
+    1000, "#cc0000",
+    2000, "#660000"
+  ]
+};
+
+
+  // --- Add sources and layers ---
+  map.addSource("counties", { type: "geojson", data: counties });
+  map.addLayer({ id: "county-fill", type: "fill", source: "counties", paint: { "fill-color": countyPaints[colorMode], "fill-opacity": 0.7 } });
+  map.addLayer({ id: "county-borders", type: "line", source: "counties", paint: { "line-color": "#333", "line-width": 0.4 } });
+
+  map.addSource("lonbands", { type: "geojson", data: createLongitudeBands(counties, bandWidth, colorMode) });
+  map.addLayer({ id: "lonband-fill", type: "fill", source: "lonbands", paint: { "fill-color": bandPaints[colorMode], "fill-opacity": 0.9 }, layout: { visibility: "none" } });
+
+  map.addSource("latbands", { type: "geojson", data: createLatitudeBands(counties, bandWidth, colorMode) });
+  map.addLayer({ id: "latband-fill", type: "fill", source: "latbands", paint: { "fill-color": bandPaints[colorMode], "fill-opacity": 0.9 }, layout: { visibility: "none" } });
+
+  map.addSource("us-boundary", { type: "geojson", data: usBoundary });
+  map.addLayer({ id: "us-outline", type: "line", source: "us-boundary", paint: { "line-color": "#000", "line-width": 1.2 } });
+
+  // === CONTROLS ===
+  let mode = "county"; // 'county' | 'lon' | 'lat'
+  const btn = document.getElementById("toggleBtn");
+  const select = document.getElementById("colorMode");
+  const slider = document.getElementById("bandWidthSlider");
+  const bandValueDisplay = document.getElementById("bandValue");
+  const legendDiv = document.getElementById("legend");
+
+  function updateLegend(colorMode) {
+    const legendStops = {
+      area: [0, 500, 1000, 2000, 4000],
+      population: [0, 10000, 50000, 200000, 1000000],
+      density: [0, 5, 25, 100, 250, 500, 1000, 2000]
+    };
+    const legendColors = {
+      area: ["#edf8fb","#b2e2e2","#66c2a4","#238b45","#00441b"],
+      population: ["#fff5f0","#fcbba1","#fc9272","#fb6a4a","#a50f15"],
+      density: ["#cceeff","#aad8f0","#88c0e0","#ffb3b3","#ff8080","#ff4d4d","#cc0000","#660000"]
+    };
+    const stops = legendStops[colorMode];
+    const colors = legendColors[colorMode];
+    let html = `<div class="legend-title">Color by ${colorMode.charAt(0).toUpperCase() + colorMode.slice(1)}</div>`;
+    stops.forEach((v, i) => { html += `<div><span class="legend-color" style="background:${colors[i]}"></span>${v.toLocaleString()}</div>`; });
+    legendDiv.innerHTML = html;
+  }
+  updateLegend(colorMode);
+
+  // --- Toggle through views ---
+  btn.addEventListener("click", () => {
+    if (mode === "county") {
+      map.setLayoutProperty("county-fill", "visibility", "none");
+      map.setLayoutProperty("county-borders", "visibility", "none");
+      map.setLayoutProperty("lonband-fill", "visibility", "visible");
+      btn.innerText = "Switch to Latitude Bands";
+      mode = "lon";
+    } else if (mode === "lon") {
+      map.setLayoutProperty("lonband-fill", "visibility", "none");
+      map.setLayoutProperty("latband-fill", "visibility", "visible");
+      btn.innerText = "Switch to County Coloring";
+      mode = "lat";
+    } else {
+      map.setLayoutProperty("latband-fill", "visibility", "none");
+      map.setLayoutProperty("county-fill", "visibility", "visible");
+      map.setLayoutProperty("county-borders", "visibility", "visible");
+      btn.innerText = "Switch to Longitude Bands";
+      mode = "county";
+    }
+    updateLegend(colorMode);
+  });
+
+  // --- Dropdown change ---
+  select.addEventListener("change", () => {
+    colorMode = select.value;
+    map.setPaintProperty("county-fill", "fill-color", countyPaints[colorMode]);
+    map.setPaintProperty("lonband-fill", "fill-color", bandPaints[colorMode]);
+    map.setPaintProperty("latband-fill", "fill-color", bandPaints[colorMode]);
+    map.getSource("lonbands").setData(createLongitudeBands(counties, bandWidth, colorMode));
+    map.getSource("latbands").setData(createLatitudeBands(counties, bandWidth, colorMode));
+    updateLegend(colorMode);
+  });
+
+  // --- Slider change ---
+  slider.addEventListener("input", () => {
+    const newWidth = parseFloat(slider.value);
+    bandValueDisplay.textContent = newWidth.toFixed(1);
+    map.getSource("lonbands").setData(createLongitudeBands(counties, newWidth, colorMode));
+    map.getSource("latbands").setData(createLatitudeBands(counties, newWidth, colorMode));
+    bandWidth = newWidth;
+  });
+
+});
+</script>
+</body>
+</html>
