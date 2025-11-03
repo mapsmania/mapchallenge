@@ -22,7 +22,7 @@
   <span data-proj="mercator" class="active">Mercator</span> -
   <span data-proj="mollweide">Mollweide</span> -
   <span data-proj="robinson">Robinson</span> -
-  <span data-proj="orthographic">Orthographic</span>
+  <span data-proj="naturalEarth">Natural Earth</span>
 </header>
 
 <svg id="map" width="960" height="520"></svg>
@@ -43,7 +43,7 @@
 
   const path = d3.geoPath();
 
-  const projections = ["mercator", "mollweide", "robinson", "orthographic"];
+  const projections = ["mercator", "mollweide", "robinson", "naturalEarth"];
   let currentIndex = 0;
 
   function makeProjection(name){
@@ -52,7 +52,7 @@
       case "mercator": return d3.geoMercator().scale(s).translate(c);
       case "mollweide": return d3.geoMollweide().scale(s).translate(c);
       case "robinson": return d3.geoRobinson().scale(s).translate(c);
-      case "orthographic": return d3.geoOrthographic().scale(200).translate(c).clipAngle(90);
+      case "naturalEarth": return d3.geoNaturalEarth1().scale(s).translate(c);
       default: return d3.geoMercator().scale(s).translate(c);
     }
   }
@@ -70,15 +70,8 @@
     const proj = makeProjection(projName);
     path.projection(proj);
 
-    // Animate only if both previous and current projections are compatible
-    const prevProjName = projections[(currentIndex - 1 + projections.length) % projections.length];
-    const instant = (projName === "orthographic" || prevProjName === "orthographic");
-
-    if(instant){
-      g.selectAll("path").interrupt().attr("d", path); // instant redraw
-    } else {
-      g.selectAll("path").transition().duration(1000).attr("d", path); // smooth transition
-    }
+    // Smooth transition for all projections
+    g.selectAll("path").transition().duration(1000).attr("d", path);
 
     label.text(projName[0].toUpperCase() + projName.slice(1));
 
