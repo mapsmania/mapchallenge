@@ -22,6 +22,7 @@
   <span data-proj="mercator" class="active">Mercator</span> -
   <span data-proj="mollweide">Mollweide</span> -
   <span data-proj="robinson">Robinson</span> -
+  <span data-proj="equirectangular">Equirectangular</span> -
   <span data-proj="naturalEarth">Natural Earth</span>
 </header>
 
@@ -43,7 +44,7 @@
 
   const path = d3.geoPath();
 
-  const projections = ["mercator", "mollweide", "robinson", "naturalEarth"];
+  const projections = ["mercator", "mollweide", "robinson", "equirectangular", "naturalEarth"];
   let currentIndex = 0;
 
   function makeProjection(name){
@@ -52,6 +53,7 @@
       case "mercator": return d3.geoMercator().scale(s).translate(c);
       case "mollweide": return d3.geoMollweide().scale(s).translate(c);
       case "robinson": return d3.geoRobinson().scale(s).translate(c);
+      case "equirectangular": return d3.geoEquirectangular().scale(s).translate(c);
       case "naturalEarth": return d3.geoNaturalEarth1().scale(s).translate(c);
       default: return d3.geoMercator().scale(s).translate(c);
     }
