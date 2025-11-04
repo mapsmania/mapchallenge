@@ -75,17 +75,6 @@
       input[type=range] { width: 200px; }
     }
 
-    /* Target MapLibre attribution control text and links */
-.maplibregl-ctrl-attrib {
-    color: #fff !important; /* make default text visible */
-    font-size: 0.8rem;
-}
-
-.maplibregl-ctrl-attrib a {
-    color: #0ff !important; /* make links visible (cyan) */
-    text-decoration: underline;
-}
-
   </style>
 </head>
 <body>
@@ -134,12 +123,17 @@
       attributionControl: false
     });
 
-    // Add custom attribution
-    map.addControl(new maplibregl.AttributionControl({
-      compact: true,
-      customAttribution:
-        'Data © <a href="https://www.gplates.org/" target="_blank">GPlates</a> | Visualization inspired by <a href="https://googlemapsmania.blogspot.com/" target="_blank">Maps Mania</a>'
-    }));
+   map.addControl(new maplibregl.AttributionControl({
+  compact: true,
+  customAttribution: `
+    <span style="color:white;">
+      © <a href="https://www.openstreetmap.org/" target="_blank" style="color:#0ff;text-decoration:none;">OSM</a> contributors | 
+      Data © <a href="https://www.gplates.org/" target="_blank" style="color:#0ff;text-decoration:none;">GPlates</a> | 
+       <a href="https://googlemapsmania.blogspot.com/" target="_blank" style="color:#0ff;text-decoration:none;">Maps Mania</a>
+    </span>
+  `
+}));
+
 
     map.on("load", () => {
       // --- Add mask layer for opacity control ---
