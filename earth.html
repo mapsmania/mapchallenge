@@ -22,7 +22,7 @@
     }
 
     #map {
-      flex: 3;
+      flex: 3; /* wider map */
       height: 100%;
       min-height: 400px;
     }
@@ -51,6 +51,7 @@
       align-items: center;
       gap: 10px;
       font-size: 0.9rem;
+      z-index: 10;
     }
     .timeline-container { bottom: 30px; }
     .opacity-container { bottom: 80px; }
@@ -112,26 +113,18 @@
     // --- Map setup ---
     const map = new maplibregl.Map({
       container: "map",
-      style: {
-        version: 8,
-        sources: {
-          background: {
-            type: "raster",
-            tiles: ["https://tiles.openfreemap.org/styles/positron"],
-            tileSize: 256,
-            attribution:
-              '© <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors | Data © <a href="https://www.gplates.org/" target="_blank">GPlates</a> | <a href="https://googlemapsmania.blogspot.com/" target="_blank">Maps Mania</a>'
-          }
-        },
-        layers: [
-          { id: "ocean", type: "background", paint: { "background-color": "#001020" } },
-          { id: "background", type: "raster", source: "background", paint: { "raster-opacity": 0 } }
-        ]
-      },
+      style: "https://tiles.openfreemap.org/styles/positron",
       center: [0, 20],
       zoom: 2,
       attributionControl: true
     });
+
+    // Add custom attribution
+    map.addControl(new maplibregl.AttributionControl({
+      compact: true,
+      customAttribution:
+        'Data © <a href="https://www.gplates.org/" target="_blank">GPlates</a> | <a href="https://googlemapsmania.blogspot.com/" target="_blank">Maps Mania</a>'
+    }));
 
     async function loadGeoJSONForIndex(idx) {
       const age = times[idx];
