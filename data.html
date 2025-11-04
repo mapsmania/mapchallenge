@@ -1,0 +1,415 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GPX Track Viewer</title>
+  <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/@tmcw/togeojson@4.1.0/dist/togeojson.umd.js"></script>
+  <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet" />
+ <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      flex-direction: column-reverse;
+      overflow: hidden;
+    }
+    
+    #map {
+      height: 60vh;
+      width: 100%;
+    }
+    
+    #sidebar {
+      width: 100%;
+      height: 40vh;
+      padding: 10px;
+      background: #f9f9f9;
+      box-sizing: border-box;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      font-size: clamp(14px, 2.5vw, 16px);
+    }
+    
+    input[type="file"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+    
+    #elevation-chart {
+      width: 100% !important;
+      height: 150px !important;
+      margin: 10px 0;
+    }
+    
+    @media (min-width: 768px) {
+      body { flex-direction: row; }
+      #map { height: 100vh; }
+      #sidebar { 
+        width: 300px; 
+        height: 100vh;
+        font-size: 16px;
+      }
+    }
+
+     #map, #elevation-container {
+  transition: all 0.3s ease;
+}
+
+  </style></head>
+<body>
+  <div id="map"></div>
+  <div id="sidebar">
+   
+    <input type="file" id="gpx-upload" accept=".gpx" />
+    <p><strong>Name:</strong> <span id="track-name">-</span></p>
+    <p><strong>Length:</strong> <span id="track-length">-</span></p>
+    <p><strong>Steps (est.):</strong> <span id="track-steps">-</span></p>
+    <p><strong>Calories (est.):</strong> <span id="track-calories">-</span></p>
+    <p><strong>Time:</strong> <span id="track-duration">-</span></p>
+    <p><strong>Avg Speed:</strong> <span id="track-speed">-</span></p>
+    <p><strong>Elevation:</strong> <span id="track-elevation">-</span></p>
+
+<div id="elevation-container" style="cursor: pointer;">
+  <canvas id="elevation-chart" width="280" height="100"></canvas>
+</div>
+
+      
+    <h4>Pace Splits (per mile)</h4>
+    <ul id="pace-splits" style="padding-left: 20px; font-size: 0.9em;"></ul>
+  </div>
+
+  <script>
+let elevationChart = null; // Store chart instance
+       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
+      
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      const map = new maplibregl.Map({
+        container: 'map',
+        style: 'https://tiles.openfreemap.org/styles/liberty',
+        center: [-0.1, 51.5],
+        zoom: isMobile ? 10 : 12, // Slightly zoomed out on mobile
+        interactive: true,
+        touchZoomRotate: true,
+        trackResize: true
+      });
+
+      // Mobile-optimized controls
+      map.addControl(new maplibregl.NavigationControl({
+        showCompass: false,
+        showZoom: true,
+        visualizePitch: false
+      }));
+
+  
+      let mileMarkers = []; // Store mile marker references
+      
+
+      document.getElementById('gpx-upload').addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Reset all tracking variables
+        let markerDist = 0;
+        let cumulativeDist = 0;
+        let mileIndex = 1;
+
+        // Clear previous markers
+        mileMarkers.forEach(marker => marker.remove());
+        mileMarkers = [];
+
+        // Clear previous track data
+        if (map.getSource('track')) {
+          if (map.getLayer('track-line')) map.removeLayer('track-line');
+          map.removeSource('track');
+        }
+
+        // Clear previous chart if exists
+        if (elevationChart) {
+          elevationChart.destroy();
+        }
+
+        const text = await file.text();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(text, 'application/xml');
+        const geojson = toGeoJSON.gpx(xml);
+
+        map.addSource('track', {
+          type: 'geojson',
+          data: geojson
+        });
+
+        map.addLayer({
+          id: 'track-line',
+          type: 'line',
+          source: 'track',
+          paint: {
+            'line-color': '#ff6600',
+            'line-width': 4
+          }
+        });
+
+        // Fit bounds to track
+        const bounds = new maplibregl.LngLatBounds();
+        geojson.features.forEach(f => {
+          turf.coordAll(f).forEach(c => bounds.extend(c));
+        });
+        map.fitBounds(bounds, { padding: 20 });
+
+        // Track info display
+        const nameElem = xml.querySelector('trk > name');
+        const trackName = nameElem ? nameElem.textContent : '(Unnamed Track)';
+        document.getElementById('track-name').textContent = trackName;
+
+        const lengthMiles = turf.length(geojson, { units: 'miles' });
+        const steps = Math.round(lengthMiles * 2000);
+        const calories = Math.round(lengthMiles * 100);
+
+        document.getElementById('track-length').textContent = lengthMiles.toFixed(2) + ' miles';
+        document.getElementById('track-steps').textContent = steps.toLocaleString();
+        document.getElementById('track-calories').textContent = calories.toLocaleString() + ' kcal';
+
+        // Time and speed calculations
+        const times = Array.from(xml.getElementsByTagName('time')).map(t => new Date(t.textContent));
+        const start = times[0];
+        const end = times[times.length - 1];
+        const durationMs = end - start;
+        const durationHours = durationMs / 3600000;
+        const speed = lengthMiles / durationHours;
+
+        const h = Math.floor(durationMs / (1000 * 60 * 60));
+        const m = Math.floor((durationMs / (1000 * 60)) % 60);
+        const formattedDuration = `${h}h ${m}m`;
+
+        document.getElementById('track-duration').textContent = formattedDuration;
+        document.getElementById('track-speed').textContent = speed.toFixed(2) + ' mph';
+
+        // Elevation data
+        const elevations = Array.from(xml.getElementsByTagName('ele')).map(e => parseFloat(e.textContent)).filter(Number.isFinite);
+        let gain = 0, loss = 0;
+        for (let i = 1; i < elevations.length; i++) {
+          const diff = elevations[i] - elevations[i - 1];
+          if (diff > 0) gain += diff;
+          else loss -= diff;
+        }
+        gain *= 3.28084; // Convert to feet
+        loss *= 3.28084;
+        document.getElementById('track-elevation').textContent = `+${Math.round(gain)} ft / -${Math.round(loss)} ft`;
+
+        // Elevation chart
+        const trackPoints = Array.from(xml.getElementsByTagName('trkpt'));
+        let elevationData = [];
+        let totalDistance = 0;
+        let lastCoord = null;
+
+        trackPoints.forEach(pt => {
+          const lat = parseFloat(pt.getAttribute('lat'));
+          const lon = parseFloat(pt.getAttribute('lon'));
+          const eleTag = pt.getElementsByTagName('ele')[0];
+          const ele = eleTag ? parseFloat(eleTag.textContent) : 0;
+
+          if (Number.isFinite(lat) && Number.isFinite(lon) && Number.isFinite(ele)) {
+            if (lastCoord) {
+              const dist = turf.distance(turf.point(lastCoord), turf.point([lon, lat]), { units: 'miles' });
+              totalDistance += dist;
+            }
+            elevationData.push({ distance: totalDistance, elevation: ele * 3.28084 });
+            lastCoord = [lon, lat];
+          }
+        });
+
+        const ctx = document.getElementById('elevation-chart').getContext('2d');
+        elevationChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: elevationData.map(d => d.distance.toFixed(2)),
+            datasets: [{
+              label: 'Elevation (ft)',
+              data: elevationData.map(d => d.elevation),
+              borderColor: '#ff6600',
+              fill: true,
+              tension: 0.1,
+              pointRadius: 0
+            }]
+          },
+          options: {
+            responsive: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                title: { display: true, text: 'Distance (mi)' },
+                ticks: { maxTicksLimit: 6 }
+              },
+              y: {
+                title: { display: true, text: 'Elevation (ft)' }
+              }
+            }
+          }
+        });
+
+        // Pace Splits
+        const splitsList = document.getElementById('pace-splits');
+        splitsList.innerHTML = '';
+        if (times.length === trackPoints.length) {
+          let splitDistances = [], splitTimes = [];
+          let currentDist = 0, lastSplitDist = 0;
+          let lastSplitTime = times[0], prevPoint = null;
+
+          for (let i = 0; i < trackPoints.length; i++) {
+            const pt = trackPoints[i];
+            const lat = parseFloat(pt.getAttribute('lat'));
+            const lon = parseFloat(pt.getAttribute('lon'));
+            const time = times[i];
+
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+
+            if (prevPoint) {
+              const dist = turf.distance(turf.point(prevPoint), turf.point([lon, lat]), { units: 'miles' });
+              currentDist += dist;
+
+              if (Math.floor(currentDist) > splitDistances.length) {
+                const splitDist = Math.floor(currentDist);
+                const splitDuration = (time - lastSplitTime) / 60000; // minutes
+                const paceMin = Math.floor(splitDuration);
+                const paceSec = Math.round((splitDuration - paceMin) * 60).toString().padStart(2, '0');
+                const paceStr = `${paceMin}:${paceSec} min/mi`;
+                const speed = (60 / splitDuration).toFixed(2); // mph
+
+                const li = document.createElement('li');
+                li.textContent = `Mile ${splitDist}: ${paceStr} (${speed} mph)`;
+                splitsList.appendChild(li);
+
+                splitDistances.push(splitDist);
+                splitTimes.push(splitDuration);
+                lastSplitTime = time;
+                lastSplitDist = currentDist;
+              }
+            }
+            prevPoint = [lon, lat];
+          }
+        }
+
+        // Mile Markers
+        let prevCoord = null;
+        for (let i = 0; i < trackPoints.length; i++) {
+          const pt = trackPoints[i];
+          const lat = parseFloat(pt.getAttribute('lat'));
+          const lon = parseFloat(pt.getAttribute('lon'));
+
+          if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+
+          if (prevCoord) {
+            const dist = turf.distance(turf.point(prevCoord), turf.point([lon, lat]), { units: 'miles' });
+            cumulativeDist += dist;
+
+            if (cumulativeDist >= markerDist + 1) {
+              markerDist = Math.floor(cumulativeDist);
+
+              const el = document.createElement('div');
+              el.style.backgroundColor = '#ff6600';
+              el.style.color = '#fff';
+              el.style.borderRadius = '50%';
+              el.style.width = '24px';
+              el.style.height = '24px';
+              el.style.display = 'flex';
+              el.style.alignItems = 'center';
+              el.style.justifyContent = 'center';
+              el.style.fontSize = '12px';
+              el.style.fontWeight = 'bold';
+              el.textContent = mileIndex++;
+
+              const marker = new maplibregl.Marker({ element: el })
+                .setLngLat([lon, lat])
+                .addTo(map);
+
+              mileMarkers.push(marker);
+            }
+          }
+          prevCoord = [lon, lat];
+        }
+      });
+    });
+
+ let isChartFullScreen = false;
+const chartContainer = document.getElementById('elevation-container');
+const sidebar = document.getElementById('sidebar');
+const mapEl = document.getElementById('map');
+
+// Create a full-screen chart container inside the map
+const fullScreenChart = document.createElement('div');
+fullScreenChart.id = 'fullscreen-chart';
+fullScreenChart.style.position = 'absolute';
+fullScreenChart.style.top = '0';
+fullScreenChart.style.left = '0';
+fullScreenChart.style.width = '100%';
+fullScreenChart.style.height = '100%';
+fullScreenChart.style.backgroundColor = '#fff';
+fullScreenChart.style.zIndex = '10';
+fullScreenChart.style.display = 'none';
+fullScreenChart.style.justifyContent = 'center';
+fullScreenChart.style.alignItems = 'center';
+fullScreenChart.style.flexDirection = 'column';
+mapEl.appendChild(fullScreenChart);
+
+// Clone and move the canvas
+const chartCanvas = document.getElementById('elevation-chart');
+const canvasClone = chartCanvas.cloneNode(true);
+canvasClone.id = 'elevation-chart-fullscreen';
+fullScreenChart.appendChild(canvasClone);
+
+// Close button
+const closeBtn = document.createElement('button');
+closeBtn.textContent = 'Close';
+closeBtn.style.margin = '10px';
+closeBtn.style.padding = '8px 16px';
+closeBtn.style.fontSize = '16px';
+closeBtn.style.cursor = 'pointer';
+closeBtn.onclick = () => {
+  fullScreenChart.style.display = 'none';
+  isChartFullScreen = false;
+};
+fullScreenChart.appendChild(closeBtn);
+
+chartContainer.addEventListener('click', () => {
+  if (elevationChart) {
+    // Destroy any existing full-screen chart
+    const existingChart = Chart.getChart('elevation-chart-fullscreen');
+    if (existingChart) existingChart.destroy();
+
+    // Recreate chart in full-screen container
+    new Chart(canvasClone.getContext('2d'), {
+      type: 'line',
+      data: elevationChart.data,
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            title: { display: true, text: 'Distance (mi)' },
+            ticks: { maxTicksLimit: 10 }
+          },
+          y: {
+            title: { display: true, text: 'Elevation (ft)' }
+          }
+        }
+      }
+    });
+
+    fullScreenChart.style.display = 'flex';
+    isChartFullScreen = true;
+  }
+});
+
+
+  </script>
+</body>
+</html>
