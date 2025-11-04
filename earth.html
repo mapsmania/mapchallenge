@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Earth Coastlines Through Time (MapLibre)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+  <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
+
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; }
+    #map { width: 100%; height: 100%; }
+
+    .timeline-container {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-family: sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    input[type=range] {
+      width: 300px;
+    }
+    #age-label {
+      min-width: 80px;
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <div class="timeline-container">
+    <span>Time (Ma):</span>
+    <input id="time-slider" type="range" min="0" max="7" step="1" value="0" />
+    <span id="age-label">140 Ma</span>
+  </div>
+
+  <script>
+    // --- Setup ---
+    const times = [140, 120, 100, 80, 66, 50, 5, 0];
+    const filePaths = times.map(t => `data/${t}ma.geojson`);
+
+    const map = new maplibregl.Map({
+      container: "map",
+      style: {
+        version: 8,
+        sources: {
+          "background": {
+            type: "raster",
+            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+            tileSize: 256,
+            attribution: "© OpenStreetMap contributors"
+          }
+        },
+        layers: [{ id: "background", type: "raster", source: "background" }]
+      },
+      center: [0, 20],
+      zoom: 2
+    });
+
+    // Keep track of currently loaded source/layer
+    let currentSource = null;
+    let currentLayer = null;
+
+    async function loadGeoJSONForIndex(idx) {
+      const age = times[idx];
+      document.getElementById("age-label").textContent = `${age} Ma`;
+
+      const response = await fetch(filePaths[idx]);
+      const data = await response.json();
+
+      const sourceId = "coastlines";
+      const layerId = "coastlines-layer";
+
+      // Remove old source/layer if present
+      if (map.getLayer(layerId)) map.removeLayer(layerId);
+      if (map.getSource(sourceId)) map.removeSource(sourceId);
+
+      map.addSource(sourceId, { type: "geojson", data });
+      map.addLayer({
+        id: layerId,
+        type: "line",
+        source: sourceId,
+        paint: {
+          "line-color": "#00ffff",
+          "line-width": 1.5
+        }
+      });
+    }
+
+    map.on("load", () => {
+      loadGeoJSONForIndex(0); // Start at 140 Ma
+
+      const slider = document.getElementById("time-slider");
+      slider.addEventListener("input", (e) => {
+        const idx = parseInt(e.target.value);
+        loadGeoJSONForIndex(idx);
+      });
+    });
+  </script>
+</body>
+</html>
