@@ -39,7 +39,6 @@
     .info-period { font-size: 1.1em; font-weight: bold; margin-bottom: 0.5em; }
     .info-text { line-height: 1.4; }
 
-    /* Timeline + opacity controls */
     .timeline-container, .opacity-container {
       position: absolute;
       left: 50%;
@@ -59,7 +58,6 @@
     input[type=range] { width: 300px; }
     #age-label { min-width: 80px; text-align: center; font-weight: bold; }
 
-    /* Responsive layout for mobile */
     @media (max-width: 768px) {
       body { flex-direction: column; }
       #map { flex: none; height: 60vh; }
@@ -101,38 +99,14 @@
     const filePaths = times.map(t => `data/${t}ma.geojson`);
 
     const info = {
-      140: {
-        label: "Early Cretaceous",
-        text: "The breakup of Gondwana is underway. South America and Africa begin to separate, forming the early South Atlantic."
-      },
-      120: {
-        label: "Early Cretaceous",
-        text: "South Atlantic widens; India begins drifting rapidly northward. Australia and Antarctica remain joined in the south."
-      },
-      100: {
-        label: "Mid-Cretaceous",
-        text: "Continents continue to drift. North America and Eurasia separate further; shallow inland seas cover parts of continents."
-      },
-      80: {
-        label: "Late Cretaceous",
-        text: "Madagascar fully isolated; Australia slowly begins detaching from Antarctica. Sea levels are among the highest in Earth history."
-      },
-      66: {
-        label: "End-Cretaceous",
-        text: "Dinosaur extinction event (K–Pg). Continents near modern positions. India is moving quickly toward Asia."
-      },
-      50: {
-        label: "Early Eocene",
-        text: "India collides with Asia, forming the Himalayas. Australia breaks away from Antarctica and drifts north."
-      },
-      5: {
-        label: "Pliocene",
-        text: "The Isthmus of Panama closes, joining North and South America. Global cooling continues and ice ages approach."
-      },
-      0: {
-        label: "Modern",
-        text: "Present-day configuration of continents. Ongoing plate motion continues to reshape Earth slowly."
-      }
+      140: { label: "Early Cretaceous", text: "The breakup of Gondwana is underway. South America and Africa begin to separate, forming the early South Atlantic." },
+      120: { label: "Early Cretaceous", text: "South Atlantic widens; India begins drifting rapidly northward. Australia and Antarctica remain joined in the south." },
+      100: { label: "Mid-Cretaceous", text: "Continents continue to drift. North America and Eurasia separate further; shallow inland seas cover parts of continents." },
+      80:  { label: "Late Cretaceous", text: "Madagascar fully isolated; Australia slowly begins detaching from Antarctica. Sea levels are among the highest in Earth history." },
+      66:  { label: "End-Cretaceous", text: "Dinosaur extinction event (K–Pg). Continents near modern positions. India is moving quickly toward Asia." },
+      50:  { label: "Early Eocene", text: "India collides with Asia, forming the Himalayas. Australia breaks away from Antarctica and drifts north." },
+      5:   { label: "Pliocene", text: "The Isthmus of Panama closes, joining North and South America. Global cooling continues and ice ages approach." },
+      0:   { label: "Modern", text: "Present-day configuration of continents. Ongoing plate motion continues to reshape Earth slowly." }
     };
 
     // --- Map setup ---
@@ -145,25 +119,18 @@
             type: "raster",
             tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
             tileSize: 256,
-            attribution: "© OpenStreetMap contributors"
+            attribution:
+              '© <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors | Data © <a href="https://www.gplates.org/" target="_blank">GPlates</a> | Visualization inspired by <a href="https://googlemapsmania.blogspot.com/" target="_blank">Maps Mania</a>'
           }
         },
         layers: [
-          {
-            id: "ocean",
-            type: "background",
-            paint: { "background-color": "#001020" }
-          },
-          {
-            id: "background",
-            type: "raster",
-            source: "background",
-            paint: { "raster-opacity": 0 }
-          }
+          { id: "ocean", type: "background", paint: { "background-color": "#001020" } },
+          { id: "background", type: "raster", source: "background", paint: { "raster-opacity": 0 } }
         ]
       },
       center: [0, 20],
-      zoom: 2
+      zoom: 2,
+      attributionControl: true
     });
 
     async function loadGeoJSONForIndex(idx) {
@@ -186,24 +153,16 @@
         id: layerId,
         type: "line",
         source: sourceId,
-        paint: {
-          "line-color": "#00ffff",
-          "line-width": 1.5
-        }
+        paint: { "line-color": "#00ffff", "line-width": 1.5 }
       });
     }
 
     map.on("load", () => {
       loadGeoJSONForIndex(0);
 
-      // Timeline slider
       const timeSlider = document.getElementById("time-slider");
-      timeSlider.addEventListener("input", (e) => {
-        const idx = parseInt(e.target.value);
-        loadGeoJSONForIndex(idx);
-      });
+      timeSlider.addEventListener("input", (e) => loadGeoJSONForIndex(parseInt(e.target.value)));
 
-      // Opacity slider
       const opacitySlider = document.getElementById("opacity-slider");
       opacitySlider.addEventListener("input", (e) => {
         const opacity = parseFloat(e.target.value);
