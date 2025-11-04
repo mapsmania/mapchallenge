@@ -95,7 +95,6 @@
   </div>
 
   <script>
-    // --- Data setup ---
     const times = [140, 120, 100, 80, 66, 50, 5, 0];
     const filePaths = times.map(t => `data/${t}ma.geojson`);
 
@@ -110,7 +109,6 @@
       0:   { label: "Modern", text: "Present-day configuration of continents. Ongoing plate motion continues to reshape Earth slowly." }
     };
 
-    // --- Map setup ---
     const map = new maplibregl.Map({
       container: "map",
       style: "https://tiles.openfreemap.org/styles/positron",
@@ -123,8 +121,46 @@
     map.addControl(new maplibregl.AttributionControl({
       compact: true,
       customAttribution:
-        'Data © <a href="https://www.gplates.org/" target="_blank">GPlates</a> | <a href="https://googlemapsmania.blogspot.com/" target="_blank">Maps Mania</a>'
+        'Data © <a href="https://www.gplates.org/" target="_blank">GPlates</a> | Visualization inspired by <a href="https://googlemapsmania.blogspot.com/" target="_blank">Maps Mania</a>'
     }));
+
+    map.on("load", () => {
+      // --- Add mask layer for opacity control ---
+      map.addSource("mask", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [{
+            type: "Feature",
+            geometry: {
+              type: "Polygon",
+              coordinates: [[
+                [-180, -90], [-180, 90], [180, 90], [180, -90], [-180, -90]
+              ]]
+            }
+          }]
+        }
+      });
+
+      map.addLayer({
+        id: "mask-layer",
+        type: "fill",
+        source: "mask",
+        paint: { "fill-color": "#001020", "fill-opacity": 1 }
+      });
+
+      const opacitySlider = document.getElementById("opacity-slider");
+      opacitySlider.addEventListener("input", (e) => {
+        const opacity = parseFloat(e.target.value);
+        map.setPaintProperty("mask-layer", "fill-opacity", 1 - opacity);
+      });
+
+      // --- Load initial coastline ---
+      loadGeoJSONForIndex(0);
+
+      const timeSlider = document.getElementById("time-slider");
+      timeSlider.addEventListener("input", (e) => loadGeoJSONForIndex(parseInt(e.target.value)));
+    });
 
     async function loadGeoJSONForIndex(idx) {
       const age = times[idx];
@@ -149,19 +185,6 @@
         paint: { "line-color": "#00ffff", "line-width": 1.5 }
       });
     }
-
-    map.on("load", () => {
-      loadGeoJSONForIndex(0);
-
-      const timeSlider = document.getElementById("time-slider");
-      timeSlider.addEventListener("input", (e) => loadGeoJSONForIndex(parseInt(e.target.value)));
-
-      const opacitySlider = document.getElementById("opacity-slider");
-      opacitySlider.addEventListener("input", (e) => {
-        const opacity = parseFloat(e.target.value);
-        map.setPaintProperty("background", "raster-opacity", opacity);
-      });
-    });
   </script>
 </body>
 </html>
