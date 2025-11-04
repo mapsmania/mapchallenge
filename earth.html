@@ -14,9 +14,8 @@
     body, html { margin: 0; padding: 0; height: 100%; }
     #map { width: 100%; height: 100%; }
 
-    .timeline-container {
+    .timeline-container, .opacity-container {
       position: absolute;
-      bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(0,0,0,0.6);
@@ -28,6 +27,14 @@
       align-items: center;
       gap: 10px;
     }
+
+    .timeline-container {
+      bottom: 30px;
+    }
+    .opacity-container {
+      bottom: 80px;
+    }
+
     input[type=range] {
       width: 300px;
     }
@@ -40,6 +47,11 @@
 </head>
 <body>
   <div id="map"></div>
+
+  <div class="opacity-container">
+    <span>Modern map opacity:</span>
+    <input id="opacity-slider" type="range" min="0" max="1" step="0.05" value="0" />
+  </div>
 
   <div class="timeline-container">
     <span>Time (Ma):</span>
@@ -57,22 +69,30 @@
       style: {
         version: 8,
         sources: {
-          "background": {
+          background: {
             type: "raster",
             tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
             tileSize: 256,
             attribution: "© OpenStreetMap contributors"
           }
         },
-        layers: [{ id: "background", type: "raster", source: "background" }]
+        layers: [
+          {
+            id: "ocean",
+            type: "background",
+            paint: { "background-color": "#001020" } // deep ocean blue background
+          },
+          {
+            id: "background",
+            type: "raster",
+            source: "background",
+            paint: { "raster-opacity": 0 } // start hidden
+          }
+        ]
       },
       center: [0, 20],
       zoom: 2
     });
-
-    // Keep track of currently loaded source/layer
-    let currentSource = null;
-    let currentLayer = null;
 
     async function loadGeoJSONForIndex(idx) {
       const age = times[idx];
@@ -84,7 +104,6 @@
       const sourceId = "coastlines";
       const layerId = "coastlines-layer";
 
-      // Remove old source/layer if present
       if (map.getLayer(layerId)) map.removeLayer(layerId);
       if (map.getSource(sourceId)) map.removeSource(sourceId);
 
@@ -101,12 +120,20 @@
     }
 
     map.on("load", () => {
-      loadGeoJSONForIndex(0); // Start at 140 Ma
+      loadGeoJSONForIndex(0);
 
-      const slider = document.getElementById("time-slider");
-      slider.addEventListener("input", (e) => {
+      // Timeline slider
+      const timeSlider = document.getElementById("time-slider");
+      timeSlider.addEventListener("input", (e) => {
         const idx = parseInt(e.target.value);
         loadGeoJSONForIndex(idx);
+      });
+
+      // Opacity slider for modern map
+      const opacitySlider = document.getElementById("opacity-slider");
+      opacitySlider.addEventListener("input", (e) => {
+        const opacity = parseFloat(e.target.value);
+        map.setPaintProperty("background", "raster-opacity", opacity);
       });
     });
   </script>
