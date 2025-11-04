@@ -11,9 +11,35 @@
   <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
 
   <style>
-    body, html { margin: 0; padding: 0; height: 100%; }
-    #map { width: 100%; height: 100%; }
+    html, body {
+      margin: 0; padding: 0;
+      height: 100%; width: 100%;
+      font-family: system-ui, sans-serif;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: row;
+    }
 
+    #map {
+      flex: 2;
+      height: 100%;
+      min-height: 400px;
+    }
+
+    #sidebar {
+      flex: 1;
+      background: rgba(15, 20, 35, 0.95);
+      padding: 20px;
+      overflow-y: auto;
+      box-shadow: -2px 0 6px rgba(0,0,0,0.4);
+    }
+
+    h2 { margin-top: 0; }
+    .info-period { font-size: 1.1em; font-weight: bold; margin-bottom: 0.5em; }
+    .info-text { line-height: 1.4; }
+
+    /* Timeline + opacity controls */
     .timeline-container, .opacity-container {
       position: absolute;
       left: 50%;
@@ -22,31 +48,41 @@
       color: white;
       padding: 10px 20px;
       border-radius: 12px;
-      font-family: sans-serif;
       display: flex;
       align-items: center;
       gap: 10px;
+      font-size: 0.9rem;
     }
+    .timeline-container { bottom: 30px; }
+    .opacity-container { bottom: 80px; }
 
-    .timeline-container {
-      bottom: 30px;
-    }
-    .opacity-container {
-      bottom: 80px;
-    }
+    input[type=range] { width: 300px; }
+    #age-label { min-width: 80px; text-align: center; font-weight: bold; }
 
-    input[type=range] {
-      width: 300px;
-    }
-    #age-label {
-      min-width: 80px;
-      text-align: center;
-      font-weight: bold;
+    /* Responsive layout for mobile */
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      #map { flex: none; height: 60vh; }
+      #sidebar { flex: none; height: 40vh; }
+      .timeline-container, .opacity-container {
+        font-size: 0.8rem;
+        padding: 8px 12px;
+        gap: 8px;
+      }
+      input[type=range] { width: 200px; }
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
+
+  <div id="sidebar">
+    <h2>Geological Time Viewer</h2>
+    <p class="info-period" id="period-label">140 Ma — Early Cretaceous</p>
+    <p class="info-text" id="info-text">
+      The breakup of Gondwana is underway. South America and Africa begin to separate, forming the early South Atlantic.
+    </p>
+  </div>
 
   <div class="opacity-container">
     <span>Modern map opacity:</span>
@@ -60,10 +96,46 @@
   </div>
 
   <script>
-    // --- Setup ---
+    // --- Data setup ---
     const times = [140, 120, 100, 80, 66, 50, 5, 0];
     const filePaths = times.map(t => `data/${t}ma.geojson`);
 
+    const info = {
+      140: {
+        label: "Early Cretaceous",
+        text: "The breakup of Gondwana is underway. South America and Africa begin to separate, forming the early South Atlantic."
+      },
+      120: {
+        label: "Early Cretaceous",
+        text: "South Atlantic widens; India begins drifting rapidly northward. Australia and Antarctica remain joined in the south."
+      },
+      100: {
+        label: "Mid-Cretaceous",
+        text: "Continents continue to drift. North America and Eurasia separate further; shallow inland seas cover parts of continents."
+      },
+      80: {
+        label: "Late Cretaceous",
+        text: "Madagascar fully isolated; Australia slowly begins detaching from Antarctica. Sea levels are among the highest in Earth history."
+      },
+      66: {
+        label: "End-Cretaceous",
+        text: "Dinosaur extinction event (K–Pg). Continents near modern positions. India is moving quickly toward Asia."
+      },
+      50: {
+        label: "Early Eocene",
+        text: "India collides with Asia, forming the Himalayas. Australia breaks away from Antarctica and drifts north."
+      },
+      5: {
+        label: "Pliocene",
+        text: "The Isthmus of Panama closes, joining North and South America. Global cooling continues and ice ages approach."
+      },
+      0: {
+        label: "Modern",
+        text: "Present-day configuration of continents. Ongoing plate motion continues to reshape Earth slowly."
+      }
+    };
+
+    // --- Map setup ---
     const map = new maplibregl.Map({
       container: "map",
       style: {
@@ -80,13 +152,13 @@
           {
             id: "ocean",
             type: "background",
-            paint: { "background-color": "#001020" } // deep ocean blue background
+            paint: { "background-color": "#001020" }
           },
           {
             id: "background",
             type: "raster",
             source: "background",
-            paint: { "raster-opacity": 0 } // start hidden
+            paint: { "raster-opacity": 0 }
           }
         ]
       },
@@ -97,6 +169,8 @@
     async function loadGeoJSONForIndex(idx) {
       const age = times[idx];
       document.getElementById("age-label").textContent = `${age} Ma`;
+      document.getElementById("period-label").textContent = `${age} Ma — ${info[age].label}`;
+      document.getElementById("info-text").textContent = info[age].text;
 
       const response = await fetch(filePaths[idx]);
       const data = await response.json();
@@ -129,7 +203,7 @@
         loadGeoJSONForIndex(idx);
       });
 
-      // Opacity slider for modern map
+      // Opacity slider
       const opacitySlider = document.getElementById("opacity-slider");
       opacitySlider.addEventListener("input", (e) => {
         const opacity = parseFloat(e.target.value);
