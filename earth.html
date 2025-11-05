@@ -53,16 +53,28 @@
     #age-label { min-width: 80px; text-align: center; font-weight: bold; }
 
     #play-button {
-      background: #00bcd4;
-      border: none;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.3s;
-    }
-    #play-button:hover { background: #0097a7; }
+  background: #007bff;             /* same vivid blue as the slider fill */
+  border: none;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);
+  transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+}
+
+#play-button:hover {
+  background: #3399ff;             /* lighter blue on hover */
+  transform: scale(1.05);
+  box-shadow: 0 0 14px rgba(0, 136, 255, 0.6);
+}
+
+#play-button:active {
+  background: #006ae6;             /* slightly darker when pressed */
+  transform: scale(0.97);
+}
 
     #custom-attribution {
       position: absolute;
