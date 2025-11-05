@@ -29,36 +29,61 @@
     padding:8px 12px; cursor:pointer;
   }
 
+  /* Now Playing overlay */
+  #nowPlaying {
+    position: absolute;
+    left: 50%;
+    bottom: 28px;
+    transform: translateX(-50%) translateY(8px);
+    background: rgba(0,0,0,0.62);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    font-size: 14px;
+    z-index: 8;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 420ms ease, transform 420ms ease;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  }
+  #nowPlaying.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
   /* Responsive splash */
   @media (max-width: 600px) {
     #splash { padding:10px; justify-content:flex-start; overflow-y:auto; }
     #splash h1 { font-size:1.5em; margin-top:40px; }
     #splash p { font-size:0.9em; line-height:1.4em; max-width:90%; margin-bottom:1.5em; }
     #startButton { font-size:1em; padding:10px 16px; }
+    #nowPlaying { font-size: 13px; bottom: 18px; }
   }
 
-    #map-links {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 15; /* above map layers */
-  background: rgba(255, 255, 255, 0.8);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-family: sans-serif;
-  font-size: 14px;
-}
+  #map-links {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 15; /* above map layers */
+    background: rgba(255, 255, 255, 0.8);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: sans-serif;
+    font-size: 14px;
+  }
 
-#map-links a {
-  color: #0066ff;
-  text-decoration: none;
-  font-weight: bold;
-  margin: 0 4px;
-}
+  #map-links a {
+    color: #0066ff;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0 4px;
+  }
 
-#map-links a:hover {
-  text-decoration: underline;
-}
+  #map-links a:hover {
+    text-decoration: underline;
+  }
 
 </style>
 </head>
@@ -79,13 +104,14 @@
 
 <div id="map"></div>
 <button id="muteButton">🔊 Mute</button>
-    
+
+<!-- Now Playing overlay -->
+<div id="nowPlaying" aria-live="polite">Now Playing: —</div>
+
 <div id="map-links">
   <a href="https://yamanot.es/" target="_blank">Inspired by Yamanotes</a> |
   <a href="https://googlemapsmania.blogspot.com/" target="_blank">About</a>
 </div>
-    
-    
 
 <script>
 const map = new maplibregl.Map({
@@ -136,6 +162,26 @@ const stations = [
 ];
 
 const lineCoords = stations.map(s => s.coord);
+
+// Now Playing controls
+const nowPlayingEl = document.getElementById('nowPlaying');
+let nowPlayingTimeout = null;
+
+function showNowPlaying(text, duration = 3500) {
+  // clear previous timeout so it won't hide prematurely
+  if (nowPlayingTimeout) {
+    clearTimeout(nowPlayingTimeout);
+    nowPlayingTimeout = null;
+  }
+  nowPlayingEl.textContent = 'Now Playing: ' + text;
+  nowPlayingEl.classList.add('visible');
+
+  // hide after duration (unless another station updates it)
+  nowPlayingTimeout = setTimeout(() => {
+    nowPlayingEl.classList.remove('visible');
+    nowPlayingTimeout = null;
+  }, duration);
+}
 
 map.on('load', () => {
   // draw loop line
@@ -269,6 +315,8 @@ map.on('load', () => {
       map.getSource('train').setData(createTrainFeature(lng, lat, angle));
       map.setCenter([lng, lat]);
       playAudio(stations[index].slug);
+      // show now playing text (even if muted) — keep overlay duration in sync with typical melody length
+      showNowPlaying(stations[index].name, 3000);
       // small timeout before moving to next segment
       setTimeout(() => animateTrain(), 16); // 1 frame delay
       return;
@@ -295,6 +343,7 @@ map.on('load', () => {
       journeyStarted = true;
       document.getElementById('splash').style.display = 'none';
       playAudio(stations[0].slug);
+      showNowPlaying(stations[0].name, 3000);
       setTimeout(() => animateTrain(), 850);
     }
   });
