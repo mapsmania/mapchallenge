@@ -1,0 +1,311 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Yamanote Line with Melodies</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet"/>
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<style>
+  html, body { margin:0; padding:0; height:100%; }
+  #map { width: 100%; height: 100vh; }
+
+  /* Splash screen */
+  #splash {
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.8); color:#fff;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    z-index: 10; text-align:center; padding:20px;
+  }
+  #splash h1 { font-size:2em; margin-bottom:1em; }
+  #splash p { max-width:500px; line-height:1.5em; margin-bottom:2em; }
+  #startButton { background:#0066ff; color:#fff; border:none; border-radius:4px;
+    padding:12px 20px; font-size:1.1em; cursor:pointer; }
+
+  /* Mute button */
+  #muteButton {
+    position:absolute; top:10px; right:10px; z-index:5;
+    background: rgba(0,0,0,0.6); color:#fff; border:none; border-radius:4px;
+    padding:8px 12px; cursor:pointer;
+  }
+
+  /* Responsive splash */
+  @media (max-width: 600px) {
+    #splash { padding:10px; justify-content:flex-start; overflow-y:auto; }
+    #splash h1 { font-size:1.5em; margin-top:40px; }
+    #splash p { font-size:0.9em; line-height:1.4em; max-width:90%; margin-bottom:1.5em; }
+    #startButton { font-size:1em; padding:10px 16px; }
+  }
+
+    #map-links {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 15; /* above map layers */
+  background: rgba(255, 255, 255, 0.8);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: sans-serif;
+  font-size: 14px;
+}
+
+#map-links a {
+  color: #0066ff;
+  text-decoration: none;
+  font-weight: bold;
+  margin: 0 4px;
+}
+
+#map-links a:hover {
+  text-decoration: underline;
+}
+
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <h1>Tokyo Departure Melodies</h1>
+  <p>
+    The JR Yamanote Line in Tokyo is famous for its unique <strong>departure melodies</strong>.
+    Each station has its own short tune that plays before a train departs,
+    creating a welcoming and distinctive soundscape for travelers.
+    <br><br>
+    This interactive map shows the Yamanote Line loop, animates a train,
+    and plays the authentic melodies at each station as you follow the journey.
+  </p>
+  <button id="startButton">Start Journey</button>
+</div>
+
+<div id="map"></div>
+<button id="muteButton">🔊 Mute</button>
+    
+<div id="map-links">
+  <a href="https://yamanot.es/" target="_blank">Inspired by Yamanotes</a> |
+  <a href="https://googlemapsmania.blogspot.com/" target="_blank">About</a>
+</div>
+    
+    
+
+<script>
+const map = new maplibregl.Map({
+  container: 'map',
+  style: 'https://tiles.openfreemap.org/styles/liberty',
+  center: [139.7671,35.6812], // Tokyo Station
+  zoom: 16,
+  pitch: 60,
+  bearing: 0
+});
+
+// audio toggle
+let isMuted = false;
+const AUDIO_BASE = 'https://raw.githubusercontent.com/morgansleeper/Yamanotes/main/audio/';
+
+const stations = [
+  {name:'Tokyo',        coord:[139.7671,35.6812], slug:'sh3'},
+  {name:'Kanda',        coord:[139.7706,35.6960], slug:'seseragi'},
+  {name:'Akihabara',    coord:[139.7754,35.7008], slug:'ogawav1'},
+  {name:'Okachimachi',  coord:[139.7770,35.7074], slug:'harutrem'},
+  {name:'Ueno',         coord:[139.7770,35.7138], slug:'bellb'},
+  {name:'Uguisudani',   coord:[139.7822,35.7278], slug:'harutrem'},
+  {name:'Nippori',      coord:[139.7780,35.7325], slug:'harutrem'},
+  {name:'Nishi-Nippori',coord:[139.7660,35.7546], slug:'harutrem'},
+  {name:'Tabata',       coord:[139.7626,35.7434], slug:'harutrem'},
+  {name:'Komagome',     coord:[139.7520,35.7366], slug:'sakurab'},
+  {name:'Sugamo',       coord:[139.7476,35.7312], slug:'haru'},
+  {name:'Otsuka',       coord:[139.7360,35.7335], slug:'haru'},
+  {name:'Ikebukuro',    coord:[139.7283,35.7203], slug:'melody'},
+  {name:'Mejiro',       coord:[139.7191,35.7126], slug:'haru'},
+  {name:'Takadanobaba', coord:[139.7061,35.7009], slug:'astrob'},
+  {name:'Shin-Okubo',   coord:[139.7004,35.7013], slug:'bellb'},
+  {name:'Shinjuku',     coord:[139.7020,35.6900], slug:'aratana'},
+  {name:'Yoyogi',       coord:[139.7021,35.6730], slug:'haru'},
+  {name:'Harajuku',     coord:[139.7100,35.6698], slug:'harajukua'},
+  {name:'Shibuya',      coord:[139.7013,35.6580], slug:'hananohorokobi'},
+  {name:'Ebisu',        coord:[139.6899,35.6412], slug:'thirdman'},
+  {name:'Meguro',       coord:[139.6984,35.6340], slug:'watercrown'},
+  {name:'Gotanda',      coord:[139.7032,35.6285], slug:'sh23'},
+  {name:'Osaki',        coord:[139.7148,35.6197], slug:'uminoeki'},
+  {name:'Shinagawa',    coord:[139.7220,35.6457], slug:'seseragi'},
+  {name:'TakanawaGW',   coord:[139.7383,35.6365], slug:'sweetcall'},
+  {name:'Tamachi',      coord:[139.7290,35.6554], slug:'seseragi'},
+  {name:'Hamamatsucho', coord:[139.7400,35.6580], slug:'seseragi'},
+  {name:'Shimbashi',    coord:[139.7616,35.6721], slug:'gotadelvient'},
+  {name:'Yurakucho',    coord:[139.7640,35.6751], slug:'sh21'},
+  {name:'Tokyo(end)',   coord:[139.7671,35.6812], slug:'sh3'}
+];
+
+const lineCoords = stations.map(s => s.coord);
+
+map.on('load', () => {
+  // draw loop line
+  map.addSource('yamanote', {
+    type: 'geojson',
+    data: { type: 'Feature', geometry: { type: 'LineString', coordinates: lineCoords } }
+  });
+  map.addLayer({
+    id: 'yamanote-line',
+    type: 'line',
+    source: 'yamanote',
+    paint: { 'line-color': '#ff4f00', 'line-width': 4 }
+  });
+
+  // stations source
+  map.addSource('stations', {
+    type: 'geojson',
+    data: {
+      type: 'FeatureCollection',
+      features: stations
+        .filter(s => s.name !== 'Tokyo(end)')
+        .map(s => ({ type:'Feature', geometry:{type:'Point', coordinates:s.coord}, properties:{name:s.name} }))
+    }
+  });
+
+  map.addLayer({
+    id: 'station-circles',
+    type: 'circle',
+    source: 'stations',
+    paint: {
+      'circle-radius': 5,
+      'circle-color': '#0066ff',
+      'circle-stroke-width': 1,
+      'circle-stroke-color': '#ffffff'
+    }
+  }, 'yamanote-line');
+
+  map.addLayer({
+    id: 'station-labels',
+    type: 'symbol',
+    source: 'stations',
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-size': 12,
+      'text-offset': [0, 1.2],
+      'text-anchor': 'top',
+      'text-allow-overlap': false,
+      'text-font': ['Noto Sans Bold']
+    },
+    paint: {
+      'text-color': '#000000',
+      'text-halo-color': '#ffffff',
+      'text-halo-width': 1
+    }
+  });
+
+  // audio playback
+  function playAudio(slug) {
+    if (isMuted || !slug) return;
+    const url = AUDIO_BASE + slug + '.mp3';
+    const audio = new Audio(url);
+    audio.play().catch(err => console.log('Autoplay blocked', err));
+  }
+
+    function metersToLngLatOffset(metersX, metersY, lat) {
+  const lngOffset = metersX / (111320 * Math.cos(lat * Math.PI / 180));
+  const latOffset = metersY / 110540;
+  return [lngOffset, latOffset];
+}
+
+
+  // ----- Train polygon functions -----
+ function createTrainFeature(lng, lat, angle=0, widthM=10, lengthM=25) {
+  const coordsMeters = [
+    [-lengthM/2, -widthM/2],
+    [ lengthM/2, -widthM/2],
+    [ lengthM/2,  widthM/2],
+    [-lengthM/2,  widthM/2],
+    [-lengthM/2, -widthM/2]
+  ];
+
+  const coords = coordsMeters.map(([x, y]) => {
+    const xr = x * Math.cos(angle) - y * Math.sin(angle);
+    const yr = x * Math.sin(angle) + y * Math.cos(angle);
+    const [dx, dy] = metersToLngLatOffset(xr, yr, lat);
+    return [lng + dx, lat + dy];
+  });
+
+  return { type:'Feature', geometry:{ type:'Polygon', coordinates:[coords] }, properties:{} };
+}
+
+
+
+  map.addSource('train', {
+    type: 'geojson',
+    data: createTrainFeature(stations[0].coord[0], stations[0].coord[1])
+  });
+
+  map.addLayer({
+    id: 'train-layer',
+    type: 'fill-extrusion',
+    source: 'train',
+    paint: {
+      'fill-extrusion-color': '#ff0000',
+      'fill-extrusion-height': 8,
+      'fill-extrusion-base': 0,
+      'fill-extrusion-opacity': 0.9
+    }
+  });
+
+  // ----- Animate train -----
+  let index = 0;
+  const speed = 0.0025;
+  let journeyStarted = false;
+
+ function animateTrain() {
+  const start = stations[index].coord;
+  const end = stations[(index + 1) % stations.length].coord;
+  let t = 0;
+
+  function step() {
+    t += speed;
+    if (t >= 1) {
+      // snap to exact next station
+      index = (index + 1) % stations.length;
+      const [lng, lat] = stations[index].coord;
+      const angle = Math.atan2(
+        stations[(index + 1) % stations.length].coord[1] - lat,
+        stations[(index + 1) % stations.length].coord[0] - lng
+      );
+      map.getSource('train').setData(createTrainFeature(lng, lat, angle));
+      map.setCenter([lng, lat]);
+      playAudio(stations[index].slug);
+      // small timeout before moving to next segment
+      setTimeout(() => animateTrain(), 16); // 1 frame delay
+      return;
+    }
+
+    const lng = start[0] + (end[0] - start[0]) * t;
+    const lat = start[1] + (end[1] - start[1]) * t;
+    const angle = Math.atan2(end[1] - start[1], end[0] - start[0]);
+
+    map.getSource('train').setData(createTrainFeature(lng, lat, angle));
+    map.setCenter([lng, lat]);
+
+    requestAnimationFrame(step);
+  }
+
+  requestAnimationFrame(step);
+}
+
+
+
+  // start button handler
+  document.getElementById('startButton').addEventListener('click', () => {
+    if (!journeyStarted) {
+      journeyStarted = true;
+      document.getElementById('splash').style.display = 'none';
+      playAudio(stations[0].slug);
+      setTimeout(() => animateTrain(), 850);
+    }
+  });
+
+  // mute toggle
+  document.getElementById('muteButton').addEventListener('click', () => {
+    isMuted = !isMuted;
+    document.getElementById('muteButton').textContent = isMuted ? '🔈 Unmute' : '🔊 Mute';
+  });
+});
+</script>
+</body>
+</html>
