@@ -142,6 +142,10 @@
 
     let animationInterval = null;
     let isPlaying = false;
+    let currentIdx = 0;
+    const fadeDuration = 500; // ms
+    const playDelay = 2000;   // ms between frames
+
     const playButton = document.getElementById("play-button");
     const timeSlider = document.getElementById("time-slider");
 
@@ -191,7 +195,6 @@
         });
       }
 
-      // Initial UI update
       updateInfo(0);
 
       timeSlider.addEventListener("input", e => {
@@ -204,19 +207,19 @@
         else startAnimation();
       });
 
-      startAnimation(); // auto-play
+      startAnimation(); // auto-play on load
     });
 
     function startAnimation() {
       isPlaying = true;
       playButton.textContent = "⏸️ Pause";
-      let idx = parseInt(timeSlider.value);
-
       animationInterval = setInterval(() => {
-        idx = (idx + 1) % times.length;
-        timeSlider.value = idx;
-        showLayer(idx);
-      }, 2000);
+        let nextIdx = (currentIdx + 1) % times.length;
+        crossfadeLayers(currentIdx, nextIdx);
+        currentIdx = nextIdx;
+        timeSlider.value = currentIdx;
+        updateInfo(currentIdx);
+      }, playDelay);
     }
 
     function stopAnimation() {
@@ -225,15 +228,30 @@
       if (animationInterval) clearInterval(animationInterval);
     }
 
+    function crossfadeLayers(fromIdx, toIdx) {
+      const fromLayer = `coast_${times[fromIdx]}_layer`;
+      const toLayer = `coast_${times[toIdx]}_layer`;
+
+      const steps = 20;
+      const delay = fadeDuration / steps;
+      let step = 0;
+
+      const fade = setInterval(() => {
+        step++;
+        const opacity = step / steps;
+        const reverse = 1 - opacity;
+        if (map.getLayer(fromLayer))
+          map.setPaintProperty(fromLayer, "line-opacity", reverse);
+        if (map.getLayer(toLayer))
+          map.setPaintProperty(toLayer, "line-opacity", opacity);
+        if (step >= steps) clearInterval(fade);
+      }, delay);
+    }
+
     function showLayer(idx) {
-      // Hide all, show one
-      for (let i = 0; i < times.length; i++) {
-        const layerId = `coast_${times[i]}_layer`;
-        const opacity = i === idx ? 1 : 0;
-        if (map.getLayer(layerId)) {
-          map.setPaintProperty(layerId, "line-opacity", opacity);
-        }
-      }
+      if (idx === currentIdx) return;
+      crossfadeLayers(currentIdx, idx);
+      currentIdx = idx;
       updateInfo(idx);
     }
 
