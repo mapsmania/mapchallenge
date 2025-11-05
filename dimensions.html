@@ -193,6 +193,36 @@ map.on('load', () => {
     }
   });
 
+  // ----- 3D Buildings -----
+map.addLayer(
+  {
+    id: '3d-buildings',
+    source: {
+      type: 'vector',
+      url: 'https://tiles.openfreemap.org/planet/vector.json'
+    },
+    'source-layer': 'building',
+    type: 'fill-extrusion',
+    minzoom: 15,
+    paint: {
+      'fill-extrusion-color': '#aaa',
+      'fill-extrusion-height': [
+        'interpolate', ['linear'], ['zoom'],
+        15, 0,
+        16, ['get', 'height']
+      ],
+      'fill-extrusion-base': [
+        'interpolate', ['linear'], ['zoom'],
+        15, 0,
+        16, ['get', 'min_height']
+      ],
+      'fill-extrusion-opacity': 0.7
+    }
+  },
+  'station-labels' // ensures buildings appear beneath labels
+);
+
+
   // audio playback
   function playAudio(slug) {
     if (isMuted || !slug) return;
