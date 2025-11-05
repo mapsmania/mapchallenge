@@ -40,7 +40,6 @@
     .info-period { font-size: 1.1em; font-weight: bold; margin-bottom: 0.5em; }
     .info-text { line-height: 1.4; }
 
-    /* Controls styling */
     .timeline-container, .opacity-container {
       position: absolute;
       left: 50%;
@@ -61,7 +60,6 @@
     input[type=range] { width: 300px; }
     #age-label { min-width: 80px; text-align: center; font-weight: bold; }
 
-    /* Play button */
     #play-button {
       background: #00bcd4;
       border: none;
@@ -72,9 +70,7 @@
       font-weight: bold;
       transition: background 0.3s;
     }
-    #play-button:hover {
-      background: #0097a7;
-    }
+    #play-button:hover { background: #0097a7; }
 
     #custom-attribution {
       position: absolute;
@@ -192,19 +188,17 @@
       // Load first frame
       loadGeoJSONForIndex(0);
 
-      // Add slider event
       timeSlider.addEventListener("input", (e) => {
         stopAnimation();
         loadGeoJSONForIndex(parseInt(e.target.value));
       });
 
-      // Add play button event
       playButton.addEventListener("click", () => {
         if (isPlaying) stopAnimation();
         else startAnimation();
       });
 
-      // Start animating automatically on page load
+      // Start automatically
       startAnimation();
     });
 
@@ -217,7 +211,7 @@
         idx = (idx + 1) % times.length;
         timeSlider.value = idx;
         loadGeoJSONForIndex(idx);
-      }, 1500);
+      }, 2000);
     }
 
     function stopAnimation() {
@@ -235,19 +229,58 @@
       const response = await fetch(filePaths[idx]);
       const data = await response.json();
 
-      const sourceId = "coastlines";
-      const layerId = "coastlines-layer";
+      const oldLayerId = "coastlines-layer";
+      const oldSourceId = "coastlines";
+      const newSourceId = "coastlines-new";
+      const newLayerId = "coastlines-layer-new";
 
-      if (map.getLayer(layerId)) map.removeLayer(layerId);
-      if (map.getSource(sourceId)) map.removeSource(sourceId);
+      // Clean up any old temp layers
+      if (map.getLayer(newLayerId)) map.removeLayer(newLayerId);
+      if (map.getSource(newSourceId)) map.removeSource(newSourceId);
 
-      map.addSource(sourceId, { type: "geojson", data });
+      // Add new layer invisible
+      map.addSource(newSourceId, { type: "geojson", data });
       map.addLayer({
-        id: layerId,
+        id: newLayerId,
         type: "line",
-        source: sourceId,
-        paint: { "line-color": "#00ffff", "line-width": 1.5 }
+        source: newSourceId,
+        paint: { "line-color": "#00ffff", "line-width": 1.5, "line-opacity": 0 }
       });
+
+      // Smooth fade
+      const fadeDuration = 1000; // milliseconds
+      const steps = 20;
+      const delay = fadeDuration / steps;
+      let step = 0;
+
+      const fade = setInterval(() => {
+        step++;
+        const opacity = step / steps;
+        const reverse = 1 - opacity;
+
+        if (map.getLayer(newLayerId))
+          map.setPaintProperty(newLayerId, "line-opacity", opacity);
+        if (map.getLayer(oldLayerId))
+          map.setPaintProperty(oldLayerId, "line-opacity", reverse);
+
+        if (step >= steps) {
+          clearInterval(fade);
+          // Remove old once fade completes
+          if (map.getLayer(oldLayerId)) map.removeLayer(oldLayerId);
+          if (map.getSource(oldSourceId)) map.removeSource(oldSourceId);
+          // Keep new as current base layer
+          map.addSource(oldSourceId, { type: "geojson", data });
+          map.addLayer({
+            id: oldLayerId,
+            type: "line",
+            source: oldSourceId,
+            paint: { "line-color": "#00ffff", "line-width": 1.5, "line-opacity": 1 }
+          });
+          // Clean temp
+          if (map.getLayer(newLayerId)) map.removeLayer(newLayerId);
+          if (map.getSource(newSourceId)) map.removeSource(newSourceId);
+        }
+      }, delay);
     }
   </script>
 </body>
