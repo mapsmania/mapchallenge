@@ -55,39 +55,38 @@ map.addControl(new maplibregl.AttributionControl({
 }));
 
     map.on('load', () => {
-    map.addSource('roman-britain-places', {
-        type: 'geojson',
-        data: 'https://imperium.ahlfeldt.se/api/geojson.php?bbox=-10.0,49.0,3.0,59.0' // Your API URL here
-    });
+  map.addSource('roman-britain-places', {
+    type: 'geojson',
+    data: 'https://imperium.ahlfeldt.se/api/geojson.php?bbox=-10.0,49.0,3.0,59.0'
+  });
 
-    // Roman place-names
+  map.addLayer({
+    id: 'roman-britain-labels',
+    type: 'symbol',
+    source: 'roman-britain-places',
+    filter: ['has', 'ancient'], // ensure only ancient-named places are labeled
+    layout: {
+      'text-field': ['get', 'ancient'],
+      'text-size': 14,
+      'text-font': ['Noto Sans Regular'],
+      'text-anchor': 'top',
+      'text-offset': [0, 0.6],
+      'text-allow-overlap': true,
+      'text-ignore-placement': true
+    },
+    paint: {
+      'text-color': '#2b1a00',
+      'text-halo-color': '#f8f4e3',
+      'text-halo-width': 2.5
+    }
+  });
 
-    map.addLayer({
-        'id': 'roman-britain-labels',
-        'type': 'symbol',
-        'source': 'roman-britain-places',
-        'filter': ['has', 'name'], // 👈 Filter ensures only named features are processed
-
-        'layout': {
-            // ✅ CONFIRMED: Use 'name' for the modern name
-            'text-field': ['get', 'ancient'], 
-            'text-size': 14,
-            'text-anchor': 'bottom',
-            'text-offset': [0, -0.75], // Slightly more offset from the 5px circle
-            'text-font': ["Noto Sans Regular"], 
-            'text-max-width': 8,
-            
-            // 🔑 KEY FIXES for Visibility/Collision:
-            'text-allow-overlap': true, // Forces label to draw even if it touches the circle
-            'text-ignore-placement': true // Forces label to draw even if it collides with *other* labels
-        },
-        'paint': {
-            'text-color': '#000000',
-            'text-halo-color': '#ffffff',
-            'text-halo-width': 2
-        }
-    });
+  // Move labels above all roads and travel layers
+  ['day-1','day-2','day-3','day-4','day-5','all-roads-layer'].forEach(id => {
+    if (map.getLayer(id)) map.moveLayer('roman-britain-labels', id);
+  });
 });
+
 
 const colors = {1:'#ff0000',2:'#ff7f00',3:'#ffff00',4:'#7fff00',5:'#00ff00'};
 let graph = new Map();
