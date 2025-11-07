@@ -50,7 +50,8 @@
       zoom: 5
     });
 
-    const days = [1,2,3,4,5];
+    // Days in **reverse order** so shorter ranges overlay longer ones
+    const days = [5,4,3,2,1];
     const colors = {
       1: '#ff0000',
       2: '#ff7f00',
@@ -59,12 +60,14 @@
       5: '#00ff00'
     };
 
+    // Track loaded features to compute bounds
+    let allFeatures = [];
+
     map.on('load', () => {
       days.forEach(day => {
-        map.addSource(`roads-day-${day}`, {
-          type: 'geojson',
-          data: `data/reachable_roads_day_${day}.geojson`
-        });
+        const url = `https://raw.githubusercontent.com/mapsmania/mapchallenge/main/data/reachable_roads_day_${day}.geojson`;
+        
+        map.addSource(`roads-day-${day}`, { type: 'geojson', data: url });
 
         map.addLayer({
           id: `roads-day-${day}`,
@@ -74,9 +77,23 @@
           paint: {
             'line-color': colors[day],
             'line-width': 2.5,
-            'line-opacity': 0.8
+            'line-opacity': 0.6
           }
         });
+
+        // Fetch the data to extend map bounds
+        fetch(url)
+          .then(r => r.json())
+          .then(data => {
+            allFeatures = allFeatures.concat(data.features);
+            if (allFeatures.length > 0) {
+              const bounds = new maplibregl.LngLatBounds();
+              allFeatures.forEach(f => {
+                f.geometry.coordinates.flat(2).forEach(coord => bounds.extend(coord));
+              });
+              map.fitBounds(bounds, { padding: 40 });
+            }
+          });
       });
     });
   </script>
