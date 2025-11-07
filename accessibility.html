@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Roman Roads – Reachable per Day</title>
+  <title>Dynamic Roman Roads Travel</title>
   <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
   <style>
@@ -19,22 +19,14 @@
       font-size: 13px;
       line-height: 1.5;
     }
-    .legend div {
-      display: flex;
-      align-items: center;
-    }
-    .legend span {
-      width: 20px;
-      height: 10px;
-      display: inline-block;
-      margin-right: 6px;
-    }
+    .legend div { display: flex; align-items: center; }
+    .legend span { width: 20px; height: 10px; display: inline-block; margin-right: 6px; }
   </style>
 </head>
 <body>
 <div id="map"></div>
 <div class="legend">
-  <strong>Reachable in Days</strong><br/>
+  <strong>Reachable in Days (Walking ~25 km/day)</strong><br/>
   <div><span style="background:#ff0000"></span> Day 1</div>
   <div><span style="background:#ff7f00"></span> Day 2</div>
   <div><span style="background:#ffff00"></span> Day 3</div>
@@ -45,13 +37,11 @@
 <script>
 const map = new maplibregl.Map({
   container: 'map',
-  style: 'https://tiles.openfreemap.org/styles/liberty', // or positron
+  style: 'https://tiles.openfreemap.org/styles/liberty',
   center: [-2.5, 54.0],
   zoom: 5
 });
 
-// Reverse order so shorter travel-day layers are on top
-const days = [5,4,3,2,1];
 const colors = {
   1: '#ff0000',
   2: '#ff7f00',
@@ -60,21 +50,110 @@ const colors = {
   5: '#00ff00'
 };
 
-// Collect all features to calculate bounds
-let allFeatures = [];
+let graph = new Map(); // key = "lng,lat", value = { edges: [...] }
+let allRoads = [];     // store original features for rendering
 
-map.on('load', () => {
-  days.forEach(day => {
-    const url = `https://raw.githubusercontent.com/mapsmania/mapchallenge/main/data/reachable_roads_day_${day}.geojson`;
+// Load the main Roman roads GeoJSON
+fetch('https://raw.githubusercontent.com/mapsmania/mapchallenge/main/data/segments.geojson')
+  .then(r => r.json())
+  .then(data => {
+    allRoads = data.features;
 
-    // Add GeoJSON source
-    map.addSource(`roads-day-${day}`, { type: 'geojson', data: url });
+    // Build graph
+    data.features.forEach(f => {
+      const coords = f.geometry.coordinates;
+      const length = f.properties._lengthInKm;
+      for (let i = 0; i < coords.length - 1; i++) {
+        const [lng1, lat1] = coords[i];
+        const [lng2, lat2] = coords[i + 1];
+        const key1 = `${lng1},${lat1}`;
+        const key2 = `${lng2},${lat2}`;
+        if (!graph.has(key1)) graph.set(key1, { edges: [] });
+        if (!graph.has(key2)) graph.set(key2, { edges: [] });
+        graph.get(key1).edges.push({ to: key2, weight: length });
+        graph.get(key2).edges.push({ to: key1, weight: length });
+      }
+    });
 
-    // Add line layer
+    console.log('Graph ready with', graph.size, 'nodes');
+  });
+
+// Helper: find nearest node to clicked point
+function findNearestNode(lng, lat) {
+  let nearest = null;
+  let minDist = Infinity;
+  graph.forEach((v, key) => {
+    const [nlng, nlat] = key.split(',').map(Number);
+    const dist = Math.hypot(lng - nlng, lat - nlat);
+    if (dist < minDist) { minDist = dist; nearest = key; }
+  });
+  return nearest;
+}
+
+// Dijkstra to compute distances from start node
+function dijkstra(startKey, maxKm) {
+  const distances = {};
+  const visited = new Set();
+  const queue = new Set();
+
+  graph.forEach((_, key) => distances[key] = Infinity);
+  distances[startKey] = 0;
+  queue.add(startKey);
+
+  while (queue.size > 0) {
+    let current = [...queue].reduce((a,b) => distances[a]<distances[b]?a:b);
+    queue.delete(current);
+    visited.add(current);
+
+    graph.get(current).edges.forEach(edge => {
+      const alt = distances[current] + edge.weight;
+      if (alt < distances[edge.to]) {
+        distances[edge.to] = alt;
+        if (!visited.has(edge.to)) queue.add(edge.to);
+      }
+    });
+  }
+
+  return Object.keys(distances).filter(k => distances[k] <= maxKm);
+}
+
+// Convert reachable nodes back to road segments GeoJSON
+function getReachableGeoJSON(reachableNodes) {
+  const features = [];
+  allRoads.forEach(f => {
+    const coords = f.geometry.coordinates;
+    // If either endpoint is reachable, include the segment
+    for (let i = 0; i < coords.length; i++) {
+      if (reachableNodes.includes(`${coords[i][0]},${coords[i][1]}`)) {
+        features.push(f);
+        break;
+      }
+    }
+  });
+  return { type: 'FeatureCollection', features };
+}
+
+// On map click, calculate reachable roads per day
+map.on('click', e => {
+  const { lng, lat } = e.lngLat;
+  const startNode = findNearestNode(lng, lat);
+  if (!startNode) return;
+
+  // Remove old layers if exist
+  for (let day = 1; day <= 5; day++) {
+    if (map.getLayer(`day-${day}`)) map.removeLayer(`day-${day}`);
+    if (map.getSource(`day-${day}`)) map.removeSource(`day-${day}`);
+  }
+
+  for (let day = 1; day <= 5; day++) {
+    const reachableNodes = dijkstra(startNode, 25 * day); // walking ~25 km/day
+    const geojson = getReachableGeoJSON(reachableNodes);
+
+    map.addSource(`day-${day}`, { type: 'geojson', data: geojson });
     map.addLayer({
-      id: `roads-day-${day}`,
+      id: `day-${day}`,
       type: 'line',
-      source: `roads-day-${day}`,
+      source: `day-${day}`,
       layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: {
         'line-color': colors[day],
@@ -82,31 +161,7 @@ map.on('load', () => {
         'line-opacity': 0.6
       }
     });
-
-    // Fetch features to compute map bounds
-    fetch(url)
-      .then(r => r.json())
-      .then(data => {
-        allFeatures = allFeatures.concat(data.features);
-
-        if (allFeatures.length > 0) {
-          const bounds = new maplibregl.LngLatBounds();
-
-          allFeatures.forEach(f => {
-            const geom = f.geometry;
-            if (geom.type === "LineString") {
-              geom.coordinates.forEach(coord => bounds.extend(coord));
-            } else if (geom.type === "MultiLineString") {
-              geom.coordinates.forEach(line => line.forEach(coord => bounds.extend(coord)));
-            } else if (geom.type === "Point") {
-              bounds.extend(geom.coordinates);
-            }
-          });
-
-          map.fitBounds(bounds, { padding: 40 });
-        }
-      });
-  });
+  }
 });
 </script>
 </body>
