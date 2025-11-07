@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Roman Roads Travel - Subdivided</title>
+<title>Roman Roads Travel Map</title>
 <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
 <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
 <style>
@@ -50,54 +50,63 @@ const colors = {
   5: '#00ff00'
 };
 
-let graph = new Map();  // nodeKey => { edges: [...] }
-let allRoads = [];      // original road features
+let graph = new Map();
+let allRoads = [];
 
-// Helper: Haversine distance in km
+// Haversine distance in km
 function haversine([lng1, lat1], [lng2, lat2]) {
   const R = 6371;
   const toRad = Math.PI/180;
-  const dLat = (lat2 - lat1)*toRad;
-  const dLng = (lng2 - lng1)*toRad;
+  const dLat = (lat2-lat1)*toRad;
+  const dLng = (lng2-lng1)*toRad;
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*toRad)*Math.cos(lat2*toRad)*Math.sin(dLng/2)**2;
   return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// Subdivide a segment into smaller points (~1 km apart)
-function subdivideSegment([lng1, lat1], [lng2, lat2], segmentLengthKm) {
+// Subdivide segment into ~1 km points
+function subdivideSegment([lng1, lat1], [lng2, lat2]) {
   const points = [[lng1, lat1]];
   const dist = haversine([lng1, lat1], [lng2, lat2]);
   const steps = Math.ceil(dist);
-  for (let i=1; i<steps; i++) {
-    const t = i/steps;
+  for(let i=1;i<steps;i++){
+    const t=i/steps;
     points.push([lng1 + (lng2-lng1)*t, lat1 + (lat2-lat1)*t]);
   }
   points.push([lng2, lat2]);
   return points;
 }
 
-// Load Roman roads GeoJSON
+// Load and display black base layer + build graph
 fetch('https://mapsmania.github.io/mapchallenge/data/roman_roads.geojson')
   .then(r => r.json())
   .then(data => {
     allRoads = data.features;
 
-    // Build graph with subdivided segments
-    data.features.forEach(f => {
+    // Add base layer in black
+    map.addSource('all-roads', { type: 'geojson', data });
+    map.addLayer({
+      id: 'all-roads-layer',
+      type: 'line',
+      source: 'all-roads',
+      layout: { 'line-join':'round','line-cap':'round' },
+      paint: { 'line-color':'#000000', 'line-width':1.5, 'line-opacity':0.5 }
+    });
+
+    // Build graph with subdivided nodes
+    data.features.forEach(f=>{
       const coords = f.geometry.coordinates;
-      const length = f.properties._lengthInKm;
-      for (let i = 0; i < coords.length - 1; i++) {
-        const subdivided = subdivideSegment(coords[i], coords[i+1], 1);
-        for (let j = 0; j < subdivided.length -1; j++) {
-          const [lng1, lat1] = subdivided[j];
-          const [lng2, lat2] = subdivided[j+1];
+      for(let i=0;i<coords.length-1;i++){
+        const subdiv = subdivideSegment(coords[i], coords[i+1]);
+        for(let j=0;j<subdiv.length-1;j++){
+          const [lng1, lat1] = subdiv[j];
+          const [lng2, lat2] = subdiv[j+1];
           const key1 = `${lng1},${lat1}`;
           const key2 = `${lng2},${lat2}`;
           const segLength = haversine([lng1, lat1], [lng2, lat2]);
-          if (!graph.has(key1)) graph.set(key1, { edges: [] });
-          if (!graph.has(key2)) graph.set(key2, { edges: [] });
-          graph.get(key1).edges.push({ to: key2, weight: segLength });
-          graph.get(key2).edges.push({ to: key1, weight: segLength });
+          if(!graph.has(key1)) graph.set(key1,{edges:[]});
+          if(!graph.has(key2)) graph.set(key2,{edges:[]});
+          graph.get(key1).edges.push({to:key2, weight:segLength});
+          graph.get(key2).edges.push({to:key1, weight:segLength});
         }
       }
     });
@@ -106,46 +115,47 @@ fetch('https://mapsmania.github.io/mapchallenge/data/roman_roads.geojson')
   });
 
 // Find nearest node to click
-function findNearestNode(lng, lat) {
-  let nearest = null, minDist = Infinity;
-  graph.forEach((_, key) => {
+function findNearestNode(lng, lat){
+  let nearest=null, minDist=Infinity;
+  graph.forEach((_, key)=>{
     const [nlng, nlat] = key.split(',').map(Number);
-    const d = haversine([lng, lat], [nlng, nlat]);
-    if (d < minDist) { minDist = d; nearest = key; }
+    const d = haversine([lng, lat],[nlng, nlat]);
+    if(d<minDist){ minDist=d; nearest=key; }
   });
   return nearest;
 }
 
-// Dijkstra's algorithm
-function dijkstra(startKey, maxKm) {
-  const distances = {}, visited = new Set(), queue = new Set();
-  graph.forEach((_, key)=> distances[key]=Infinity);
+// Dijkstra
+function dijkstra(startKey, maxKm){
+  const distances={}, visited=new Set(), queue=new Set();
+  graph.forEach((_,k)=>distances[k]=Infinity);
   distances[startKey]=0; queue.add(startKey);
 
   while(queue.size>0){
-    let current = [...queue].reduce((a,b)=>distances[a]<distances[b]?a:b);
+    let current=[...queue].reduce((a,b)=>distances[a]<distances[b]?a:b);
     queue.delete(current); visited.add(current);
     graph.get(current).edges.forEach(e=>{
-      const alt = distances[current]+e.weight;
-      if (alt < distances[e.to]) {
+      const alt=distances[current]+e.weight;
+      if(alt<distances[e.to]){
         distances[e.to]=alt;
-        if (!visited.has(e.to)) queue.add(e.to);
+        if(!visited.has(e.to)) queue.add(e.to);
       }
     });
   }
+
   return Object.keys(distances).filter(k=>distances[k]<=maxKm);
 }
 
-// Convert reachable nodes to road segments
-function getReachableGeoJSON(reachableNodes) {
-  const features = [];
+// Convert reachable nodes to GeoJSON segments
+function getReachableGeoJSON(reachableNodes){
+  const features=[];
   allRoads.forEach(f=>{
-    const coords = f.geometry.coordinates;
-    const subdividedPoints = [];
+    const coords=f.geometry.coordinates;
+    const subdivided=[];
     for(let i=0;i<coords.length-1;i++){
-      subdividedPoints.push(...subdivideSegment(coords[i], coords[i+1],1));
+      subdivided.push(...subdivideSegment(coords[i], coords[i+1]));
     }
-    if(subdividedPoints.some(p => reachableNodes.includes(`${p[0]},${p[1]}`))){
+    if(subdivided.some(p=>reachableNodes.includes(`${p[0]},${p[1]}`))){
       features.push(f);
     }
   });
@@ -164,10 +174,10 @@ map.on('click', e=>{
   }
 
   for(let day=1;day<=5;day++){
-    const reachableNodes = dijkstra(startNode, 25*day);
+    const reachableNodes = dijkstra(startNode, 25*day); // walking ~25km/day
     const geojson = getReachableGeoJSON(reachableNodes);
 
-    map.addSource(`day-${day}`, { type:'geojson', data: geojson });
+    map.addSource(`day-${day}`, { type:'geojson', data:geojson });
     map.addLayer({
       id:`day-${day}`,
       type:'line',
