@@ -63,7 +63,7 @@
       days.forEach(day => {
         map.addSource(`roads-day-${day}`, {
           type: 'geojson',
-          data: `https://raw.githubusercontent.com/mapsmania/mapchallenge/main/data/reachable_roads_day_${day}.geojson`
+          data: `data/reachable_roads_day_${day}.geojson`
         });
 
         map.addLayer({
