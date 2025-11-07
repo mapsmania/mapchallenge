@@ -32,70 +32,82 @@
   </style>
 </head>
 <body>
-  <div id="map"></div>
-  <div class="legend">
-    <strong>Reachable in Days</strong><br/>
-    <div><span style="background:#ff0000"></span> Day 1</div>
-    <div><span style="background:#ff7f00"></span> Day 2</div>
-    <div><span style="background:#ffff00"></span> Day 3</div>
-    <div><span style="background:#7fff00"></span> Day 4</div>
-    <div><span style="background:#00ff00"></span> Day 5</div>
-  </div>
+<div id="map"></div>
+<div class="legend">
+  <strong>Reachable in Days</strong><br/>
+  <div><span style="background:#ff0000"></span> Day 1</div>
+  <div><span style="background:#ff7f00"></span> Day 2</div>
+  <div><span style="background:#ffff00"></span> Day 3</div>
+  <div><span style="background:#7fff00"></span> Day 4</div>
+  <div><span style="background:#00ff00"></span> Day 5</div>
+</div>
 
-  <script>
-    const map = new maplibregl.Map({
-      container: 'map',
-      style: 'https://tiles.openfreemap.org/styles/liberty', // or positron
-      center: [-2.5, 54.0],
-      zoom: 5
+<script>
+const map = new maplibregl.Map({
+  container: 'map',
+  style: 'https://tiles.openfreemap.org/styles/liberty', // or positron
+  center: [-2.5, 54.0],
+  zoom: 5
+});
+
+// Reverse order so shorter travel-day layers are on top
+const days = [5,4,3,2,1];
+const colors = {
+  1: '#ff0000',
+  2: '#ff7f00',
+  3: '#ffff00',
+  4: '#7fff00',
+  5: '#00ff00'
+};
+
+// Collect all features to calculate bounds
+let allFeatures = [];
+
+map.on('load', () => {
+  days.forEach(day => {
+    const url = `https://raw.githubusercontent.com/mapsmania/mapchallenge/main/data/reachable_roads_day_${day}.geojson`;
+
+    // Add GeoJSON source
+    map.addSource(`roads-day-${day}`, { type: 'geojson', data: url });
+
+    // Add line layer
+    map.addLayer({
+      id: `roads-day-${day}`,
+      type: 'line',
+      source: `roads-day-${day}`,
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: {
+        'line-color': colors[day],
+        'line-width': 2.5,
+        'line-opacity': 0.6
+      }
     });
 
-    // Days in **reverse order** so shorter ranges overlay longer ones
-    const days = [5,4,3,2,1];
-    const colors = {
-      1: '#ff0000',
-      2: '#ff7f00',
-      3: '#ffff00',
-      4: '#7fff00',
-      5: '#00ff00'
-    };
+    // Fetch features to compute map bounds
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        allFeatures = allFeatures.concat(data.features);
 
-    // Track loaded features to compute bounds
-    let allFeatures = [];
+        if (allFeatures.length > 0) {
+          const bounds = new maplibregl.LngLatBounds();
 
-    map.on('load', () => {
-      days.forEach(day => {
-        const url = `https://raw.githubusercontent.com/mapsmania/mapchallenge/main/data/reachable_roads_day_${day}.geojson`;
-        
-        map.addSource(`roads-day-${day}`, { type: 'geojson', data: url });
-
-        map.addLayer({
-          id: `roads-day-${day}`,
-          type: 'line',
-          source: `roads-day-${day}`,
-          layout: { 'line-join': 'round', 'line-cap': 'round' },
-          paint: {
-            'line-color': colors[day],
-            'line-width': 2.5,
-            'line-opacity': 0.6
-          }
-        });
-
-        // Fetch the data to extend map bounds
-        fetch(url)
-          .then(r => r.json())
-          .then(data => {
-            allFeatures = allFeatures.concat(data.features);
-            if (allFeatures.length > 0) {
-              const bounds = new maplibregl.LngLatBounds();
-              allFeatures.forEach(f => {
-                f.geometry.coordinates.flat(2).forEach(coord => bounds.extend(coord));
-              });
-              map.fitBounds(bounds, { padding: 40 });
+          allFeatures.forEach(f => {
+            const geom = f.geometry;
+            if (geom.type === "LineString") {
+              geom.coordinates.forEach(coord => bounds.extend(coord));
+            } else if (geom.type === "MultiLineString") {
+              geom.coordinates.forEach(line => line.forEach(coord => bounds.extend(coord)));
+            } else if (geom.type === "Point") {
+              bounds.extend(geom.coordinates);
             }
           });
+
+          map.fitBounds(bounds, { padding: 40 });
+        }
       });
-    });
-  </script>
+  });
+});
+</script>
 </body>
 </html>
