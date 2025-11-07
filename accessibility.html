@@ -40,18 +40,18 @@
       container: 'map'
     });
 
-    const valhallaUrl = "https://valhalla1.openstreetmap.de/isochrone";
+        const valhallaUrl = "https://valhalla1.openstreetmap.de/isochrone";
 
     async function fetchIsochrones(lng, lat) {
       const body = {
         locations: [{ lat: lat, lon: lng }],
         costing: "pedestrian",
         contours: [
-          { time: 5 },
-          { time: 10 },
-          { time: 15 },
-          { time: 20 },
-          { time: 25 }
+          { time: 5, color: "#00FF00" },  // Added color property
+          { time: 10, color: "#00FF00" }, // Added color property
+          { time: 15, color: "#00FF00" }, // Added color property
+          { time: 20, color: "#00FF00" }, // Added color property
+          { time: 25, color: "#00FF00" }  // Added color property
         ],
         polygons: true
       };
@@ -70,6 +70,7 @@
       const data = await response.json();
       addIsochronesToMap(data);
     }
+
 
     function addIsochronesToMap(geojson) {
       const colors = {
