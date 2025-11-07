@@ -156,8 +156,7 @@ function nodesToIsochrones(distances, maxDays, kmPerDay=25){
     let polygon;
     try { polygon=turf.concave(fc,{maxEdge:0.05,units:'kilometers'}); }
     catch(e){ polygon=turf.convex(fc); }
-    if(polygon) polygon.properties={day};
-    dayPolygons.push(polygon);
+    if(polygon) { polygon.properties={day}; dayPolygons.push(polygon); }
   }
   return turf.featureCollection(dayPolygons);
 }
@@ -197,30 +196,31 @@ map.on('click', e=>{
   const geojsonByDay=getReachableGeoJSONByDay(distances);
   for(let day=1;day<=5;day++){
     const featuresForDay={type:'FeatureCollection',features:geojsonByDay.features.filter(f=>f.properties.day===day)};
-    map.addSource(`day-${day}`,{type:'geojson', data:featuresForDay});
-    map.addLayer({
-      id:`day-${day}`,
-      type:'line',
-      source:`day-${day}`,
-      layout:{'line-join':'round','line-cap':'round'},
-      paint:{'line-color':colors[day],'line-width':2.5,'line-opacity':0.7}
-    });
+    if(featuresForDay.features.length>0){
+      map.addSource(`day-${day}`,{type:'geojson', data:featuresForDay});
+      map.addLayer({
+        id:`day-${day}`,
+        type:'line',
+        source:`day-${day}`,
+        layout:{'line-join':'round','line-cap':'round'},
+        paint:{'line-color':colors[day],'line-width':2.5,'line-opacity':0.7}
+      });
+    }
   }
 
   // Isochrone polygons
   const iso = nodesToIsochrones(distances,5,25);
   for(let day=1;day<=5;day++){
-    const poly = {
-  type: 'FeatureCollection',
-  features: iso.features.filter(f => f && f.properties && f.properties.day === day)
-};
-map.addSource(`iso-${day}`,{type:'geojson', data:poly});
-    map.addLayer({
-      id:`iso-${day}`,
-      type:'fill',
-      source:`iso-${day}`,
-      paint:{'fill-color':colors[day],'fill-opacity':0.15}
-    });
+    const poly={type:'FeatureCollection',features:iso.features.filter(f=>f && f.properties && f.properties.day===day)};
+    if(poly.features.length>0){
+      map.addSource(`iso-${day}`,{type:'geojson', data:poly});
+      map.addLayer({
+        id:`iso-${day}`,
+        type:'fill',
+        source:`iso-${day}`,
+        paint:{'fill-color': colors[day],'fill-opacity':0.15}
+      });
+    }
   }
 });
 </script>
