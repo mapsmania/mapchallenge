@@ -44,8 +44,16 @@ const map = new maplibregl.Map({
   container: 'map',
   style: 'https://tiles.openfreemap.org/styles/liberty',
   center: [-2.5, 54.0],
-  zoom: 5
+  zoom: 5,
+  attributionControl: false // disable default to customize
 });
+
+// Add attribution with links
+map.addControl(new maplibregl.AttributionControl({
+  compact: true,
+  customAttribution: 'Roman Roads data: <a href="https://itiner-e.org/" target="_blank">Itiner-e</a>, Map & tutorial: <a href="https://googlemapsmania.blogspot.com/" target="_blank">Maps Mania</a>'
+}));
+
 
 const colors = {1:'#ff0000',2:'#ff7f00',3:'#ffff00',4:'#7fff00',5:'#00ff00'};
 let graph = new Map();
