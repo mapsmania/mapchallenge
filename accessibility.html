@@ -54,7 +54,7 @@ let graph = new Map(); // key = "lng,lat", value = { edges: [...] }
 let allRoads = [];     // store original features for rendering
 
 // Load the main Roman roads GeoJSON
-fetch('https://raw.githubusercontent.com/mapsmania/mapchallenge/main/data/segments.geojson')
+fetch('/data/roman_roads.geojson')
   .then(r => r.json())
   .then(data => {
     allRoads = data.features;
