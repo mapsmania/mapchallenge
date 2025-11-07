@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Roman Roads Travel Map</title>
+<title>Roman Roads Travel Map - Progressive Days</title>
 <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
 <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
 <style>
@@ -42,94 +42,118 @@ const map = new maplibregl.Map({
   zoom: 5
 });
 
-const colors = {
-  1: '#ff0000',
-  2: '#ff7f00',
-  3: '#ffff00',
-  4: '#7fff00',
-  5: '#00ff00'
-};
-
+const colors = {1:'#ff0000',2:'#ff7f00',3:'#ffff00',4:'#7fff00',5:'#00ff00'};
 let graph = new Map();
 let allRoads = [];
 
 // Haversine distance in km
-function haversine([lng1, lat1], [lng2, lat2]) {
-  const R = 6371;
-  const toRad = Math.PI/180;
-  const dLat = (lat2-lat1)*toRad;
-  const dLng = (lng2-lng1)*toRad;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*toRad)*Math.cos(lat2*toRad)*Math.sin(dLng/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+function haversine([lng1, lat1], [lng2, lat2]){
+  const R=6371;
+  const toRad=Math.PI/180;
+  const dLat=(lat2-lat1)*toRad;
+  const dLng=(lng2-lng1)*toRad;
+  const a=Math.sin(dLat/2)**2 + Math.cos(lat1*toRad)*Math.cos(lat2*toRad)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-// Subdivide segment into ~1 km points
-function subdivideSegment([lng1, lat1], [lng2, lat2]) {
-  const points = [[lng1, lat1]];
-  const dist = haversine([lng1, lat1], [lng2, lat2]);
-  const steps = Math.ceil(dist);
+// Subdivide segment ~1 km
+function subdivideSegment([lng1, lat1],[lng2, lat2]){
+  const points=[[lng1, lat1]];
+  const dist=haversine([lng1, lat1],[lng2, lat2]);
+  const steps=Math.ceil(dist);
   for(let i=1;i<steps;i++){
     const t=i/steps;
-    points.push([lng1 + (lng2-lng1)*t, lat1 + (lat2-lat1)*t]);
+    points.push([lng1+(lng2-lng1)*t, lat1+(lat2-lat1)*t]);
   }
   points.push([lng2, lat2]);
   return points;
 }
 
-// Load and display black base layer + build graph
+// Load base roads and build graph
 fetch('https://mapsmania.github.io/mapchallenge/data/roman_roads.geojson')
-  .then(r => r.json())
-  .then(data => {
-    allRoads = data.features;
+.then(r=>r.json())
+.then(data=>{
+  allRoads=data.features;
 
-    // Add base layer in black
-    map.addSource('all-roads', { type: 'geojson', data });
-    map.addLayer({
-      id: 'all-roads-layer',
-      type: 'line',
-      source: 'all-roads',
-      layout: { 'line-join':'round','line-cap':'round' },
-      paint: { 'line-color':'#000000', 'line-width':1.5, 'line-opacity':0.5 }
-    });
-
-    // Build graph with subdivided nodes
-    data.features.forEach(f=>{
-      const coords = f.geometry.coordinates;
-      for(let i=0;i<coords.length-1;i++){
-        const subdiv = subdivideSegment(coords[i], coords[i+1]);
-        for(let j=0;j<subdiv.length-1;j++){
-          const [lng1, lat1] = subdiv[j];
-          const [lng2, lat2] = subdiv[j+1];
-          const key1 = `${lng1},${lat1}`;
-          const key2 = `${lng2},${lat2}`;
-          const segLength = haversine([lng1, lat1], [lng2, lat2]);
-          if(!graph.has(key1)) graph.set(key1,{edges:[]});
-          if(!graph.has(key2)) graph.set(key2,{edges:[]});
-          graph.get(key1).edges.push({to:key2, weight:segLength});
-          graph.get(key2).edges.push({to:key1, weight:segLength});
-        }
-      }
-    });
-
-    console.log('Graph ready with', graph.size, 'nodes');
+  map.addSource('all-roads',{type:'geojson',data});
+  map.addLayer({
+    id:'all-roads-layer',
+    type:'line',
+    source:'all-roads',
+    layout:{'line-join':'round','line-cap':'round'},
+    paint:{'line-color':'#000000','line-width':1.5,'line-opacity':0.5}
   });
 
-// Find nearest node to click
+  // Build graph with subdivided nodes
+  data.features.forEach(f=>{
+    const coords=f.geometry.coordinates;
+    for(let i=0;i<coords.length-1;i++){
+      const subdiv=subdivideSegment(coords[i], coords[i+1]);
+      for(let j=0;j<subdiv.length-1;j++){
+        const [lng1,lat1]=subdiv[j];
+        const [lng2,lat2]=subdiv[j+1];
+        const key1=`${lng1},${lat1}`;
+        const key2=`${lng2},${lat2}`;
+        const segLength=haversine([lng1,lat1],[lng2,lat2]);
+        if(!graph.has(key1)) graph.set(key1,{edges:[]});
+        if(!graph.has(key2)) graph.set(key2,{edges:[]});
+        graph.get(key1).edges.push({to:key2, weight:segLength});
+        graph.get(key2).edges.push({to:key1, weight:segLength});
+      }
+    }
+  });
+  console.log('Graph ready with', graph.size, 'nodes');
+});
+
+// Find nearest node
 function findNearestNode(lng, lat){
   let nearest=null, minDist=Infinity;
   graph.forEach((_, key)=>{
-    const [nlng, nlat] = key.split(',').map(Number);
-    const d = haversine([lng, lat],[nlng, nlat]);
+    const [nlng,nlat]=key.split(',').map(Number);
+    const d=haversine([lng,lat],[nlng,nlat]);
     if(d<minDist){ minDist=d; nearest=key; }
   });
   return nearest;
 }
 
-// Dijkstra
-function dijkstra(startKey, maxKm){
+// Get GeoJSON with "day" property
+function getReachableGeoJSONByDay(distances){
+  const features=[];
+  allRoads.forEach(f=>{
+    const coords=f.geometry.coordinates;
+    let minDistance=Infinity;
+    for(let i=0;i<coords.length-1;i++){
+      const subdiv=subdivideSegment(coords[i], coords[i+1]);
+      for(let p of subdiv){
+        const key=`${p[0]},${p[1]}`;
+        if(distances[key]!==undefined) minDistance=Math.min(minDistance, distances[key]);
+      }
+    }
+    if(minDistance<Infinity){
+      let day=Math.ceil(minDistance/25); 
+      day=Math.min(day,5);
+      const coloredFeature={...f, properties:{...f.properties, day}};
+      features.push(coloredFeature);
+    }
+  });
+  return {type:'FeatureCollection', features};
+}
+
+// Click handler
+map.on('click', e=>{
+  const { lng, lat } = e.lngLat;
+  const startNode = findNearestNode(lng, lat);
+  if(!startNode) return;
+
+  for(let day=1;day<=5;day++){
+    if(map.getLayer(`day-${day}`)) map.removeLayer(`day-${day}`);
+    if(map.getSource(`day-${day}`)) map.removeSource(`day-${day}`);
+  }
+
+  // Dijkstra
   const distances={}, visited=new Set(), queue=new Set();
   graph.forEach((_,k)=>distances[k]=Infinity);
-  distances[startKey]=0; queue.add(startKey);
+  distances[startNode]=0; queue.add(startNode);
 
   while(queue.size>0){
     let current=[...queue].reduce((a,b)=>distances[a]<distances[b]?a:b);
@@ -143,47 +167,20 @@ function dijkstra(startKey, maxKm){
     });
   }
 
-  return Object.keys(distances).filter(k=>distances[k]<=maxKm);
-}
-
-// Convert reachable nodes to GeoJSON segments
-function getReachableGeoJSON(reachableNodes){
-  const features=[];
-  allRoads.forEach(f=>{
-    const coords=f.geometry.coordinates;
-    const subdivided=[];
-    for(let i=0;i<coords.length-1;i++){
-      subdivided.push(...subdivideSegment(coords[i], coords[i+1]));
-    }
-    if(subdivided.some(p=>reachableNodes.includes(`${p[0]},${p[1]}`))){
-      features.push(f);
-    }
-  });
-  return { type:'FeatureCollection', features };
-}
-
-// On click, calculate and draw reachable roads
-map.on('click', e=>{
-  const { lng, lat } = e.lngLat;
-  const startNode = findNearestNode(lng, lat);
-  if(!startNode) return;
+  const geojsonByDay=getReachableGeoJSONByDay(distances);
 
   for(let day=1;day<=5;day++){
-    if(map.getLayer(`day-${day}`)) map.removeLayer(`day-${day}`);
-    if(map.getSource(`day-${day}`)) map.removeSource(`day-${day}`);
-  }
-
-  for(let day=1;day<=5;day++){
-    const reachableNodes = dijkstra(startNode, 25*day); // walking ~25km/day
-    const geojson = getReachableGeoJSON(reachableNodes);
-
-    map.addSource(`day-${day}`, { type:'geojson', data:geojson });
+    const featuresForDay={
+      type:'FeatureCollection',
+      features:geojsonByDay.features.filter(f=>f.properties.day===day)
+    };
+    map.addSource(`day-${day}`,{type:'geojson', data:featuresForDay});
     map.addLayer({
       id:`day-${day}`,
       type:'line',
       source:`day-${day}`,
       layout:{'line-join':'round','line-cap':'round'},
-      paint:{'line-color':colors[day],'line-width':2.5,'line-opacity':0.6}
+      paint:{'line-color':colors[day],'line-width':2.5,'line-opacity':0.7}
     });
   }
 });
