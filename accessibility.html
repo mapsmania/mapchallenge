@@ -2,36 +2,41 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Roman Roads Travel Times</title>
+<title>Roman Roads Travel Map - Progressive Days with Sidebar</title>
 <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
 <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
 <style>
-body { margin:0; padding:0; }
-#map { position:absolute; top:0; bottom:0; width:100%; }
-.legend {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  background: rgba(255,255,255,0.9);
+body { margin:0; padding:0; display:flex; height:100vh; }
+#map { flex:1; }
+#sidebar {
+  width: 300px; 
+  background: rgba(255,255,255,0.95);
   padding: 10px;
-  border-radius: 6px;
   font-family: sans-serif;
-  font-size: 13px;
-  line-height: 1.5;
+  overflow-y: auto;
 }
-.legend div { display: flex; align-items: center; }
-.legend span { width: 20px; height: 10px; display: inline-block; margin-right: 6px; }
+#sidebar h3 { margin-top:0; }
+.legend div { display:flex; align-items:center; margin-bottom:4px; }
+.legend span { width: 20px; height: 10px; display:inline-block; margin-right:6px; }
+a.point-link { display:block; margin-bottom:4px; cursor:pointer; color:#0066cc; text-decoration:none; }
+a.point-link:hover { text-decoration:underline; }
 </style>
 </head>
 <body>
 <div id="map"></div>
-<div class="legend">
-  <strong>Reachable in Days (Walking ~25 km/day)</strong><br/>
-  <div><span style="background:#ff0000"></span> Day 1</div>
-  <div><span style="background:#ff7f00"></span> Day 2</div>
-  <div><span style="background:#ffff00"></span> Day 3</div>
-  <div><span style="background:#7fff00"></span> Day 4</div>
-  <div><span style="background:#00ff00"></span> Day 5</div>
+<div id="sidebar">
+  <h3>Roman Roads Travel Map</h3>
+  <p>Click on the map to calculate how far you could travel from that point along Roman roads.</p>
+  <div class="legend">
+    <strong>Reachable in Days (Walking ~25 km/day)</strong><br/>
+    <div><span style="background:#ff0000"></span> Day 1</div>
+    <div><span style="background:#ff7f00"></span> Day 2</div>
+    <div><span style="background:#ffff00"></span> Day 3</div>
+    <div><span style="background:#7fff00"></span> Day 4</div>
+    <div><span style="background:#00ff00"></span> Day 5</div>
+  </div>
+  <hr>
+  <div id="points-list">Instructions: Click on the map to see reachable points here.</div>
 </div>
 
 <script>
@@ -139,38 +144,51 @@ function getReachableGeoJSONByDay(distances){
   return {type:'FeatureCollection', features};
 }
 
-// Get pleiades points by day
-function getPleiadesPointsByDay(geojsonByDay, day){
-  const features=[];
-  geojsonByDay.features.filter(f=>f.properties.day===day)
-    .forEach(f=>{
-      if(f.pleiadesPlaces){
-        f.pleiadesPlaces.forEach(p=>{
-          features.push({...p, properties:{...p.properties, day}});
-        });
-      }
-    });
-  return {type:'FeatureCollection', features};
+// Compute bounds of colored segments
+function getColoredBounds(geojson){
+  const coords=[];
+  geojson.features.forEach(f=>f.geometry.coordinates.forEach(c=>coords.push(c)));
+  if(coords.length===0) return null;
+  const lons=coords.map(c=>c[0]), lats=coords.map(c=>c[1]);
+  return [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]];
+}
+
+// Update sidebar list
+function updateSidebar(geojson){
+  const container=document.getElementById('points-list');
+  container.innerHTML='<h4>Reachable Points</h4>';
+  let hasPoints=false;
+  geojson.features.forEach(f=>{
+    if(f.pleiadesPlaces){
+      f.pleiadesPlaces.forEach(p=>{
+        hasPoints=true;
+        const a=document.createElement('a');
+        a.textContent=p.properties.name;
+        a.className='point-link';
+        a.onclick=(e)=>{
+          e.preventDefault();
+          map.flyTo({center:p.geometry.coordinates, zoom:10});
+          new maplibregl.Popup()
+            .setLngLat(p.geometry.coordinates)
+            .setHTML(`<strong>${p.properties.name}</strong><br>Type: ${p.properties.type}<br>Years: ${p.properties.startYear}–${p.properties.endYear}`)
+            .addTo(map);
+        };
+        container.appendChild(a);
+      });
+    }
+  });
+  if(!hasPoints) container.innerHTML='<p>No points reachable.</p>';
 }
 
 // Click handler
 map.on('click', e=>{
-  // Ignore clicks on point layers
-  const features = map.queryRenderedFeatures(e.point, {
-    layers: Object.keys(colors).map(d=>'day-'+d+'-points')
-  });
-  if(features.length > 0) return;
-
   const { lng, lat } = e.lngLat;
   const startNode = findNearestNode(lng, lat);
   if(!startNode) return;
 
-  // Remove old layers
   for(let day=1;day<=5;day++){
     if(map.getLayer(`day-${day}`)) map.removeLayer(`day-${day}`);
     if(map.getSource(`day-${day}`)) map.removeSource(`day-${day}`);
-    if(map.getLayer(`day-${day}-points`)) map.removeLayer(`day-${day}-points`);
-    if(map.getSource(`day-${day}-points`)) map.removeSource(`day-${day}-points`);
   }
 
   // Dijkstra
@@ -181,11 +199,11 @@ map.on('click', e=>{
   while(queue.size>0){
     let current=[...queue].reduce((a,b)=>distances[a]<distances[b]?a:b);
     queue.delete(current); visited.add(current);
-    graph.get(current).edges.forEach(edge=>{
-      const alt=distances[current]+edge.weight;
-      if(alt<distances[edge.to]){
-        distances[edge.to]=alt;
-        if(!visited.has(edge.to)) queue.add(edge.to);
+    graph.get(current).edges.forEach(e=>{
+      const alt=distances[current]+e.weight;
+      if(alt<distances[e.to]){
+        distances[e.to]=alt;
+        if(!visited.has(e.to)) queue.add(e.to);
       }
     });
   }
@@ -193,7 +211,6 @@ map.on('click', e=>{
   const geojsonByDay=getReachableGeoJSONByDay(distances);
 
   for(let day=1;day<=5;day++){
-    // Add road segments
     const featuresForDay={
       type:'FeatureCollection',
       features:geojsonByDay.features.filter(f=>f.properties.day===day)
@@ -207,30 +224,31 @@ map.on('click', e=>{
       paint:{'line-color':colors[day],'line-width':2.5,'line-opacity':0.7}
     });
 
-    // Add points
-    const pointsForDay=getPleiadesPointsByDay(geojsonByDay, day);
-    map.addSource(`day-${day}-points`, {type:'geojson', data:pointsForDay});
-    map.addLayer({
-      id:`day-${day}-points`,
-      type:'circle',
-      source:`day-${day}-points`,
-      paint:{
-        'circle-radius':6,
-        'circle-color':colors[day],
-        'circle-stroke-color':'#000',
-        'circle-stroke-width':1
+    // Add points for that day
+    featuresForDay.features.forEach(f=>{
+      if(f.pleiadesPlaces){
+        f.pleiadesPlaces.forEach(p=>{
+          const id=`point-${p.id}`;
+          if(!map.getSource(id)){
+            map.addSource(id,{type:'geojson', data:p});
+            map.addLayer({
+              id:id,
+              type:'circle',
+              source:id,
+              paint:{'circle-radius':6,'circle-color':'#0000ff'}
+            });
+          }
+        });
       }
     });
-
-    // Add popups
-    map.on('click', `day-${day}-points`, function(e){
-      const props = e.features[0].properties;
-      new maplibregl.Popup()
-        .setLngLat(e.features[0].geometry.coordinates)
-        .setHTML(`<strong>${props.name}</strong><br>Type: ${props.type}<br>Years: ${props.startYear}–${props.endYear}`)
-        .addTo(map);
-    });
   }
+
+  // Zoom to bounds
+  const bounds=getColoredBounds(geojsonByDay);
+  if(bounds) map.fitBounds(bounds, { padding:50 });
+
+  // Update sidebar
+  updateSidebar(geojsonByDay);
 });
 </script>
 </body>
