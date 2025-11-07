@@ -2,43 +2,81 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Roman Roads Map</title>
+  <title>Roman Roads – Reachable per Day</title>
   <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
   <style>
     body { margin:0; padding:0; }
     #map { position:absolute; top:0; bottom:0; width:100%; }
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.9);
+      padding: 10px;
+      border-radius: 6px;
+      font-family: sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .legend div {
+      display: flex;
+      align-items: center;
+    }
+    .legend span {
+      width: 20px;
+      height: 10px;
+      display: inline-block;
+      margin-right: 6px;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
+  <div class="legend">
+    <strong>Reachable in Days</strong><br/>
+    <div><span style="background:#ff0000"></span> Day 1</div>
+    <div><span style="background:#ff7f00"></span> Day 2</div>
+    <div><span style="background:#ffff00"></span> Day 3</div>
+    <div><span style="background:#7fff00"></span> Day 4</div>
+    <div><span style="background:#00ff00"></span> Day 5</div>
+  </div>
+
   <script>
     const map = new maplibregl.Map({
-    style: 'https://tiles.openfreemap.org/styles/liberty',
-    center: [-2.5, 54.0],
-    zoom: 5,
-    container: 'map',
-  })
+      container: 'map',
+      style: 'https://tiles.openfreemap.org/styles/liberty', // or positron
+      center: [-2.5, 54.0],
+      zoom: 5
+    });
+
+    const days = [1,2,3,4,5];
+    const colors = {
+      1: '#ff0000',
+      2: '#ff7f00',
+      3: '#ffff00',
+      4: '#7fff00',
+      5: '#00ff00'
+    };
 
     map.on('load', () => {
-      // Add your GeoJSON (you’ll need to convert your NDJSON into one FeatureCollection)
-      map.addSource('roman-roads', {
-        type: 'geojson',
-        data: 'data/roman_roads.geojson'   // or embed into variable
-      });
+      days.forEach(day => {
+        map.addSource(`roads-day-${day}`, {
+          type: 'geojson',
+          data: `https://raw.githubusercontent.com/mapsmania/mapchallenge/main/data/reachable_roads_day_${day}.geojson`
+        });
 
-      map.addLayer({
-        id: 'roads-layer',
-        type: 'line',
-        source: 'roman-roads',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#FF0000',  // red for visibility
-          'line-width': 2
-        }
+        map.addLayer({
+          id: `roads-day-${day}`,
+          type: 'line',
+          source: `roads-day-${day}`,
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': colors[day],
+            'line-width': 2.5,
+            'line-opacity': 0.8
+          }
+        });
       });
     });
   </script>
