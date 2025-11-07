@@ -42,48 +42,16 @@ a.point-link:hover { text-decoration:underline; }
 <script>
 const map = new maplibregl.Map({
     style: 'https://mapsmania.github.io/mapchallenge/data/romanstyle.json',
-    center: [-2.5, 54.0], // Center on a Roman-related area
+    center: [-2.5, 54.0],
     zoom: 5,
     container: 'map',
     attributionControl: false
 });
-    
-// UPDATED CUSTOM ATTRIBUTION CONTROL with DARE acknowledgment
+
 map.addControl(new maplibregl.AttributionControl({
     compact: true,
     customAttribution: 'Roman Roads data: <a href="https://itiner-e.org/" target="_blank">Itiner-e</a>, Map by <a href="https://googlemapsmania.blogspot.com/2025/11/the-roman-britain-travel-map.html" target="_blank">Maps Mania</a> | Roman Place Data: <a href="http://imperium.ahlfeldt.se/" target="_blank">Digital Atlas of the Roman Empire (DARE)</a>'
 }));
-
-    map.on('load', () => {
-    map.addSource('roman-britain-places', {
-        type: 'geojson',
-        data: 'https://imperium.ahlfeldt.se/api/geojson.php?bbox=-10.0,49.0,3.0,59.0'
-    });
-
-    map.addLayer({
-        id: 'roman-britain-labels',
-        type: 'symbol',
-        source: 'roman-britain-places',
-        // Now using 'ancient' name and filtering by it
-        filter: ['has', 'ancient'], 
-        layout: {
-            'text-field': ['get', 'ancient'],
-            'text-size': 14,
-            'text-font': ['Noto Sans Regular'],
-            'text-anchor': 'top',
-            'text-offset': [0, 0.6],
-            // Set to true to force labels to draw over points/roads if needed
-            'text-allow-overlap': false, 
-            'text-ignore-placement': false
-        },
-        paint: {
-            'text-color': '#2b1a00',
-            'text-halo-color': '#f8f4e3',
-            'text-halo-width': 2.5
-        }
-    });
-});
-
 
 const colors = {1:'#ff0000',2:'#ff7f00',3:'#ffff00',4:'#7fff00',5:'#00ff00'};
 let graph = new Map();
@@ -91,10 +59,8 @@ let allRoads = [];
 
 // Haversine distance in km
 function haversine([lng1, lat1], [lng2, lat2]){
-    const R=6371;
-    const toRad=Math.PI/180;
-    const dLat=(lat2-lat1)*toRad;
-    const dLng=(lng2-lng1)*toRad;
+    const R=6371, toRad=Math.PI/180;
+    const dLat=(lat2-lat1)*toRad, dLng=(lng2-lng1)*toRad;
     const a=Math.sin(dLat/2)**2 + Math.cos(lat1*toRad)*Math.cos(lat2*toRad)*Math.sin(dLng/2)**2;
     return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
@@ -118,18 +84,14 @@ fetch('https://mapsmania.github.io/mapchallenge/data/roman_roads.geojson')
 .then(data=>{
     allRoads=data.features;
 
+    // Add gray base roads
     map.addSource('all-roads',{type:'geojson',data});
     map.addLayer({
         id:'all-roads-layer',
         type:'line',
         source:'all-roads',
         layout:{'line-join':'round','line-cap':'round'},
-        // 🎨 VISUAL TWEAK: Reduced line width and changed color to gray
-        paint:{
-            'line-color':'#888888', // Dark Gray
-            'line-width': 1.0,      // Thinner line
-            'line-opacity': 0.45
-        }
+        paint:{'line-color':'#888888','line-width':1.0,'line-opacity':0.45}
     });
 
     // Build graph with subdivided nodes
@@ -140,8 +102,7 @@ fetch('https://mapsmania.github.io/mapchallenge/data/roman_roads.geojson')
             for(let j=0;j<subdiv.length-1;j++){
                 const [lng1,lat1]=subdiv[j];
                 const [lng2,lat2]=subdiv[j+1];
-                const key1=`${lng1},${lat1}`;
-                const key2=`${lng2},${lat2}`;
+                const key1=`${lng1},${lat1}`, key2=`${lng2},${lat2}`;
                 const segLength=haversine([lng1,lat1],[lng2,lat2]);
                 if(!graph.has(key1)) graph.set(key1,{edges:[]});
                 if(!graph.has(key2)) graph.set(key2,{edges:[]});
@@ -151,11 +112,34 @@ fetch('https://mapsmania.github.io/mapchallenge/data/roman_roads.geojson')
         }
     });
     console.log('Graph ready with', graph.size, 'nodes');
-    
-    // ⏫ LAYER ORDER FIX: Move the labels to the very top after the roads are loaded
-    if (map.getLayer('roman-britain-labels')) {
-        map.moveLayer('roman-britain-labels');
-    }
+});
+
+// Add Roman place labels
+map.on('load', () => {
+    map.addSource('roman-britain-places', {
+        type: 'geojson',
+        data: 'https://imperium.ahlfeldt.se/api/geojson.php?bbox=-10.0,49.0,3.0,59.0'
+    });
+    map.addLayer({
+        id: 'roman-britain-labels',
+        type: 'symbol',
+        source: 'roman-britain-places',
+        filter: ['has', 'ancient'], 
+        layout: {
+            'text-field': ['get', 'ancient'],
+            'text-size': 14,
+            'text-font': ['Noto Sans Regular'],
+            'text-anchor': 'top',
+            'text-offset': [0, 0.6],
+            'text-allow-overlap': false, 
+            'text-ignore-placement': false
+        },
+        paint: {
+            'text-color': '#2b1a00',
+            'text-halo-color': '#f8f4e3',
+            'text-halo-width': 2.5
+        }
+    });
 });
 
 // Find nearest node
@@ -169,7 +153,7 @@ function findNearestNode(lng, lat){
     return nearest;
 }
 
-// Get GeoJSON with "day" property
+// Get reachable GeoJSON by day
 function getReachableGeoJSONByDay(distances){
     const features=[];
     allRoads.forEach(f=>{
@@ -192,7 +176,7 @@ function getReachableGeoJSONByDay(distances){
     return {type:'FeatureCollection', features};
 }
 
-// Compute bounds of colored segments
+// Compute bounds
 function getColoredBounds(geojson){
     const coords=[];
     geojson.features.forEach(f=>f.geometry.coordinates.forEach(c=>coords.push(c)));
@@ -201,7 +185,7 @@ function getColoredBounds(geojson){
     return [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]];
 }
 
-// Update sidebar list
+// Update sidebar
 function updateSidebar(geojson){
     const container = document.getElementById('points-list');
     container.innerHTML = '<h4>Reachable Points</h4>';
@@ -211,7 +195,7 @@ function updateSidebar(geojson){
     geojson.features.forEach(f=>{
         if(f.pleiadesPlaces){
             f.pleiadesPlaces.forEach(p=>{
-                if(seenIds.has(p.id)) return; // skip duplicates
+                if(seenIds.has(p.id)) return;
                 seenIds.add(p.id);
                 hasPoints = true;
 
@@ -230,13 +214,12 @@ function updateSidebar(geojson){
             });
         }
     });
-
     if(!hasPoints) container.innerHTML = '<p>No points reachable.</p>';
 }
 
-// Click handler for travel times
+// Click handler
 map.on('click', e=>{
-    // Prevent triggering if clicking on a point
+    // Prevent recalculation if clicking a point
     const features = map.queryRenderedFeatures(e.point, { layers: map.getStyle().layers.map(l => l.id).filter(id => id.startsWith('point-')) });
     if(features.length>0) return;
 
@@ -244,15 +227,20 @@ map.on('click', e=>{
     const startNode = findNearestNode(lng, lat);
     if(!startNode) return;
 
+    // Remove old day layers and points
     for(let day=1;day<=5;day++){
         if(map.getLayer(`day-${day}`)) map.removeLayer(`day-${day}`);
         if(map.getSource(`day-${day}`)) map.removeSource(`day-${day}`);
     }
+    map.getStyle().layers.map(l => l.id).filter(id => id.startsWith('point-')).forEach(id=>{
+        if(map.getLayer(id)) map.removeLayer(id);
+        if(map.getSource(id)) map.removeSource(id);
+    });
 
+    // Dijkstra
     const distances={}, visited=new Set(), queue=new Set();
     graph.forEach((_,k)=>distances[k]=Infinity);
     distances[startNode]=0; queue.add(startNode);
-
     while(queue.size>0){
         let current=[...queue].reduce((a,b)=>distances[a]<distances[b]?a:b);
         queue.delete(current); visited.add(current);
@@ -281,27 +269,24 @@ map.on('click', e=>{
             paint:{'line-color':colors[day],'line-width':2.5,'line-opacity':0.7}
         });
 
-        // Add points for that day
+        // Add point markers behind labels
         featuresForDay.features.forEach(f=>{
             if(f.pleiadesPlaces){
                 f.pleiadesPlaces.forEach(p=>{
-                    const id=`point-${p.id}`;
+                    const id = `point-${p.id}`;
                     if(!map.getSource(id)){
-                        map.addSource(id,{type:'geojson', data:p});
+                        map.addSource(id, { type:'geojson', data: p });
                         map.addLayer({
-                            id:id,
-                            type:'circle',
-                            source:id,
-                            paint:{'circle-radius':6,'circle-color':'#0000ff'}
-                        });
-                        // Point click
-                        map.on('click', id, (e)=>{
-                            const props = p.properties;
-                            new maplibregl.Popup()
-                                .setLngLat(p.geometry.coordinates)
-                                .setHTML(`<strong>${props.name}</strong><br>Type: ${props.type}<br>Years: ${props.startYear}–${props.endYear}`)
-                                .addTo(map);
-                        });
+                            id: id,
+                            type: 'circle',
+                            source: id,
+                            paint: {
+                                'circle-radius':6,
+                                'circle-color':'#0000ff',
+                                'circle-stroke-width':1,
+                                'circle-stroke-color':'#ffffff'
+                            }
+                        }, 'roman-britain-labels'); // below labels
                     }
                 });
             }
@@ -314,6 +299,18 @@ map.on('click', e=>{
 
     // Update sidebar
     updateSidebar(geojsonByDay);
+});
+
+// Click on points to show popup
+map.on('click', e=>{
+    const features = map.queryRenderedFeatures(e.point, { layers: map.getStyle().layers.map(l => l.id).filter(id => id.startsWith('point-')) });
+    if(features.length>0){
+        const props = features[0].properties;
+        new maplibregl.Popup()
+            .setLngLat(features[0].geometry.coordinates)
+            .setHTML(`<strong>${props.name}</strong><br>Type: ${props.type}<br>Years: ${props.startYear}–${props.endYear}`)
+            .addTo(map);
+    }
 });
 </script>
 </body>
