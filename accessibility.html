@@ -210,8 +210,11 @@ map.on('click', e=>{
   // Isochrone polygons
   const iso = nodesToIsochrones(distances,5,25);
   for(let day=1;day<=5;day++){
-    const poly={type:'FeatureCollection',features:iso.features.filter(f=>f.properties.day===day)};
-    map.addSource(`iso-${day}`,{type:'geojson', data:poly});
+    const poly = {
+  type: 'FeatureCollection',
+  features: iso.features.filter(f => f && f.properties && f.properties.day === day)
+};
+map.addSource(`iso-${day}`,{type:'geojson', data:poly});
     map.addLayer({
       id:`iso-${day}`,
       type:'fill',
