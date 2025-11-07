@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Roman Roads Travel Map - Progressive Days with Points</title>
+<title>Roman Roads Travel Map - Progressive Days with Points & Popups</title>
 <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
 <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
 <style>
@@ -155,6 +155,12 @@ function getPleiadesPointsByDay(geojsonByDay, day){
 
 // Click handler
 map.on('click', e=>{
+  // Ignore clicks on point layers
+  const features = map.queryRenderedFeatures(e.point, {
+    layers: Object.keys(colors).map(d=>'day-'+d+'-points')
+  });
+  if(features.length > 0) return;
+
   const { lng, lat } = e.lngLat;
   const startNode = findNearestNode(lng, lat);
   if(!startNode) return;
@@ -214,6 +220,15 @@ map.on('click', e=>{
         'circle-stroke-color':'#000',
         'circle-stroke-width':1
       }
+    });
+
+    // Add popups
+    map.on('click', `day-${day}-points`, function(e){
+      const props = e.features[0].properties;
+      new maplibregl.Popup()
+        .setLngLat(e.features[0].geometry.coordinates)
+        .setHTML(`<strong>${props.name}</strong><br>Type: ${props.type}<br>Years: ${props.startYear}–${props.endYear}`)
+        .addTo(map);
     });
   }
 });
