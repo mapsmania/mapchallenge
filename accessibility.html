@@ -9,11 +9,11 @@
 body { margin:0; padding:0; display:flex; height:100vh; }
 #map { flex:1; }
 #sidebar {
-  width: 300px; 
-  background: rgba(255,255,255,0.95);
-  padding: 10px;
-  font-family: sans-serif;
-  overflow-y: auto;
+    width: 300px; 
+    background: rgba(255,255,255,0.95);
+    padding: 10px;
+    font-family: sans-serif;
+    overflow-y: auto;
 }
 #sidebar h3 { margin-top:0; }
 .legend div { display:flex; align-items:center; margin-bottom:4px; }
@@ -25,18 +25,18 @@ a.point-link:hover { text-decoration:underline; }
 <body>
 <div id="map"></div>
 <div id="sidebar">
-  <h3>Roman Britain Travel Map</h3>
-  <p>Click on the map to calculate how far you could travel from that point along Roman roads.</p>
-  <div class="legend">
-    <strong>Reachable in Days <br>(Walking ~25 km/day)</strong><br/>
-    <div><span style="background:#ff0000"></span> Day 1</div>
-    <div><span style="background:#ff7f00"></span> Day 2</div>
-    <div><span style="background:#ffff00"></span> Day 3</div>
-    <div><span style="background:#7fff00"></span> Day 4</div>
-    <div><span style="background:#00ff00"></span> Day 5</div>
-  </div>
-  <hr>
-  <div id="points-list">Instructions: Click on the map to see reachable points here.</div>
+    <h3>Roman Britain Travel Map</h3>
+    <p>Click on the map to calculate how far you could travel from that point along Roman roads.</p>
+    <div class="legend">
+        <strong>Reachable in Days <br>(Walking ~25 km/day)</strong><br/>
+        <div><span style="background:#ff0000"></span> Day 1</div>
+        <div><span style="background:#ff7f00"></span> Day 2</div>
+        <div><span style="background:#ffff00"></span> Day 3</div>
+        <div><span style="background:#7fff00"></span> Day 4</div>
+        <div><span style="background:#00ff00"></span> Day 5</div>
+    </div>
+    <hr>
+    <div id="points-list">Instructions: Click on the map to see reachable points here.</div>
 </div>
 
 <script>
@@ -46,45 +46,42 @@ const map = new maplibregl.Map({
     zoom: 5,
     container: 'map',
     attributionControl: false
-  })
+});
     
-// ✅ NEW/UPDATED CUSTOM ATTRIBUTION CONTROL
+// UPDATED CUSTOM ATTRIBUTION CONTROL with DARE acknowledgment
 map.addControl(new maplibregl.AttributionControl({
     compact: true,
     customAttribution: 'Roman Roads data: <a href="https://itiner-e.org/" target="_blank">Itiner-e</a>, Map by <a href="https://googlemapsmania.blogspot.com/2025/11/the-roman-britain-travel-map.html" target="_blank">Maps Mania</a> | Roman Place Data: <a href="http://imperium.ahlfeldt.se/" target="_blank">Digital Atlas of the Roman Empire (DARE)</a>'
 }));
 
     map.on('load', () => {
-  map.addSource('roman-britain-places', {
-    type: 'geojson',
-    data: 'https://imperium.ahlfeldt.se/api/geojson.php?bbox=-10.0,49.0,3.0,59.0'
-  });
+    map.addSource('roman-britain-places', {
+        type: 'geojson',
+        data: 'https://imperium.ahlfeldt.se/api/geojson.php?bbox=-10.0,49.0,3.0,59.0'
+    });
 
-  map.addLayer({
-    id: 'roman-britain-labels',
-    type: 'symbol',
-    source: 'roman-britain-places',
-    filter: ['has', 'ancient'], // ensure only ancient-named places are labeled
-    layout: {
-      'text-field': ['get', 'ancient'],
-      'text-size': 14,
-      'text-font': ['Noto Sans Regular'],
-      'text-anchor': 'top',
-      'text-offset': [0, 0.6],
-      'text-allow-overlap': false,
-      'text-ignore-placement': false
-    },
-    paint: {
-      'text-color': '#2b1a00',
-      'text-halo-color': '#f8f4e3',
-      'text-halo-width': 2.5
-    }
-  });
-
-  // Move labels above all roads and travel layers
-  ['day-1','day-2','day-3','day-4','day-5','all-roads-layer'].forEach(id => {
-    if (map.getLayer(id)) map.moveLayer('roman-britain-labels', id);
-  });
+    map.addLayer({
+        id: 'roman-britain-labels',
+        type: 'symbol',
+        source: 'roman-britain-places',
+        // Now using 'ancient' name and filtering by it
+        filter: ['has', 'ancient'], 
+        layout: {
+            'text-field': ['get', 'ancient'],
+            'text-size': 14,
+            'text-font': ['Noto Sans Regular'],
+            'text-anchor': 'top',
+            'text-offset': [0, 0.6],
+            // Set to true to force labels to draw over points/roads if needed
+            'text-allow-overlap': false, 
+            'text-ignore-placement': false
+        },
+        paint: {
+            'text-color': '#2b1a00',
+            'text-halo-color': '#f8f4e3',
+            'text-halo-width': 2.5
+        }
+    });
 });
 
 
@@ -94,219 +91,229 @@ let allRoads = [];
 
 // Haversine distance in km
 function haversine([lng1, lat1], [lng2, lat2]){
-  const R=6371;
-  const toRad=Math.PI/180;
-  const dLat=(lat2-lat1)*toRad;
-  const dLng=(lng2-lng1)*toRad;
-  const a=Math.sin(dLat/2)**2 + Math.cos(lat1*toRad)*Math.cos(lat2*toRad)*Math.sin(dLng/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+    const R=6371;
+    const toRad=Math.PI/180;
+    const dLat=(lat2-lat1)*toRad;
+    const dLng=(lng2-lng1)*toRad;
+    const a=Math.sin(dLat/2)**2 + Math.cos(lat1*toRad)*Math.cos(lat2*toRad)*Math.sin(dLng/2)**2;
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
 // Subdivide segment ~1 km
 function subdivideSegment([lng1, lat1],[lng2, lat2]){
-  const points=[[lng1, lat1]];
-  const dist=haversine([lng1, lat1],[lng2, lat2]);
-  const steps=Math.ceil(dist);
-  for(let i=1;i<steps;i++){
-    const t=i/steps;
-    points.push([lng1+(lng2-lng1)*t, lat1+(lat2-lat1)*t]);
-  }
-  points.push([lng2, lat2]);
-  return points;
+    const points=[[lng1, lat1]];
+    const dist=haversine([lng1, lat1],[lng2, lat2]);
+    const steps=Math.ceil(dist);
+    for(let i=1;i<steps;i++){
+        const t=i/steps;
+        points.push([lng1+(lng2-lng1)*t, lat1+(lat2-lat1)*t]);
+    }
+    points.push([lng2, lat2]);
+    return points;
 }
 
 // Load base roads and build graph
 fetch('https://mapsmania.github.io/mapchallenge/data/roman_roads.geojson')
 .then(r=>r.json())
 .then(data=>{
-  allRoads=data.features;
+    allRoads=data.features;
 
-  map.addSource('all-roads',{type:'geojson',data});
-  map.addLayer({
-    id:'all-roads-layer',
-    type:'line',
-    source:'all-roads',
-    layout:{'line-join':'round','line-cap':'round'},
-    paint:{'line-color':'#000000','line-width':1.5,'line-opacity':0.5}
-  });
+    map.addSource('all-roads',{type:'geojson',data});
+    map.addLayer({
+        id:'all-roads-layer',
+        type:'line',
+        source:'all-roads',
+        layout:{'line-join':'round','line-cap':'round'},
+        // 🎨 VISUAL TWEAK: Reduced line width and changed color to gray
+        paint:{
+            'line-color':'#888888', // Dark Gray
+            'line-width': 1.0,      // Thinner line
+            'line-opacity': 0.45
+        }
+    });
 
-  // Build graph with subdivided nodes
-  data.features.forEach(f=>{
-    const coords=f.geometry.coordinates;
-    for(let i=0;i<coords.length-1;i++){
-      const subdiv=subdivideSegment(coords[i], coords[i+1]);
-      for(let j=0;j<subdiv.length-1;j++){
-        const [lng1,lat1]=subdiv[j];
-        const [lng2,lat2]=subdiv[j+1];
-        const key1=`${lng1},${lat1}`;
-        const key2=`${lng2},${lat2}`;
-        const segLength=haversine([lng1,lat1],[lng2,lat2]);
-        if(!graph.has(key1)) graph.set(key1,{edges:[]});
-        if(!graph.has(key2)) graph.set(key2,{edges:[]});
-        graph.get(key1).edges.push({to:key2, weight:segLength});
-        graph.get(key2).edges.push({to:key1, weight:segLength});
-      }
+    // Build graph with subdivided nodes
+    data.features.forEach(f=>{
+        const coords=f.geometry.coordinates;
+        for(let i=0;i<coords.length-1;i++){
+            const subdiv=subdivideSegment(coords[i], coords[i+1]);
+            for(let j=0;j<subdiv.length-1;j++){
+                const [lng1,lat1]=subdiv[j];
+                const [lng2,lat2]=subdiv[j+1];
+                const key1=`${lng1},${lat1}`;
+                const key2=`${lng2},${lat2}`;
+                const segLength=haversine([lng1,lat1],[lng2,lat2]);
+                if(!graph.has(key1)) graph.set(key1,{edges:[]});
+                if(!graph.has(key2)) graph.set(key2,{edges:[]});
+                graph.get(key1).edges.push({to:key2, weight:segLength});
+                graph.get(key2).edges.push({to:key1, weight:segLength});
+            }
+        }
+    });
+    console.log('Graph ready with', graph.size, 'nodes');
+    
+    // ⏫ LAYER ORDER FIX: Move the labels to the very top after the roads are loaded
+    if (map.getLayer('roman-britain-labels')) {
+        map.moveLayer('roman-britain-labels');
     }
-  });
-  console.log('Graph ready with', graph.size, 'nodes');
 });
 
 // Find nearest node
 function findNearestNode(lng, lat){
-  let nearest=null, minDist=Infinity;
-  graph.forEach((_, key)=>{
-    const [nlng,nlat]=key.split(',').map(Number);
-    const d=haversine([lng,lat],[nlng,nlat]);
-    if(d<minDist){ minDist=d; nearest=key; }
-  });
-  return nearest;
+    let nearest=null, minDist=Infinity;
+    graph.forEach((_, key)=>{
+        const [nlng,nlat]=key.split(',').map(Number);
+        const d=haversine([lng,lat],[nlng,nlat]);
+        if(d<minDist){ minDist=d; nearest=key; }
+    });
+    return nearest;
 }
 
 // Get GeoJSON with "day" property
 function getReachableGeoJSONByDay(distances){
-  const features=[];
-  allRoads.forEach(f=>{
-    const coords=f.geometry.coordinates;
-    let minDistance=Infinity;
-    for(let i=0;i<coords.length-1;i++){
-      const subdiv=subdivideSegment(coords[i], coords[i+1]);
-      for(let p of subdiv){
-        const key=`${p[0]},${p[1]}`;
-        if(distances[key]!==undefined) minDistance=Math.min(minDistance, distances[key]);
-      }
-    }
-    if(minDistance<Infinity){
-      let day=Math.ceil(minDistance/25); 
-      day=Math.min(day,5);
-      const coloredFeature={...f, properties:{...f.properties, day}};
-      features.push(coloredFeature);
-    }
-  });
-  return {type:'FeatureCollection', features};
+    const features=[];
+    allRoads.forEach(f=>{
+        const coords=f.geometry.coordinates;
+        let minDistance=Infinity;
+        for(let i=0;i<coords.length-1;i++){
+            const subdiv=subdivideSegment(coords[i], coords[i+1]);
+            for(let p of subdiv){
+                const key=`${p[0]},${p[1]}`;
+                if(distances[key]!==undefined) minDistance=Math.min(minDistance, distances[key]);
+            }
+        }
+        if(minDistance<Infinity){
+            let day=Math.ceil(minDistance/25); 
+            day=Math.min(day,5);
+            const coloredFeature={...f, properties:{...f.properties, day}};
+            features.push(coloredFeature);
+        }
+    });
+    return {type:'FeatureCollection', features};
 }
 
 // Compute bounds of colored segments
 function getColoredBounds(geojson){
-  const coords=[];
-  geojson.features.forEach(f=>f.geometry.coordinates.forEach(c=>coords.push(c)));
-  if(coords.length===0) return null;
-  const lons=coords.map(c=>c[0]), lats=coords.map(c=>c[1]);
-  return [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]];
+    const coords=[];
+    geojson.features.forEach(f=>f.geometry.coordinates.forEach(c=>coords.push(c)));
+    if(coords.length===0) return null;
+    const lons=coords.map(c=>c[0]), lats=coords.map(c=>c[1]);
+    return [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]];
 }
 
 // Update sidebar list
 function updateSidebar(geojson){
-  const container = document.getElementById('points-list');
-  container.innerHTML = '<h4>Reachable Points</h4>';
-  const seenIds = new Set();
-  let hasPoints = false;
+    const container = document.getElementById('points-list');
+    container.innerHTML = '<h4>Reachable Points</h4>';
+    const seenIds = new Set();
+    let hasPoints = false;
 
-  geojson.features.forEach(f=>{
-    if(f.pleiadesPlaces){
-      f.pleiadesPlaces.forEach(p=>{
-        if(seenIds.has(p.id)) return; // skip duplicates
-        seenIds.add(p.id);
-        hasPoints = true;
+    geojson.features.forEach(f=>{
+        if(f.pleiadesPlaces){
+            f.pleiadesPlaces.forEach(p=>{
+                if(seenIds.has(p.id)) return; // skip duplicates
+                seenIds.add(p.id);
+                hasPoints = true;
 
-        const a = document.createElement('a');
-        a.textContent = p.properties.name;
-        a.className = 'point-link';
-        a.onclick = (e)=>{
-          e.preventDefault();
-          map.flyTo({center: p.geometry.coordinates, zoom: 10});
-          new maplibregl.Popup()
-            .setLngLat(p.geometry.coordinates)
-            .setHTML(`<strong>${p.properties.name}</strong><br>Type: ${p.properties.type}<br>Years: ${p.properties.startYear}–${p.properties.endYear}`)
-            .addTo(map);
-        };
-        container.appendChild(a);
-      });
-    }
-  });
+                const a = document.createElement('a');
+                a.textContent = p.properties.name;
+                a.className = 'point-link';
+                a.onclick = (e)=>{
+                    e.preventDefault();
+                    map.flyTo({center: p.geometry.coordinates, zoom: 10});
+                    new maplibregl.Popup()
+                        .setLngLat(p.geometry.coordinates)
+                        .setHTML(`<strong>${p.properties.name}</strong><br>Type: ${p.properties.type}<br>Years: ${p.properties.startYear}–${p.properties.endYear}`)
+                        .addTo(map);
+                };
+                container.appendChild(a);
+            });
+        }
+    });
 
-  if(!hasPoints) container.innerHTML = '<p>No points reachable.</p>';
+    if(!hasPoints) container.innerHTML = '<p>No points reachable.</p>';
 }
 
 // Click handler for travel times
 map.on('click', e=>{
-  // Prevent triggering if clicking on a point
-  const features = map.queryRenderedFeatures(e.point, { layers: map.getStyle().layers.map(l => l.id).filter(id => id.startsWith('point-')) });
-  if(features.length>0) return;
+    // Prevent triggering if clicking on a point
+    const features = map.queryRenderedFeatures(e.point, { layers: map.getStyle().layers.map(l => l.id).filter(id => id.startsWith('point-')) });
+    if(features.length>0) return;
 
-  const { lng, lat } = e.lngLat;
-  const startNode = findNearestNode(lng, lat);
-  if(!startNode) return;
+    const { lng, lat } = e.lngLat;
+    const startNode = findNearestNode(lng, lat);
+    if(!startNode) return;
 
-  for(let day=1;day<=5;day++){
-    if(map.getLayer(`day-${day}`)) map.removeLayer(`day-${day}`);
-    if(map.getSource(`day-${day}`)) map.removeSource(`day-${day}`);
-  }
+    for(let day=1;day<=5;day++){
+        if(map.getLayer(`day-${day}`)) map.removeLayer(`day-${day}`);
+        if(map.getSource(`day-${day}`)) map.removeSource(`day-${day}`);
+    }
 
-  const distances={}, visited=new Set(), queue=new Set();
-  graph.forEach((_,k)=>distances[k]=Infinity);
-  distances[startNode]=0; queue.add(startNode);
+    const distances={}, visited=new Set(), queue=new Set();
+    graph.forEach((_,k)=>distances[k]=Infinity);
+    distances[startNode]=0; queue.add(startNode);
 
-  while(queue.size>0){
-    let current=[...queue].reduce((a,b)=>distances[a]<distances[b]?a:b);
-    queue.delete(current); visited.add(current);
-    graph.get(current).edges.forEach(e=>{
-      const alt=distances[current]+e.weight;
-      if(alt<distances[e.to]){
-        distances[e.to]=alt;
-        if(!visited.has(e.to)) queue.add(e.to);
-      }
-    });
-  }
-
-  const geojsonByDay=getReachableGeoJSONByDay(distances);
-
-  for(let day=1;day<=5;day++){
-    const featuresForDay={
-      type:'FeatureCollection',
-      features:geojsonByDay.features.filter(f=>f.properties.day===day)
-    };
-    map.addSource(`day-${day}`,{type:'geojson', data:featuresForDay});
-    map.addLayer({
-      id:`day-${day}`,
-      type:'line',
-      source:`day-${day}`,
-      layout:{'line-join':'round','line-cap':'round'},
-      paint:{'line-color':colors[day],'line-width':2.5,'line-opacity':0.7}
-    });
-
-    // Add points for that day
-    featuresForDay.features.forEach(f=>{
-      if(f.pleiadesPlaces){
-        f.pleiadesPlaces.forEach(p=>{
-          const id=`point-${p.id}`;
-          if(!map.getSource(id)){
-            map.addSource(id,{type:'geojson', data:p});
-            map.addLayer({
-              id:id,
-              type:'circle',
-              source:id,
-              paint:{'circle-radius':6,'circle-color':'#0000ff'}
-            });
-            // Point click
-            map.on('click', id, (e)=>{
-              const props = p.properties;
-              new maplibregl.Popup()
-                .setLngLat(p.geometry.coordinates)
-                .setHTML(`<strong>${props.name}</strong><br>Type: ${props.type}<br>Years: ${props.startYear}–${props.endYear}`)
-                .addTo(map);
-            });
-          }
+    while(queue.size>0){
+        let current=[...queue].reduce((a,b)=>distances[a]<distances[b]?a:b);
+        queue.delete(current); visited.add(current);
+        graph.get(current).edges.forEach(e=>{
+            const alt=distances[current]+e.weight;
+            if(alt<distances[e.to]){
+                distances[e.to]=alt;
+                if(!visited.has(e.to)) queue.add(e.to);
+            }
         });
-      }
-    });
-  }
+    }
 
-  // Zoom to bounds
-  const bounds=getColoredBounds(geojsonByDay);
-  if(bounds) map.fitBounds(bounds, { padding:50 });
+    const geojsonByDay=getReachableGeoJSONByDay(distances);
 
-  // Update sidebar
-  updateSidebar(geojsonByDay);
+    for(let day=1;day<=5;day++){
+        const featuresForDay={
+            type:'FeatureCollection',
+            features:geojsonByDay.features.filter(f=>f.properties.day===day)
+        };
+        map.addSource(`day-${day}`,{type:'geojson', data:featuresForDay});
+        map.addLayer({
+            id:`day-${day}`,
+            type:'line',
+            source:`day-${day}`,
+            layout:{'line-join':'round','line-cap':'round'},
+            paint:{'line-color':colors[day],'line-width':2.5,'line-opacity':0.7}
+        });
+
+        // Add points for that day
+        featuresForDay.features.forEach(f=>{
+            if(f.pleiadesPlaces){
+                f.pleiadesPlaces.forEach(p=>{
+                    const id=`point-${p.id}`;
+                    if(!map.getSource(id)){
+                        map.addSource(id,{type:'geojson', data:p});
+                        map.addLayer({
+                            id:id,
+                            type:'circle',
+                            source:id,
+                            paint:{'circle-radius':6,'circle-color':'#0000ff'}
+                        });
+                        // Point click
+                        map.on('click', id, (e)=>{
+                            const props = p.properties;
+                            new maplibregl.Popup()
+                                .setLngLat(p.geometry.coordinates)
+                                .setHTML(`<strong>${props.name}</strong><br>Type: ${props.type}<br>Years: ${props.startYear}–${props.endYear}`)
+                                .addTo(map);
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    // Zoom to bounds
+    const bounds=getColoredBounds(geojsonByDay);
+    if(bounds) map.fitBounds(bounds, { padding:50 });
+
+    // Update sidebar
+    updateSidebar(geojsonByDay);
 });
 </script>
 </body>
