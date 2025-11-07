@@ -2,9 +2,10 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Roman Roads Travel Map - Progressive Days</title>
+<title>Roman Roads Travel Map with Isochrones</title>
 <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
 <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 <style>
 body { margin:0; padding:0; }
 #map { position:absolute; top:0; bottom:0; width:100%; }
@@ -116,7 +117,7 @@ function findNearestNode(lng, lat){
   return nearest;
 }
 
-// Get GeoJSON with "day" property
+// Get GeoJSON with day property
 function getReachableGeoJSONByDay(distances){
   const features=[];
   allRoads.forEach(f=>{
@@ -139,15 +140,40 @@ function getReachableGeoJSONByDay(distances){
   return {type:'FeatureCollection', features};
 }
 
+// Convert nodes to isochrone polygons
+function nodesToIsochrones(distances, maxDays, kmPerDay=25){
+  const dayPolygons=[];
+  for(let day=1; day<=maxDays; day++){
+    const maxKm = kmPerDay*day;
+    const points = Object.keys(distances)
+      .filter(k=>distances[k]<=maxKm)
+      .map(k=>{
+        const [lng,lat]=k.split(',').map(Number);
+        return turf.point([lng,lat]);
+      });
+    if(points.length===0) continue;
+    const fc = turf.featureCollection(points);
+    let polygon;
+    try { polygon=turf.concave(fc,{maxEdge:0.05,units:'kilometers'}); }
+    catch(e){ polygon=turf.convex(fc); }
+    if(polygon) polygon.properties={day};
+    dayPolygons.push(polygon);
+  }
+  return turf.featureCollection(dayPolygons);
+}
+
 // Click handler
 map.on('click', e=>{
   const { lng, lat } = e.lngLat;
   const startNode = findNearestNode(lng, lat);
   if(!startNode) return;
 
+  // Remove previous layers
   for(let day=1;day<=5;day++){
     if(map.getLayer(`day-${day}`)) map.removeLayer(`day-${day}`);
     if(map.getSource(`day-${day}`)) map.removeSource(`day-${day}`);
+    if(map.getLayer(`iso-${day}`)) map.removeLayer(`iso-${day}`);
+    if(map.getSource(`iso-${day}`)) map.removeSource(`iso-${day}`);
   }
 
   // Dijkstra
@@ -167,13 +193,10 @@ map.on('click', e=>{
     });
   }
 
+  // Road segments colored by day
   const geojsonByDay=getReachableGeoJSONByDay(distances);
-
   for(let day=1;day<=5;day++){
-    const featuresForDay={
-      type:'FeatureCollection',
-      features:geojsonByDay.features.filter(f=>f.properties.day===day)
-    };
+    const featuresForDay={type:'FeatureCollection',features:geojsonByDay.features.filter(f=>f.properties.day===day)};
     map.addSource(`day-${day}`,{type:'geojson', data:featuresForDay});
     map.addLayer({
       id:`day-${day}`,
@@ -181,6 +204,19 @@ map.on('click', e=>{
       source:`day-${day}`,
       layout:{'line-join':'round','line-cap':'round'},
       paint:{'line-color':colors[day],'line-width':2.5,'line-opacity':0.7}
+    });
+  }
+
+  // Isochrone polygons
+  const iso = nodesToIsochrones(distances,5,25);
+  for(let day=1;day<=5;day++){
+    const poly={type:'FeatureCollection',features:iso.features.filter(f=>f.properties.day===day)};
+    map.addSource(`iso-${day}`,{type:'geojson', data:poly});
+    map.addLayer({
+      id:`iso-${day}`,
+      type:'fill',
+      source:`iso-${day}`,
+      paint:{'fill-color':colors[day],'fill-opacity':0.15}
     });
   }
 });
