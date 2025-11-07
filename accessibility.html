@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Roman Roads Travel Map - Progressive Days</title>
+<title>Roman Roads Travel Map - Progressive Days with Points</title>
 <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
 <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
 <style>
@@ -139,15 +139,32 @@ function getReachableGeoJSONByDay(distances){
   return {type:'FeatureCollection', features};
 }
 
+// Get pleiades points by day
+function getPleiadesPointsByDay(geojsonByDay, day){
+  const features=[];
+  geojsonByDay.features.filter(f=>f.properties.day===day)
+    .forEach(f=>{
+      if(f.pleiadesPlaces){
+        f.pleiadesPlaces.forEach(p=>{
+          features.push({...p, properties:{...p.properties, day}});
+        });
+      }
+    });
+  return {type:'FeatureCollection', features};
+}
+
 // Click handler
 map.on('click', e=>{
   const { lng, lat } = e.lngLat;
   const startNode = findNearestNode(lng, lat);
   if(!startNode) return;
 
+  // Remove old layers
   for(let day=1;day<=5;day++){
     if(map.getLayer(`day-${day}`)) map.removeLayer(`day-${day}`);
     if(map.getSource(`day-${day}`)) map.removeSource(`day-${day}`);
+    if(map.getLayer(`day-${day}-points`)) map.removeLayer(`day-${day}-points`);
+    if(map.getSource(`day-${day}-points`)) map.removeSource(`day-${day}-points`);
   }
 
   // Dijkstra
@@ -158,11 +175,11 @@ map.on('click', e=>{
   while(queue.size>0){
     let current=[...queue].reduce((a,b)=>distances[a]<distances[b]?a:b);
     queue.delete(current); visited.add(current);
-    graph.get(current).edges.forEach(e=>{
-      const alt=distances[current]+e.weight;
-      if(alt<distances[e.to]){
-        distances[e.to]=alt;
-        if(!visited.has(e.to)) queue.add(e.to);
+    graph.get(current).edges.forEach(edge=>{
+      const alt=distances[current]+edge.weight;
+      if(alt<distances[edge.to]){
+        distances[edge.to]=alt;
+        if(!visited.has(edge.to)) queue.add(edge.to);
       }
     });
   }
@@ -170,6 +187,7 @@ map.on('click', e=>{
   const geojsonByDay=getReachableGeoJSONByDay(distances);
 
   for(let day=1;day<=5;day++){
+    // Add road segments
     const featuresForDay={
       type:'FeatureCollection',
       features:geojsonByDay.features.filter(f=>f.properties.day===day)
@@ -181,6 +199,21 @@ map.on('click', e=>{
       source:`day-${day}`,
       layout:{'line-join':'round','line-cap':'round'},
       paint:{'line-color':colors[day],'line-width':2.5,'line-opacity':0.7}
+    });
+
+    // Add points
+    const pointsForDay=getPleiadesPointsByDay(geojsonByDay, day);
+    map.addSource(`day-${day}-points`, {type:'geojson', data:pointsForDay});
+    map.addLayer({
+      id:`day-${day}-points`,
+      type:'circle',
+      source:`day-${day}-points`,
+      paint:{
+        'circle-radius':6,
+        'circle-color':colors[day],
+        'circle-stroke-color':'#000',
+        'circle-stroke-width':1
+      }
     });
   }
 });
