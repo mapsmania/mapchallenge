@@ -161,19 +161,24 @@ function getColoredBounds(geojson){
 
 // Update sidebar list
 function updateSidebar(geojson){
-  const container=document.getElementById('points-list');
-  container.innerHTML='<h4>Reachable Points</h4>';
-  let hasPoints=false;
+  const container = document.getElementById('points-list');
+  container.innerHTML = '<h4>Reachable Points</h4>';
+  const seenIds = new Set();
+  let hasPoints = false;
+
   geojson.features.forEach(f=>{
     if(f.pleiadesPlaces){
       f.pleiadesPlaces.forEach(p=>{
-        hasPoints=true;
-        const a=document.createElement('a');
-        a.textContent=p.properties.name;
-        a.className='point-link';
-        a.onclick=(e)=>{
+        if(seenIds.has(p.id)) return; // skip duplicates
+        seenIds.add(p.id);
+        hasPoints = true;
+
+        const a = document.createElement('a');
+        a.textContent = p.properties.name;
+        a.className = 'point-link';
+        a.onclick = (e)=>{
           e.preventDefault();
-          map.flyTo({center:p.geometry.coordinates, zoom:10});
+          map.flyTo({center: p.geometry.coordinates, zoom: 10});
           new maplibregl.Popup()
             .setLngLat(p.geometry.coordinates)
             .setHTML(`<strong>${p.properties.name}</strong><br>Type: ${p.properties.type}<br>Years: ${p.properties.startYear}–${p.properties.endYear}`)
@@ -183,7 +188,8 @@ function updateSidebar(geojson){
       });
     }
   });
-  if(!hasPoints) container.innerHTML='<p>No points reachable.</p>';
+
+  if(!hasPoints) container.innerHTML = '<p>No points reachable.</p>';
 }
 
 // Click handler for travel times
