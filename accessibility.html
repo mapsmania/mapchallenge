@@ -48,7 +48,6 @@ const map = new maplibregl.Map({
   attributionControl: false
 });
 
-// Add attribution with links
 map.addControl(new maplibregl.AttributionControl({
   compact: true,
   customAttribution: 'Roman Roads data: <a href="https://itiner-e.org/" target="_blank">Itiner-e</a>, Map by <a href="https://googlemapsmania.blogspot.com/" target="_blank">Maps Mania</a>'
@@ -187,26 +186,21 @@ function updateSidebar(geojson){
   if(!hasPoints) container.innerHTML='<p>No points reachable.</p>';
 }
 
-// Click handler
+// Click handler for travel times
 map.on('click', e=>{
+  // Prevent triggering if clicking on a point
+  const features = map.queryRenderedFeatures(e.point, { layers: map.getStyle().layers.map(l => l.id).filter(id => id.startsWith('point-')) });
+  if(features.length>0) return;
+
   const { lng, lat } = e.lngLat;
   const startNode = findNearestNode(lng, lat);
   if(!startNode) return;
 
-  // Remove old day layers and point layers
   for(let day=1;day<=5;day++){
     if(map.getLayer(`day-${day}`)) map.removeLayer(`day-${day}`);
     if(map.getSource(`day-${day}`)) map.removeSource(`day-${day}`);
   }
-  // Remove old points
-  map.getStyle().layers.forEach(l=>{
-    if(l.id.startsWith('point-')){
-      map.removeLayer(l.id);
-      if(map.getSource(l.id)) map.removeSource(l.id);
-    }
-  });
 
-  // Dijkstra
   const distances={}, visited=new Set(), queue=new Set();
   graph.forEach((_,k)=>distances[k]=Infinity);
   distances[startNode]=0; queue.add(startNode);
@@ -252,17 +246,14 @@ map.on('click', e=>{
               source:id,
               paint:{'circle-radius':6,'circle-color':'#0000ff'}
             });
-
-            // Click directly on point to open popup
-            map.on('click', id, ()=>{
-              const props=p.properties;
+            // Point click
+            map.on('click', id, (e)=>{
+              const props = p.properties;
               new maplibregl.Popup()
                 .setLngLat(p.geometry.coordinates)
                 .setHTML(`<strong>${props.name}</strong><br>Type: ${props.type}<br>Years: ${props.startYear}–${props.endYear}`)
                 .addTo(map);
             });
-            map.on('mouseenter', id, ()=>{ map.getCanvas().style.cursor='pointer'; });
-            map.on('mouseleave', id, ()=>{ map.getCanvas().style.cursor=''; });
           }
         });
       }
