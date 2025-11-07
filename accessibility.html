@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Roman Roads Travel Map with Isochrones</title>
+<title>Roman Roads Travel with Snapped Connections</title>
 <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
 <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
@@ -33,6 +33,7 @@ body { margin:0; padding:0; }
   <div><span style="background:#ffff00"></span> Day 3</div>
   <div><span style="background:#7fff00"></span> Day 4</div>
   <div><span style="background:#00ff00"></span> Day 5</div>
+  <div><span style="background:#888888"></span> Snapped connections</div>
 </div>
 
 <script>
@@ -76,6 +77,7 @@ fetch('https://mapsmania.github.io/mapchallenge/data/roman_roads.geojson')
 .then(data=>{
   allRoads=data.features;
 
+  // Show all roads black
   map.addSource('all-roads',{type:'geojson',data});
   map.addLayer({
     id:'all-roads-layer',
@@ -85,7 +87,9 @@ fetch('https://mapsmania.github.io/mapchallenge/data/roman_roads.geojson')
     paint:{'line-color':'#000000','line-width':1.5,'line-opacity':0.5}
   });
 
-  // Build graph with subdivided nodes
+  const snapThreshold = 0.0005; // ~50 m
+
+  // Build graph
   data.features.forEach(f=>{
     const coords=f.geometry.coordinates;
     for(let i=0;i<coords.length-1;i++){
@@ -93,16 +97,38 @@ fetch('https://mapsmania.github.io/mapchallenge/data/roman_roads.geojson')
       for(let j=0;j<subdiv.length-1;j++){
         const [lng1,lat1]=subdiv[j];
         const [lng2,lat2]=subdiv[j+1];
-        const key1=`${lng1},${lat1}`;
-        const key2=`${lng2},${lat2}`;
         const segLength=haversine([lng1,lat1],[lng2,lat2]);
+        let key1 = `${lng1},${lat1}`;
+        let key2 = `${lng2},${lat2}`;
+
+        // Snap nearby existing nodes
+        graph.forEach((_,existingKey)=>{
+          const [klng,klat]=existingKey.split(',').map(Number);
+          if(Math.abs(lng1-klng)<snapThreshold && Math.abs(lat1-klat)<snapThreshold) key1=existingKey;
+          if(Math.abs(lng2-klng)<snapThreshold && Math.abs(lat2-klat)<snapThreshold) key2=existingKey;
+        });
+
         if(!graph.has(key1)) graph.set(key1,{edges:[]});
         if(!graph.has(key2)) graph.set(key2,{edges:[]});
-        graph.get(key1).edges.push({to:key2, weight:segLength});
-        graph.get(key2).edges.push({to:key1, weight:segLength});
+        graph.get(key1).edges.push({to:key2, weight:segLength, snapped:false});
+        graph.get(key2).edges.push({to:key1, weight:segLength, snapped:false});
       }
     }
   });
+
+  // Add snapped connections for isolated nodes
+  const nodes = Array.from(graph.keys());
+  for(let i=0;i<nodes.length;i++){
+    const [lng1,lat1]=nodes[i].split(',').map(Number);
+    for(let j=i+1;j<nodes.length;j++){
+      const [lng2,lat2]=nodes[j].split(',').map(Number);
+      if(haversine([lng1,lat1],[lng2,lat2])<0.05){ // <50m
+        graph.get(nodes[i]).edges.push({to:nodes[j], weight:haversine([lng1,lat1],[lng2,lat2]), snapped:true});
+        graph.get(nodes[j]).edges.push({to:nodes[i], weight:haversine([lng1,lat1],[lng2,lat2]), snapped:true});
+      }
+    }
+  }
+
   console.log('Graph ready with', graph.size, 'nodes');
 });
 
@@ -117,27 +143,27 @@ function findNearestNode(lng, lat){
   return nearest;
 }
 
-// Get GeoJSON with day property
-function getReachableGeoJSONByDay(distances){
-  const features=[];
-  allRoads.forEach(f=>{
-    const coords=f.geometry.coordinates;
-    let minDistance=Infinity;
-    for(let i=0;i<coords.length-1;i++){
-      const subdiv=subdivideSegment(coords[i], coords[i+1]);
-      for(let p of subdiv){
-        const key=`${p[0]},${p[1]}`;
-        if(distances[key]!==undefined) minDistance=Math.min(minDistance, distances[key]);
+// Dijkstra
+function dijkstra(startKey){
+  const distances={}, visited=new Set(), queue=new Set();
+  graph.forEach((_,k)=>distances[k]=Infinity);
+  distances[startKey]=0;
+  queue.add(startKey);
+
+  while(queue.size>0){
+    let current=[...queue].reduce((a,b)=>distances[a]<distances[b]?a:b);
+    queue.delete(current);
+    visited.add(current);
+
+    graph.get(current).edges.forEach(e=>{
+      const alt=distances[current]+e.weight;
+      if(alt<distances[e.to]){
+        distances[e.to]=alt;
+        if(!visited.has(e.to)) queue.add(e.to);
       }
-    }
-    if(minDistance<Infinity){
-      let day=Math.ceil(minDistance/25); 
-      day=Math.min(day,5);
-      const coloredFeature={...f, properties:{...f.properties, day}};
-      features.push(coloredFeature);
-    }
-  });
-  return {type:'FeatureCollection', features};
+    });
+  }
+  return distances;
 }
 
 // Convert nodes to isochrone polygons
@@ -147,10 +173,7 @@ function nodesToIsochrones(distances, maxDays, kmPerDay=25){
     const maxKm = kmPerDay*day;
     const points = Object.keys(distances)
       .filter(k=>distances[k]<=maxKm)
-      .map(k=>{
-        const [lng,lat]=k.split(',').map(Number);
-        return turf.point([lng,lat]);
-      });
+      .map(k=>turf.point(k.split(',').map(Number)));
     if(points.length===0) continue;
     const fc = turf.featureCollection(points);
     let polygon;
@@ -169,35 +192,37 @@ map.on('click', e=>{
 
   // Remove previous layers
   for(let day=1;day<=5;day++){
-    if(map.getLayer(`day-${day}`)) map.removeLayer(`day-${day}`);
-    if(map.getSource(`day-${day}`)) map.removeSource(`day-${day}`);
-    if(map.getLayer(`iso-${day}`)) map.removeLayer(`iso-${day}`);
-    if(map.getSource(`iso-${day}`)) map.removeSource(`iso-${day}`);
-  }
-
-  // Dijkstra
-  const distances={}, visited=new Set(), queue=new Set();
-  graph.forEach((_,k)=>distances[k]=Infinity);
-  distances[startNode]=0; queue.add(startNode);
-
-  while(queue.size>0){
-    let current=[...queue].reduce((a,b)=>distances[a]<distances[b]?a:b);
-    queue.delete(current); visited.add(current);
-    graph.get(current).edges.forEach(e=>{
-      const alt=distances[current]+e.weight;
-      if(alt<distances[e.to]){
-        distances[e.to]=alt;
-        if(!visited.has(e.to)) queue.add(e.to);
-      }
+    ['day','iso','snapped'].forEach(prefix=>{
+      if(map.getLayer(`${prefix}-${day}`)) map.removeLayer(`${prefix}-${day}`);
+      if(map.getSource(`${prefix}-${day}`)) map.removeSource(`${prefix}-${day}`);
     });
   }
 
-  // Road segments colored by day
-  const geojsonByDay=getReachableGeoJSONByDay(distances);
-  for(let day=1;day<=5;day++){
-    const featuresForDay={type:'FeatureCollection',features:geojsonByDay.features.filter(f=>f.properties.day===day)};
-    if(featuresForDay.features.length>0){
-      map.addSource(`day-${day}`,{type:'geojson', data:featuresForDay});
+  const distances=dijkstra(startNode);
+
+  // Color road segments by day
+  const dayFeatures = {1:[],2:[],3:[],4:[],5:[]};
+  const snappedFeatures=[];
+  graph.forEach((v,key)=>{
+    v.edges.forEach(e=>{
+      if(distances[key]===undefined || distances[e.to]===undefined) return;
+      const dist=Math.min(distances[key], distances[e.to]);
+      if(dist<=125){ // 5 days * 25 km
+        const day = Math.min(Math.ceil(dist/25),5);
+        const feature = {
+          type:'Feature',
+          geometry:{ type:'LineString', coordinates: [key.split(',').map(Number), e.to.split(',').map(Number)] },
+          properties:{}
+        };
+        if(e.snapped) snappedFeatures.push(feature);
+        else dayFeatures[day].push(feature);
+      }
+    });
+  });
+
+  for(let day=1; day<=5; day++){
+    if(dayFeatures[day].length>0){
+      map.addSource(`day-${day}`,{type:'geojson', data:{type:'FeatureCollection',features:dayFeatures[day]}});
       map.addLayer({
         id:`day-${day}`,
         type:'line',
@@ -208,7 +233,18 @@ map.on('click', e=>{
     }
   }
 
-  // Isochrone polygons
+  if(snappedFeatures.length>0){
+    map.addSource(`snapped-1`,{type:'geojson', data:{type:'FeatureCollection',features:snappedFeatures}});
+    map.addLayer({
+      id:'snapped-1',
+      type:'line',
+      source:'snapped-1',
+      layout:{'line-join':'round','line-cap':'round'},
+      paint:{'line-color':'#888','line-width':2,'line-dasharray':[2,2],'line-opacity':0.7}
+    });
+  }
+
+  // Isochrones
   const iso = nodesToIsochrones(distances,5,25);
   for(let day=1;day<=5;day++){
     const poly={type:'FeatureCollection',features:iso.features.filter(f=>f && f.properties && f.properties.day===day)};
