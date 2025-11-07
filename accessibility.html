@@ -41,11 +41,34 @@ a.point-link:hover { text-decoration:underline; }
 
 <script>
 const map = new maplibregl.Map({
-  container: 'map',
-  style: 'https://tiles.openfreemap.org/styles/liberty',
-  center: [-2.5, 54.0],
-  zoom: 5,
-  attributionControl: false
+    container: 'map',
+    center: [-2.5, 54.0], // Center on a Roman-related area
+    zoom: 5,
+    attributionControl: false,
+    // --- Use a custom style object for the DARE tiles ---
+    style: {
+        'version': 8,
+        'sources': {
+            'dare-roman-empire': {
+                'type': 'raster', // Define the source type as raster
+                'tiles': ['https://dh.gu.se/tiles/imperium/{z}/{x}/{y}.png'],
+                'tileSize': 256,
+                'minzoom': 4, // DARE's available zoom range
+                'maxzoom': 11, // DARE's available zoom range
+                'attribution': 'Digital Atlas of the Roman Empire (DARE)'
+            }
+        },
+        'layers': [
+            {
+                'id': 'dare-layer',
+                'type': 'raster',
+                'source': 'dare-roman-empire', // Reference the source defined above
+                'paint': {
+                    'raster-opacity': 1 // Fully visible
+                }
+            }
+        ]
+    }
 });
 
 map.addControl(new maplibregl.AttributionControl({
