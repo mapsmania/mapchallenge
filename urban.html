@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Road Orientations</title>
+  <title>Roads, Runways & Rivers</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
@@ -21,14 +21,46 @@
       background: rgba(255,255,255,0.8);
       box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
+    #buttons {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    #buttons button {
+      background-color: #1f73b7;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    #buttons button:hover {
+      background-color: #155a91;
+      transform: translateY(-1px);
+    }
+    #buttons button:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <canvas id="canvas"></canvas>
+  <div id="buttons">
+    <button id="roadBtn">Roads</button>
+    <button id="runwayBtn">Runways</button>
+    <button id="riverBtn">Rivers</button>
+  </div>
 
   <script>
-    // Initialize Maplibre map
     const map = new maplibregl.Map({
       container: 'map',
       style: 'https://tiles.openfreemap.org/styles/positron',
@@ -51,16 +83,19 @@
       ctx.scale(2, 2);
     }
 
-    // -----------------------------
-    // Inline lineclip replacement
-    // -----------------------------
+    let layerType = 'road'; // default
+
+    document.getElementById('roadBtn').onclick = () => { layerType = 'road'; updateOrientations(); };
+    document.getElementById('runwayBtn').onclick = () => { layerType = 'runway'; updateOrientations(); };
+    document.getElementById('riverBtn').onclick = () => { layerType = 'river'; updateOrientations(); };
+
+    // ----------------- Helpers -----------------
     function lineclip(points, bbox) {
       const [xMin, yMin, xMax, yMax] = bbox;
       const result = [];
       for (let i = 0; i < points.length - 1; i++) {
         const [x1, y1] = points[i];
         const [x2, y2] = points[i + 1];
-        // simple bounding box check
         if ((x1 < xMin && x2 < xMin) || (x1 > xMax && x2 > xMax) ||
             (y1 < yMin && y2 < yMin) || (y1 > yMax && y2 > yMax)) continue;
         result.push([points[i], points[i + 1]]);
@@ -68,10 +103,7 @@
       return result;
     }
 
-    // -----------------------------
-    // Bearing and distance functions
-    // -----------------------------
-    const R = 6371; // Earth radius km
+    const R = 6371;
     function toRad(deg) { return deg * Math.PI / 180; }
     function bearingDistance(a, b) {
       const [lon1, lat1] = a.map(toRad);
@@ -89,9 +121,6 @@
       return {bearing, distance: d};
     }
 
-    // -----------------------------
-    // Histogram functions
-    // -----------------------------
     function analyzeLine(bins, line, isTwoWay) {
       for (let i = 0; i < line.length - 1; i++) {
         const {bearing, distance} = bearingDistance(line[i], line[i + 1]);
@@ -109,6 +138,8 @@
       const bb = Math.floor(250 * Math.pow(Math.sin(Math.PI * (t + 2 / 3)), 2));
       return `rgb(${rr},${gg},${bb})`;
     }
+
+    const highlightLayerId = 'orientation-highlight';
 
     function updateOrientations() {
       ctx.clearRect(0, 0, h, h);
@@ -128,12 +159,19 @@
       ctx.moveTo(0, -r); ctx.lineTo(0, r);
       ctx.stroke();
 
-      const features = map.queryRenderedFeatures({ layers: ['highway_major_casing','highway_minor'] });
+      const layers = layerType === 'road'
+        ? ['highway_major_casing','highway_minor']
+        : layerType === 'runway'
+          ? ['aeroway-runway']
+          : ['waterway']; // Rivers
+
+      const features = map.queryRenderedFeatures({ layers });
       if (!features || !features.length) { ctx.restore(); return; }
 
       const bounds = map.getBounds();
       const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
       const bins = new Float64Array(numBins);
+      const lineContributions = [];
 
       for (const f of features) {
         const geom = f.geometry;
@@ -141,12 +179,26 @@
         const clippedLines = [];
         for (const line of lines) clippedLines.push(...lineclip(line, bbox));
 
-        for (const line of clippedLines)
-          analyzeLine(bins, line, f.properties && f.properties.oneway !== 'true');
+        for (const line of clippedLines) {
+          const segmentBins = new Float64Array(numBins);
+          for (let i = 0; i < line.length - 1; i++) {
+            const {bearing, distance} = bearingDistance(line[i], line[i + 1]);
+            const k0 = Math.round((bearing + 360) * numBins / 360) % numBins;
+            const k1 = Math.round((bearing + 180) * numBins / 360) % numBins;
+            bins[k0] += distance;
+            segmentBins[k0] += distance;
+            if (f.properties && f.properties.oneway !== 'true') {
+              bins[k1] += distance;
+              segmentBins[k1] += distance;
+            }
+          }
+          lineContributions.push({line, segmentBins});
+        }
       }
 
       const binMax = Math.max(...bins) || 1;
 
+      // Draw orientation rose
       for (let i = 0; i < numBins; i++) {
         const a0 = ((i - 0.5) * 360 / numBins - 90) * Math.PI / 180;
         const a1 = ((i + 0.5) * 360 / numBins - 90) * Math.PI / 180;
@@ -157,8 +209,39 @@
         ctx.closePath();
         ctx.fill();
       }
-
       ctx.restore();
+
+      // Highlight segments on the map
+      if (map.getLayer(highlightLayerId)) map.removeLayer(highlightLayerId);
+      if (map.getSource(highlightLayerId)) map.removeSource(highlightLayerId);
+
+      const geojson = {
+        type: 'FeatureCollection',
+        features: []
+      };
+
+      for (const seg of lineContributions) {
+        const total = seg.segmentBins.reduce((a,b) => a+b, 0);
+        if (total === 0) continue;
+        const frac = total / binMax;
+        const color = `rgba(255,0,0,${Math.min(frac*2,1)})`;
+        geojson.features.push({
+          type: 'Feature',
+          geometry: { type: 'LineString', coordinates: seg.line },
+          properties: { color }
+        });
+      }
+
+      map.addSource(highlightLayerId, { type: 'geojson', data: geojson });
+      map.addLayer({
+        id: highlightLayerId,
+        type: 'line',
+        source: highlightLayerId,
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 3
+        }
+      });
     }
 
     map.on('load', () => {
