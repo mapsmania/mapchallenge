@@ -7,8 +7,8 @@ Lines
 Polygons
 Data challenge: My Data	
 Earth	
-Dimensions - <a href="[https://googlemapsmania.blogspot.com/](https://mapsmania.github.io/mapchallenge/dimensions.html)">Roman Britain Travel Map
+Dimensions - <a href="https://mapsmania.github.io/mapchallenge/dimensions.html">Roman Britain Travel Map
 </a>
-Accessibility - <a href="[https://googlemapsmania.blogspot.com/](https://mapsmania.github.io/mapchallenge/accessibility.html)">Roman Britain Travel Map
+Accessibility - <a href="https://mapsmania.github.io/mapchallenge/accessibility.html">Roman Britain Travel Map
 </a>
 </p>
