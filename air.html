@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Map Snake</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+    />
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+    <link rel="stylesheet" href="style.css" />
+      <style>
+
+
+body,
+html {
+  height: 100%; /* Ensure body and html take full height */
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
+  background-color: #0c0a0b;
+  font-family: "Noto Sans", Calibri, Helvetica, sans-serif, "Lucida Sans";
+}
+
+#container {
+  display: flex; /* Use flexbox for layout */
+  height: 100vh; /* Set the container to full viewport height */
+}
+
+#map {
+  height: 100%; /* Full height */
+  width: 70%; /* Map takes 70% width */
+  margin: 0;
+  padding: 0;
+  position: relative; /* Set position relative for positioning game over message */
+}
+
+#instructions {
+  height: 90%; /* Full height */
+  width: 30%; /* Instructions take 30% width */
+  padding: 10px; /* Add some padding */
+  background-color: #0c0a0b;
+  color: white;
+  text-align: center;
+  align-items: center; /* Center items horizontally */
+}
+
+#score {
+  font-size: 32px; /* Set font size for the score */
+  border: 2px solid #a4d2f0; /* Border color */
+  padding: 10px; /* Padding inside the score div */
+  margin-bottom: 10px; /* Space below the score div */
+  border-radius: 5px; /* Rounded corners */
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5); /* Drop shadow */
+  background-color: rgba(0, 0, 0, 0.7); /* Slightly transparent background */
+  color: white; /* Text color */
+  text-align: center; /* Center text */
+}
+
+h1 {
+  color: #a4d2f0; /* Set the text color */
+  font-size: 32px; /* You can adjust the font size as needed */
+  font-weight: bold; /* Makes the text bold */
+  margin: 10px 0 25px 0; /* Adds some margin above and below the header */
+}
+
+#gameOverMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 20px;
+  font-size: 24px;
+  display: none; /* Initially hidden */
+  z-index: 1;
+  text-align: center;
+  width: auto; /* Make sure it's not overly wide */
+  max-width: 300px; /* Optional max width */
+  border-radius: 8px; /* Optional: Add rounded corners */
+}
+
+#playAgainButton, #startButton {
+  display: inline-block; /* Ensure inline-block to make it visible */
+  margin-top: 15px; /* Space it from the text above */
+  padding: 10px 20px;
+  font-size: 18px;
+  color: white;
+  background-color: #a4d2f0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#playAgainButton:hover, #startButton:hover {
+  background-color: #d55885; /* Darken on hover */
+}
+
+   .plane-marker {
+  width: 40px;
+  height: 40px;
+  background-image: url('data/plane.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transform-origin: center center;
+}       
+      </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="map">
+      <div id="gameOverMessage" style="display: block;">
+    <button id="startButton">Start Game</button>
+</div>
+ 
+
+      </div>
+      <div id="instructions">
+        <h1>Map Snake</h1>
+        <div id="score">Score: 0</div>
+
+        <img
+          src="data/planelogo.png"
+          alt="Game Instructions"
+          style="width: 200px; height: auto"
+        />
+        <h2>Instructions</h2>
+        <p>Use the arrow keys to control the snake.</p>
+        <p>Collect markers to grow the snake.</p>
+        <p>Avoid colliding with yourself.</p>
+        <p>Good luck!</p>
+      </div>
+    </div>
+
+<script>
+// Array of starting cities with coordinates (longitude, latitude)
+const startingCities = [
+  { name: "London", coords: [-0.1276, 51.5074] },
+  { name: "New York", coords: [-74.0060, 40.7128] },
+  { name: "Tokyo", coords: [139.6917, 35.6895] },
+  { name: "Berlin", coords: [13.4050, 52.5200] },
+  { name: "Sydney", coords: [151.2093, -33.8688] },
+  { name: "Paris", coords: [2.3522, 48.8566] },
+  { name: "Toronto", coords: [-79.3832, 43.6532] },
+  { name: "São Paulo", coords: [-46.6333, -23.5505] },
+];
+
+const randomCity = startingCities[Math.floor(Math.random() * startingCities.length)];
+const startingCoords = randomCity.coords;
+
+// Initialize the map
+const map = new maplibregl.Map({
+  container: "map",
+  style: "https://tiles.openfreemap.org/styles/positron",
+  center: startingCoords,
+  zoom: 14,
+});
+
+const geojson = {
+  type: "FeatureCollection",
+  features: [
+    {
+      type: "Feature",
+      geometry: {
+        type: "LineString",
+        coordinates: [startingCoords],
+      },
+    },
+  ],
+};
+
+let directionX = 0.0001;
+let directionY = 0;
+const speedFactor = 0.0001;
+let animation;
+const collisionThreshold = 0.00005;
+let maxLength = 200;
+let markerPosition;
+const markerProximityThreshold = 50;
+const growthAmount = 200;
+let newScore = 0;
+
+let randomMarker;
+let planeMarker; // <-- The plane marker
+
+map.on("load", () => {
+  map.addSource("line", { type: "geojson", data: geojson });
+
+// soft glow base layer (below)
+map.addLayer({
+  id: "contrail-glow",
+  type: "line",
+  source: "line",
+  layout: {
+    "line-cap": "round",
+    "line-join": "round",
+  },
+  paint: {
+    "line-color": "#a4d2f0", // icy blue glow
+    "line-width": 12,
+    "line-opacity": 0.95,
+    "line-blur": 3,
+  },
+});
+
+    // main contrail layer (above)
+map.addLayer({
+  id: "line-animation",
+  type: "line",
+  source: "line",
+  layout: {
+    "line-cap": "round",
+    "line-join": "round",
+  },
+  paint: {
+    "line-gradient": [
+      "interpolate",
+      ["linear"],
+      ["line-progress"],
+      0, "rgba(164,210,240,0)",   // tail (transparent)
+      0.3, "rgba(164,210,240,0.5)",
+      0.7, "rgba(164,210,240,0.8)",
+      1, "rgba(164,210,240,1)"    // head (solid)
+    ],
+    "line-width": 6,
+    "line-opacity": 1,
+  },
+});
+
+
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowUp") {
+      directionX = 0;
+      directionY = speedFactor;
+      rotatePlane(0); // North
+    }
+    if (e.key === "ArrowDown") {
+      directionX = 0;
+      directionY = -speedFactor;
+      rotatePlane(180); // South
+    }
+    if (e.key === "ArrowLeft") {
+      directionX = -speedFactor;
+      directionY = 0;
+      rotatePlane(-90); // West
+    }
+    if (e.key === "ArrowRight") {
+      directionX = speedFactor;
+      directionY = 0;
+      rotatePlane(90); // East
+    }
+  });
+
+  document.getElementById("startButton").addEventListener("click", startGame);
+});
+
+function addRandomMarker() {
+  const bounds = map.getBounds();
+  const northEast = bounds.getNorthEast();
+  const southWest = bounds.getSouthWest();
+
+  const randomLng = Math.random() * (northEast.lng - southWest.lng) + southWest.lng;
+  const randomLat = Math.random() * (northEast.lat - southWest.lat) + southWest.lat;
+
+  markerPosition = [randomLng, randomLat];
+
+  const el = document.createElement("div");
+  el.className = "marker";
+  el.style.backgroundColor = "#FF0000";
+  el.style.width = "10px";
+  el.style.height = "10px";
+  el.style.borderRadius = "50%";
+
+  randomMarker = new maplibregl.Marker(el).setLngLat(markerPosition).addTo(map);
+}
+
+function createPlaneMarker(coords) {
+  // Outer container (MapLibre controls this one)
+  const outer = document.createElement("div");
+  outer.style.width = "40px";
+  outer.style.height = "40px";
+  outer.style.display = "flex";
+  outer.style.alignItems = "center";
+  outer.style.justifyContent = "center";
+
+  // Inner rotatable image element
+  const inner = document.createElement("div");
+  inner.className = "plane-inner";
+  inner.style.width = "40px";
+  inner.style.height = "40px";
+  inner.style.backgroundImage = "url('plane.png')";
+  inner.style.backgroundSize = "contain";
+  inner.style.backgroundRepeat = "no-repeat";
+  inner.style.backgroundPosition = "center";
+  inner.style.transformOrigin = "center center";
+  inner.style.transition = "transform 0.1s linear"; // smooth turning
+
+  outer.appendChild(inner);
+
+  // Create a MapLibre marker with our custom HTML
+  planeMarker = new maplibregl.Marker({
+    element: outer,
+    anchor: "center",
+  })
+    .setLngLat(coords)
+    .addTo(map);
+}
+
+function rotatePlane(degrees) {
+  if (planeMarker) {
+    const inner = planeMarker.getElement().querySelector(".plane-inner");
+    if (inner) {
+      inner.style.transform = `rotate(${degrees}deg)`;
+    }
+  }
+}
+
+function animateLine() {
+  const currentCoords = geojson.features[0].geometry.coordinates;
+  const lastCoord = currentCoords[currentCoords.length - 1];
+
+  const newCoord = [lastCoord[0] + directionX, lastCoord[1] + directionY];
+  currentCoords.push(newCoord);
+
+  if (checkCollision(newCoord, currentCoords)) {
+    gameOver();
+    return;
+  }
+
+  if (markerPosition && isNearMarker(newCoord, markerPosition)) {
+    growSnake();
+    removeMarker();
+  }
+
+  while (getTotalLength(currentCoords) > maxLength) {
+    currentCoords.shift();
+  }
+
+  map.getSource("line").setData(geojson);
+
+  // Move the plane to the latest position
+  if (planeMarker) {
+    planeMarker.setLngLat(newCoord);
+  }
+
+  animation = requestAnimationFrame(animateLine);
+}
+
+function isNearMarker(newCoord, markerPos) {
+  const distance = haversineDistance(newCoord, markerPos);
+  return distance <= markerProximityThreshold;
+}
+
+function growSnake() {
+  const lastCoord = geojson.features[0].geometry.coordinates.slice(-1)[0];
+  for (let i = 0; i < Math.floor(growthAmount / 1); i++) {
+    const newGrowthCoord = [lastCoord[0] + directionX, lastCoord[1] + directionY];
+    geojson.features[0].geometry.coordinates.push(newGrowthCoord);
+  }
+  maxLength += growthAmount;
+  newScore += growthAmount / 1;
+  document.getElementById("score").innerText = `Score: ${newScore}`;
+
+    // Slightly increase contrail width with growth
+const newWidth = Math.min(6 + newScore / 500, 20); // cap width
+map.setPaintProperty("line-animation", "line-width", newWidth);
+map.setPaintProperty("contrail-glow", "line-width", newWidth * 2);
+
+}
+
+function removeMarker() {
+  if (randomMarker) {
+    randomMarker.remove();
+    randomMarker = null;
+    markerPosition = null;
+    addRandomMarker();
+  }
+}
+
+function checkCollision(newCoord, coordinates) {
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    const point = coordinates[i];
+    const distance = Math.sqrt(Math.pow(newCoord[0] - point[0], 2) + Math.pow(newCoord[1] - point[1], 2));
+    if (distance < collisionThreshold) return true;
+  }
+  return false;
+}
+
+function getTotalLength(coordinates) {
+  let totalLength = 0;
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    totalLength += haversineDistance(coordinates[i], coordinates[i + 1]);
+  }
+  return totalLength;
+}
+
+function haversineDistance(coord1, coord2) {
+  const R = 6371000;
+  const lat1 = (coord1[1] * Math.PI) / 180;
+  const lat2 = (coord2[1] * Math.PI) / 180;
+  const deltaLat = ((coord2[1] - coord1[1]) * Math.PI) / 180;
+  const deltaLon = ((coord2[0] - coord1[0]) * Math.PI) / 180;
+
+  const a =
+    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function gameOver() {
+  cancelAnimationFrame(animation);
+
+  const personalBest = parseInt(localStorage.getItem("personalBest")) || 0;
+  if (newScore > personalBest) localStorage.setItem("personalBest", newScore);
+  const finalPersonalBest = Math.max(newScore, personalBest);
+
+  document.getElementById("gameOverMessage").innerHTML = `
+     Game Over! <br><br> Your Score: ${newScore} <br> Your Personal Best: ${finalPersonalBest} <br>
+     <button id="playAgainButton">Play Again</button>
+  `;
+  document.getElementById("gameOverMessage").style.display = "block";
+
+  document.getElementById("playAgainButton").addEventListener("click", resetGame);
+
+  if (randomMarker) randomMarker.remove();
+  if (planeMarker) planeMarker.remove();
+}
+
+function startGame() {
+  document.getElementById("gameOverMessage").style.display = "none";
+
+  const startCoords = randomCity.coords;
+  geojson.features[0].geometry.coordinates = [startCoords];
+  maxLength = 200;
+  directionX = 0.0001;
+  directionY = 0;
+  newScore = 0;
+  document.getElementById("score").innerText = "Score: 0";
+
+  map.setCenter(startCoords);
+  addRandomMarker();
+
+  if (planeMarker) planeMarker.remove();
+  createPlaneMarker(startCoords);
+  rotatePlane(90); // face east by default
+
+  animateLine();
+}
+
+function resetGame() {
+  document.getElementById("gameOverMessage").style.display = "none";
+
+  const newCity = startingCities[Math.floor(Math.random() * startingCities.length)];
+  const startCoords = newCity.coords;
+
+  geojson.features[0].geometry.coordinates = [startCoords];
+  maxLength = 200;
+  directionX = 0.0001;
+  directionY = 0;
+  newScore = 0;
+  document.getElementById("score").innerText = "Score: 0";
+
+  map.setCenter(startCoords);
+  addRandomMarker();
+
+  // Reset contrail width to starting size
+map.setPaintProperty("line-animation", "line-width", 6);
+map.setPaintProperty("contrail-glow", "line-width", 12);
+  
+
+  if (planeMarker) planeMarker.remove();
+  createPlaneMarker(startCoords);
+  rotatePlane(90);
+
+  animateLine();
+}
+</script>
+ </body>
+</html>
