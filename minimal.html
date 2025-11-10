@@ -45,17 +45,17 @@
         data: 'data/london.geojson'
       });
 
-      // Draw the river
       map.addLayer({
-        id: 'thames',
-        type: 'line',
-        source: 'london',
-        paint: {
-          'line-color': '#000000',
-          'line-width': 2
-        },
-        filter: ['==', '$type', 'LineString']
-      });
+    id: 'thames',
+    type: 'line',
+    source: 'london',
+    paint: {
+      'line-color': '#0077cc',    // a clean river blue
+      'line-width': 4             // thicker line
+    },
+    filter: ['==', '$type', 'LineString']
+  });
+
 
       // Draw bridges as small black lines
       map.addLayer({
