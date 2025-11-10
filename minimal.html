@@ -10,7 +10,7 @@
   />
   <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
   <style>
-    body, html { margin: 0; padding: 0; height: 100%; background: #fff; }
+    body, html { margin: 0; padding: 0; height: 100%; background: #000; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
   </style>
 </head>
@@ -57,29 +57,12 @@ map.addLayer({
   type: 'line',
   source: 'london',
   paint: {
-    'line-color': '#000000',
+    'line-color': '#fff',
     'line-width': 1.5
   },
   filter: ['==', ['get', 'name'], 'bridge']  // bridge features only
 });
 
-// --- Distance labels ---
-map.addLayer({
-  id: 'distance-labels',
-  type: 'symbol',
-  source: 'london',
-  filter: ['has', 'miles'],  // all features with a miles property
-  layout: {
-    'text-field': ['concat', ['get', 'miles'], ' mi'],
-    'text-size': 11,
-    'text-anchor': 'center'
-  },
-  paint: {
-    'text-color': '#000000',
-    'text-halo-color': '#ffffff',
-    'text-halo-width': 1
-  }
-});
 
 
       // Adjust view to fit all features
