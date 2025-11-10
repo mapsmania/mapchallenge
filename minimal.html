@@ -12,32 +12,33 @@
   <style>
     body, html { margin: 0; padding: 0; height: 100%; background: #000; font-family: 'Inter', sans-serif; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-     #london-label {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  color: #fff;
-  font-family: sans-serif;
-  font-weight: bold;
-  font-size: 15vw;       /* scales with viewport width */
-  line-height: 1;
-  pointer-events: none;
-  user-select: none;
-}
+    #london-label {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      color: #fff;
+      font-weight: 900; /* Made bold to stand out against dark background */
+      font-size: 15vw; /* scales with viewport width */
+      line-height: 1;
+      opacity: 0.1; /* Subtly faded */
+      pointer-events: none;
+      user-select: none;
+      z-index: 10;
+    }
     .live-plane {
-      width: 8px; /* Slightly larger dot for visibility */
+      width: 8px; /* Dot size */
       height: 8px;
-      background-color: #fff; /* white dot */
+      background-color: #fff; /* White dot */
       border-radius: 50%;
       box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.8);
     }
-    
   </style>
 </head>
 <body>
   <div id="map"></div>
   <div id="london-label">LDN</div>
   
+  <!-- Removed: The plane counter HTML has been removed from here. -->
 
   <script>
     const UPDATE_INTERVAL = 10000; // 10 seconds for fetching
@@ -64,8 +65,7 @@
     // 1. Animation Loop (runs constantly to interpolate positions)
     function animatePlanes() {
       const now = Date.now();
-      let activePlanes = 0;
-
+      
       for (const id in livePlanes) {
         const plane = livePlanes[id];
         const elapsed = now - plane.startTime;
@@ -74,7 +74,6 @@
         const progress = Math.min(1, elapsed / ANIMATION_DURATION); 
 
         if (progress <= 1) {
-          activePlanes++;
           const startLng = plane.startPos[0];
           const startLat = plane.startPos[1];
           const targetLng = plane.targetPos[0];
@@ -88,7 +87,7 @@
         }
       }
 
-      document.getElementById('plane-count').textContent = activePlanes;
+      // Removed: document.getElementById('plane-count').textContent = activePlanes;
       animationFrameId = requestAnimationFrame(animatePlanes);
     }
 
@@ -123,7 +122,6 @@
         const lon = plane[5]; // Longitude
         const lat = plane[6]; // Latitude
         
-        // The true track (heading) is at index 10, useful for rotating the markers later
         const track = plane[10]; 
 
         if (!lat || !lon) return;
@@ -170,13 +168,13 @@
     // --- Map Initialization ---
 
     map.on('load', () => {
-      // 1. Add GeoJSON source using the external file path, as requested.
+      // 1. Add GeoJSON source using the external file path.
       map.addSource('london', {
         type: 'geojson',
         data: 'data/miles.geojson'
       });
 
-      // 2. River Thames Layer (using original source name 'london')
+      // 2. River Thames Layer
       map.addLayer({
         id: 'thames',
         type: 'line',
@@ -189,20 +187,19 @@
         filter: ['==', ['get', 'name'], 'River Thames']
       });
 
-      // --- Bridges ---
-map.addLayer({
-  id: 'bridges',
-  type: 'line',
-  source: 'london',
-  paint: {
-    'line-color': '#fff',
-    'line-width': 1.5
-  },
-  filter: ['==', ['get', 'name'], 'bridge']  // bridge features only
-});
+      // 3. Bridges Layer
+      map.addLayer({
+        id: 'bridges',
+        type: 'line',
+        source: 'london',
+        paint: {
+          'line-color': '#fff',
+          'line-width': 1.5
+        },
+        filter: ['==', ['get', 'name'], 'bridge']
+      });
 
-
-      // 4. Adjust view to fit all features by fetching the GeoJSON (re-added original logic)
+      // 4. Adjust view to fit all features by fetching the GeoJSON
       const bounds = new maplibregl.LngLatBounds();
       fetch('data/miles.geojson')
         .then(resp => {
@@ -220,7 +217,6 @@ map.addLayer({
           map.fitBounds(bounds, { padding: 40 });
         })
         .catch(err => {
-            // Log the error if the file isn't available
             console.error("Could not load or process data/miles.geojson. Map bounds may be incorrect.", err);
         });
 
