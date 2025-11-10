@@ -39,44 +39,44 @@
         data: 'data/miles.geojson'
       });
 
-      map.addLayer({
-    id: 'thames',
-    type: 'line',
-    source: 'london',
-    paint: {
-      'line-color': '#0077cc',    // a clean river blue
-      'line-width': 4             // thicker line
-    },
-    filter: ['==', '$type', 'LineString']
-  });
+   // --- River Thames ---
+map.addLayer({
+  id: 'thames',
+  type: 'line',
+  source: 'london',
+  paint: {
+    'line-color': '#0077cc',
+    'line-width': 4
+  },
+  filter: ['==', ['get', 'name'], 'River Thames']  // river features only
+});
 
+// --- Bridges ---
+map.addLayer({
+  id: 'bridges',
+  type: 'line',
+  source: 'london',
+  paint: {
+    'line-color': '#000000',
+    'line-width': 1.5
+  },
+  filter: ['==', ['get', 'name'], 'bridge']  // bridge features only
+});
 
-      // Draw bridges as small black lines
-      map.addLayer({
-        id: 'bridges',
-        type: 'line',
-        source: 'london',
-        paint: {
-          'line-color': '#000000',
-          'line-width': 1.5
-        },
-        filter: ['==', '$type', 'LineString'] // or 'Point'/'LineString' depending on your data
-      });
-
-      // --- Distance labels ---
+// --- Distance labels ---
 map.addLayer({
   id: 'distance-labels',
   type: 'symbol',
   source: 'london',
-  filter: ['==', '$type', 'Point'],   // only draw point features
+  filter: ['has', 'miles'],  // all features with a miles property
   layout: {
-  'text-field': ['concat', ['get', 'miles'], ' mi'],
-  'text-size': 11,
-  'text-anchor': 'center'
-},
+    'text-field': ['concat', ['get', 'miles'], ' mi'],
+    'text-size': 11,
+    'text-anchor': 'center'
+  },
   paint: {
     'text-color': '#000000',
-    'text-halo-color': '#ffffff',    // white halo for readability
+    'text-halo-color': '#ffffff',
     'text-halo-width': 1
   }
 });
