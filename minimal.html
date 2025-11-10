@@ -12,10 +12,23 @@
   <style>
     body, html { margin: 0; padding: 0; height: 100%; background: #000; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+    #london-label {
+  position: absolute;
+  bottom: 20px;      /* distance from bottom */
+  right: 20px;       /* distance from right */
+  color: #fff;       /* white text */
+  font-family: sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+  pointer-events: none; /* so it doesn’t block map interactions */
+  user-select: none;
+}
+
   </style>
 </head>
 <body>
   <div id="map"></div>
+  <div id="london-label">LDN</div>
 
   <script>
     // Create the map with no basemap or style layers
