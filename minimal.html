@@ -31,7 +31,6 @@
       background-color: #fff; /* white dot */
       border-radius: 50%;
       box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.8);
-      /* Removed CSS transition, movement is now handled by requestAnimationFrame */
     }
     .info-box {
         position: absolute;
@@ -63,40 +62,6 @@
   <script>
     const UPDATE_INTERVAL = 10000; // 10 seconds for fetching
     const ANIMATION_DURATION = UPDATE_INTERVAL; // Duration for interpolation
-
-    // Global GeoJSON for map features (replaces the failed fetch)
-    const londonGeoJson = {
-      type: 'FeatureCollection',
-      features: [
-        {
-          type: 'Feature',
-          properties: { name: 'River Thames' },
-          geometry: {
-            type: 'LineString',
-            // Simplified path of Thames in London area
-            coordinates: [
-              [0.3, 51.48], [0.0, 51.5], [-0.3, 51.48]
-            ],
-          },
-        },
-        {
-          type: 'Feature',
-          properties: { name: 'bridge' },
-          geometry: {
-            type: 'Point',
-            coordinates: [-0.117, 51.503], // London Bridge area
-          },
-        },
-        {
-          type: 'Feature',
-          properties: { name: 'bridge' },
-          geometry: {
-            type: 'Point',
-            coordinates: [-0.075, 51.505], // Tower Bridge area
-          },
-        },
-      ],
-    };
 
     // Create the map with no basemap or style layers
     const map = new maplibregl.Map({
@@ -178,7 +143,7 @@
         const lon = plane[5]; // Longitude
         const lat = plane[6]; // Latitude
         
-        // altitude, heading etc. can be accessed if needed, e.g. plane[13] is true track (heading)
+        // The true track (heading) is at index 10, useful for rotating the markers later
         const track = plane[10]; 
 
         if (!lat || !lon) return;
@@ -216,7 +181,6 @@
       // Remove planes no longer in view
       for (const id in livePlanes) {
         if (!seen.has(id)) {
-          // If a plane is removed, it should stop animating immediately
           livePlanes[id].marker.remove();
           delete livePlanes[id];
         }
@@ -226,17 +190,17 @@
     // --- Map Initialization ---
 
     map.on('load', () => {
-      // 1. Add GeoJSON source using the internal object
-      map.addSource('london-features', {
+      // 1. Add GeoJSON source using the external file path, as requested.
+      map.addSource('london', {
         type: 'geojson',
-        data: londonGeoJson
+        data: 'data/miles.geojson'
       });
 
-      // 2. River Thames Layer
+      // 2. River Thames Layer (using original source name 'london')
       map.addLayer({
         id: 'thames',
         type: 'line',
-        source: 'london-features',
+        source: 'london',
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
           'line-color': '#0077cc', // Blue for water
@@ -245,11 +209,11 @@
         filter: ['==', ['get', 'name'], 'River Thames']
       });
 
-      // 3. Bridges Layer (simplified points)
+      // 3. Bridges Layer (using original source name 'london')
       map.addLayer({
         id: 'bridges',
         type: 'circle',
-        source: 'london-features',
+        source: 'london',
         paint: {
           'circle-color': '#fff',
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 1.5, 14, 3]
@@ -257,12 +221,27 @@
         filter: ['==', ['get', 'name'], 'bridge']
       });
 
-      // 4. Set fixed initial bounds for a better view (since the GeoJSON is simplified)
-      const initialBounds = new maplibregl.LngLatBounds(
-          [-0.6, 51.25], // SW
-          [0.3, 51.8]    // NE
-      );
-      map.fitBounds(initialBounds, { padding: 40, duration: 0 });
+      // 4. Adjust view to fit all features by fetching the GeoJSON (re-added original logic)
+      const bounds = new maplibregl.LngLatBounds();
+      fetch('data/miles.geojson')
+        .then(resp => {
+            if (!resp.ok) throw new Error(`Failed to load miles.geojson: ${resp.statusText}`);
+            return resp.json();
+        })
+        .then(data => {
+          data.features.forEach(f => {
+            const coords = f.geometry.coordinates.flat(Infinity);
+            // This loop assumes coordinates are simple arrays of [lng, lat] pairs
+            for (let i = 0; i < coords.length; i += 2) {
+              bounds.extend([coords[i], coords[i + 1]]);
+            }
+          });
+          map.fitBounds(bounds, { padding: 40 });
+        })
+        .catch(err => {
+            // Log the error if the file isn't available
+            console.error("Could not load or process data/miles.geojson. Map bounds may be incorrect.", err);
+        });
 
       // 5. Start fetching and animation
       fetchLivePlanes();
