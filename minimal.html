@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Minimal Thames Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+  <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; background: #fff; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script>
+    // Create the map with no basemap or style layers
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: {
+        version: 8,
+        sources: {},
+        layers: [],
+        glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf'
+      },
+      center: [-0.1, 51.5],  // approximate London center
+      zoom: 11
+    });
+
+    // Disable interaction for minimal look (optional)
+    map.dragRotate.disable();
+    map.touchZoomRotate.disableRotation();
+    map.scrollZoom.disable();
+    map.dragPan.disable();
+    map.doubleClickZoom.disable();
+
+    map.on('load', () => {
+      // Add GeoJSON source
+      map.addSource('london', {
+        type: 'geojson',
+        data: 'london.geojson'
+      });
+
+      // Draw the river
+      map.addLayer({
+        id: 'thames',
+        type: 'line',
+        source: 'london',
+        paint: {
+          'line-color': '#000000',
+          'line-width': 2
+        },
+        filter: ['==', '$type', 'LineString']
+      });
+
+      // Draw bridges as small black lines
+      map.addLayer({
+        id: 'bridges',
+        type: 'line',
+        source: 'london',
+        paint: {
+          'line-color': '#000000',
+          'line-width': 1.5
+        },
+        filter: ['==', '$type', 'Polygon'] // or 'Point'/'LineString' depending on your data
+      });
+
+      // Adjust view to fit all features
+      const bounds = new maplibregl.LngLatBounds();
+      fetch('london.geojson')
+        .then(resp => resp.json())
+        .then(data => {
+          data.features.forEach(f => {
+            const coords = f.geometry.coordinates.flat(Infinity);
+            for (let i = 0; i < coords.length; i += 2) {
+              bounds.extend([coords[i], coords[i + 1]]);
+            }
+          });
+          map.fitBounds(bounds, { padding: 40 });
+        });
+    });
+  </script>
+</body>
+</html>
