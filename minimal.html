@@ -69,6 +69,27 @@
         filter: ['==', '$type', 'Polygon'] // or 'Point'/'LineString' depending on your data
       });
 
+      // --- Distance labels ---
+map.addLayer({
+  id: 'distance-labels',
+  type: 'symbol',
+  source: 'london',
+  filter: ['==', '$type', 'Point'],   // only draw point features
+  layout: {
+    'text-field': ['concat', ['get', 'miles'], ' mi'],  // "0.56 mi"
+    'text-font': ['Open Sans Regular'],
+    'text-size': 11,
+    'text-anchor': 'center',
+    'text-offset': [0, 0]
+  },
+  paint: {
+    'text-color': '#000000',
+    'text-halo-color': '#ffffff',    // white halo for readability
+    'text-halo-width': 1
+  }
+});
+
+
       // Adjust view to fit all features
       const bounds = new maplibregl.LngLatBounds();
       fetch('data/miles.geojson')
