@@ -71,7 +71,7 @@
 
       // Adjust view to fit all features
       const bounds = new maplibregl.LngLatBounds();
-      fetch('london.geojson')
+      fetch('data/london.geojson')
         .then(resp => resp.json())
         .then(data => {
           data.features.forEach(f => {
