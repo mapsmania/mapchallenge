@@ -76,12 +76,10 @@ map.addLayer({
   source: 'london',
   filter: ['==', '$type', 'Point'],   // only draw point features
   layout: {
-    'text-field': ['concat', ['get', 'miles'], ' mi'],  // "0.56 mi"
-    'text-font': ['sans-serif'],
-    'text-size': 11,
-    'text-anchor': 'center',
-    'text-offset': [0, 0]
-  },
+  'text-field': ['concat', ['get', 'miles'], ' mi'],
+  'text-size': 11,
+  'text-anchor': 'center'
+},
   paint: {
     'text-color': '#000000',
     'text-halo-color': '#ffffff',    // white halo for readability
