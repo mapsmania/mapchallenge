@@ -208,17 +208,18 @@
         filter: ['==', ['get', 'name'], 'River Thames']
       });
 
-      // 3. Bridges Layer (using original source name 'london')
-      map.addLayer({
-        id: 'bridges',
-        type: 'circle',
-        source: 'london',
-        paint: {
-          'circle-color': '#fff',
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 1.5, 14, 3]
-        },
-        filter: ['==', ['get', 'name'], 'bridge']
-      });
+      // --- Bridges ---
+map.addLayer({
+  id: 'bridges',
+  type: 'line',
+  source: 'london',
+  paint: {
+    'line-color': '#fff',
+    'line-width': 1.5
+  },
+  filter: ['==', ['get', 'name'], 'bridge']  // bridge features only
+});
+
 
       // 4. Adjust view to fit all features by fetching the GeoJSON (re-added original logic)
       const bounds = new maplibregl.LngLatBounds();
