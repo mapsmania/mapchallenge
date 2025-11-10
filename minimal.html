@@ -31,13 +31,7 @@
       zoom: 11
     });
 
-    // Disable interaction for minimal look (optional)
-    map.dragRotate.disable();
-    map.touchZoomRotate.disableRotation();
-    map.scrollZoom.disable();
-    map.dragPan.disable();
-    map.doubleClickZoom.disable();
-
+   
     map.on('load', () => {
       // Add GeoJSON source
       map.addSource('london', {
