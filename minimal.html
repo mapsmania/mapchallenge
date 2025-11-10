@@ -42,7 +42,7 @@
       // Add GeoJSON source
       map.addSource('london', {
         type: 'geojson',
-        data: 'data/london.geojson'
+        data: 'data/miles.geojson'
       });
 
       map.addLayer({
@@ -71,7 +71,7 @@
 
       // Adjust view to fit all features
       const bounds = new maplibregl.LngLatBounds();
-      fetch('data/london.geojson')
+      fetch('data/miles.geojson')
         .then(resp => resp.json())
         .then(data => {
           data.features.forEach(f => {
