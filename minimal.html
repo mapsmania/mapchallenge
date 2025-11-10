@@ -24,6 +24,14 @@
   pointer-events: none;
   user-select: none;
 }
+  .live-plane {
+  width: 6px;           /* small dot */
+  height: 6px;
+  background-color: #fff; /* white dot */
+  border-radius: 50%;     /* make it circular */
+  box-shadow: 0 0 2px #fff;
+  transition: transform 1s linear; /* smooth movement */
+}
 
   </style>
 </head>
@@ -93,6 +101,72 @@ map.addLayer({
           map.fitBounds(bounds, { padding: 40 });
         });
     });
+// add realtime planes
+    let livePlanes = {}; // { icao24: { marker, lastUpdate } }
+
+async function fetchLivePlanes() {
+  const bounds = map.getBounds();
+  const lamin = bounds.getSouth();
+  const lomin = bounds.getWest();
+  const lamax = bounds.getNorth();
+  const lomax = bounds.getEast();
+
+  const url = `https://opensky-network.org/api/states/all?lamin=${lamin}&lomin=${lomin}&lamax=${lamax}&lomax=${lomax}`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    updateLivePlanes(data.states || []);
+  } catch (err) {
+    console.error("Error fetching plane data", err);
+  }
+}
+
+function updateLivePlanes(states) {
+  const seen = new Set();
+
+  states.forEach(plane => {
+    const icao24 = plane[0];
+    const callsign = plane[1];
+    const lon = plane[5];
+    const lat = plane[6];
+    if (!lat || !lon) return;
+
+    seen.add(icao24);
+
+    if (livePlanes[icao24]) {
+      // Update existing marker position smoothly
+      livePlanes[icao24].marker.setLngLat([lon, lat]);
+      livePlanes[icao24].lastUpdate = Date.now();
+    } else {
+      // Create new marker as a small white dot
+      const el = document.createElement("div");
+      el.className = "live-plane";
+      el.title = callsign || "Plane";
+
+      const marker = new maplibregl.Marker({ element: el })
+        .setLngLat([lon, lat])
+        .addTo(map);
+
+      livePlanes[icao24] = { marker, lastUpdate: Date.now() };
+    }
+  });
+
+  // Remove planes no longer in view
+  for (const id in livePlanes) {
+    if (!seen.has(id)) {
+      livePlanes[id].marker.remove();
+      delete livePlanes[id];
+    }
+  }
+}
+
+// Start fetching every 10 seconds
+map.on("load", () => {
+  fetchLivePlanes();
+  setInterval(fetchLivePlanes, 10000);
+});
+
   </script>
 </body>
 </html>
