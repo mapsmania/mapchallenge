@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>WDC - THREAT MATRIX</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+  <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; background: #000; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+      /* ===== HUD styling ===== */
+#hud {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: #00f0ff;
+  font-family: "Orbitron", "Courier New", monospace;
+  z-index: 10;
+  text-shadow: 0 0 6px #00f0ff;
+}
+
+#hud-header {
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  border-bottom: 1px solid #00f0ff55;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+#hud-timestamp {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  margin-bottom: 12px;
+}
+
+#hud-legend {
+  font-size: 0.85rem;
+  line-height: 1.4rem;
+}
+
+#hud-legend .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* Threat colours */
+.stable { color: #00ffcc; background: #00ffcc; }
+.risk   { color: #ffff33; background: #ffff33; }
+.attack { color: #ff0033; background: #ff0033; animation: blink 1s infinite; }
+.lost   { color: #555; background: #222; }
+
+/* Blinking red alert */
+@keyframes blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0.4; }
+}
+
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+    <!-- Heads-Up Display overlay -->
+<div id="hud">
+  <div id="hud-header">WORLD DEFENCE COMMAND // THREAT MATRIX V9.3</div>
+  <div id="hud-timestamp">2125-11-11 | 21:43 UTC</div>
+  <div id="hud-legend">
+    <div><span class="dot stable"></span> Stable</div>
+    <div><span class="dot risk"></span> At Risk</div>
+    <div><span class="dot attack"></span> Under Attack</div>
+    <div><span class="dot lost"></span> Lost</div>
+  </div>
+</div>
+
+
+ <script>
+
+const map = new maplibregl.Map({
+  container: 'map',
+  style: 'https://mapsmania.github.io/mapchallenge/data/dark_matter.json',
+  center: [-30.388, 22.517],
+  zoom: 1
+});
+
+
+const threatLevels = {
+  "United States": "red",
+  "France": "yellow",
+  "Japan": "green",
+  "Brazil": "red",
+  "Australia": "black"
+};
+
+const haloColors = {
+  red: ["#ff0033", "#ff9900"],
+  yellow: ["#ffff33", "#ffaa00"],
+  green: ["#00ffcc", "#00ffaa"],
+  black: ["#222", "#000"]
+};
+
+map.on('load', () => {
+
+  // Hide the layer that labels water features
+    if (map.getLayer('water_name_point_label')) {
+  map.setLayoutProperty('water_name_point_label', 'visibility', 'none');
+}
+   
+  const baseLayer = 'label_country_1';
+  const base = map.getStyle().layers.find(l => l.id === baseLayer);
+  Object.entries(threatLevels).forEach(([country, level], i) => {
+  const layerId = `flash_${country.replace(/\s/g,'_')}`;
+  map.addLayer({
+    id: layerId,
+    type: base.type,
+    source: base.source,
+    'source-layer': base['source-layer'],
+    filter: ["==", ["coalesce", ["get", "name_en"], ["get", "name"]], country],
+    layout: base.layout,
+    paint: {
+      ...base.paint,
+      'text-color': '#00f0ff',
+      'text-halo-color': haloColors[level][0],
+      'text-halo-width': 2
+    }
+  });
+
+  let flash = false;
+  setInterval(() => {
+    const [c1, c2] = haloColors[level];
+    map.setPaintProperty(layerId, 'text-halo-color', flash ? c2 : c1);
+    flash = !flash;
+  }, 400 + i * 150);
+});
+
+});
+
+  </script>
+</body>
+</html>
