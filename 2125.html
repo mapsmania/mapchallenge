@@ -2,146 +2,305 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>WDC - THREAT MATRIX</title>
+  <title>Amtrak Maglev 2125</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link
-    href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css"
-    rel="stylesheet"
-  />
+  <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
   <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
   <style>
-    body, html { margin: 0; padding: 0; height: 100%; background: #000; }
-    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-      /* ===== HUD styling ===== */
-#hud {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  color: #00f0ff;
-  font-family: "Orbitron", "Courier New", monospace;
-  z-index: 10;
-  text-shadow: 0 0 6px #00f0ff;
-}
-
-#hud-header {
-  font-size: 1.1rem;
-  letter-spacing: 1px;
-  border-bottom: 1px solid #00f0ff55;
-  padding-bottom: 4px;
-  margin-bottom: 6px;
-}
-
-#hud-timestamp {
-  font-size: 0.9rem;
-  opacity: 0.85;
-  margin-bottom: 12px;
-}
-
-#hud-legend {
-  font-size: 0.85rem;
-  line-height: 1.4rem;
-}
-
-#hud-legend .dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 6px;
-  box-shadow: 0 0 6px currentColor;
-}
-
-/* Threat colours */
-.stable { color: #00ffcc; background: #00ffcc; }
-.risk   { color: #ffff33; background: #ffff33; }
-.attack { color: #ff0033; background: #ff0033; animation: blink 1s infinite; }
-.lost   { color: #555; background: #222; }
-
-/* Blinking red alert */
-@keyframes blink {
-  0%, 50%, 100% { opacity: 1; }
-  25%, 75% { opacity: 0.4; }
-}
-
+    body, html { margin:0; padding:0; height:100%; background:#000; }
+    #map { position:absolute; top:0; bottom:0; width:100%; }
+    #hud {
+      position:absolute;
+      top:20px; left:20px;
+      color:#00f0ff;
+      font-family:"Orbitron","Courier New",monospace;
+      z-index:10;
+      text-shadow:0 0 6px #00f0ff;
+    }
+    #hud-header { font-size:1.1rem; letter-spacing:1px; border-bottom:1px solid #00f0ff55; padding-bottom:4px; margin-bottom:6px; }
+    #hud-timestamp { font-size:0.9rem; opacity:0.85; margin-bottom:12px; }
   </style>
 </head>
 <body>
-  <div id="map"></div>
-
-    <!-- Heads-Up Display overlay -->
+<div id="map"></div>
 <div id="hud">
-  <div id="hud-header">WORLD DEFENCE COMMAND // THREAT MATRIX V9.3</div>
+  <div id="hud-header">Amtrak Maglev 2125</div>
   <div id="hud-timestamp">2125-11-11 | 21:43 UTC</div>
-  <div id="hud-legend">
-    <div><span class="dot stable"></span> Stable</div>
-    <div><span class="dot risk"></span> At Risk</div>
-    <div><span class="dot attack"></span> Under Attack</div>
-    <div><span class="dot lost"></span> Lost</div>
-  </div>
 </div>
 
-
- <script>
-
+<script>
+const linesData = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "east"
+      },
+      "geometry": {
+        "coordinates": [
+          [-71.0947, 42.4482],
+          [-73.8409, 41.7935],
+          [-74.3313, 40.6873],
+          [-77.1756, 38.8786], // DC Representative
+          [-80.8051, 35.2401],
+          [-84.3871, 33.7514],
+          [-81.6641, 30.2459], // JAX Representative
+          [-82.4423, 27.9904],
+          [-80.4086, 25.7561]
+        ],
+        "type": "LineString"
+      },
+      "id": 0
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "north"
+      },
+      "geometry": {
+        "coordinates": [
+          [-77.1756, 38.8786], // DC Representative
+          [-80.0389, 40.4516],
+          [-81.8281, 41.5157],
+          [-87.7378, 41.3531],
+          [-93.2454, 44.9807],
+          [-122.3334, 47.5853] // Seattle Representative
+        ],
+        "type": "LineString"
+      },
+      "id": 1
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "west"
+      },
+      "geometry": {
+        "coordinates": [
+          [-118.3861, 34.0137], // LA Representative
+          [-122.4256, 37.8008],
+          [-123.1698, 45.0047],
+          [-122.3334, 47.5853] // Seattle Representative
+        ],
+        "type": "LineString"
+      },
+      "id": 2
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "south"
+      },
+      "geometry": {
+        "coordinates": [
+          [-81.6641, 30.2459], // Replaced with JAX Rep
+          [-88.0873, 30.7102],
+          [-90.0801, 29.9577],
+          [-95.3722, 29.7751], // Replaced with HOU Rep
+          [-97.7026, 30.2163],
+          [-112.0507, 33.4327],
+          [-118.3861, 34.0137] // Replaced with LA Rep
+        ],
+        "type": "LineString"
+      },
+      "id": 3
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "center"
+      },
+      "geometry": {
+        "coordinates": [
+          [-95.3722, 29.7751], // HOU Representative
+          [-96.8464, 32.7859],
+          [-96.0554, 36.1349],
+          [-94.5452, 39.0962],
+          [-88.1442, 41.5892]
+        ],
+        "type": "LineString"
+      },
+      "id": 4
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "midwest"
+      },
+      "geometry": {
+        "coordinates": [
+          [-77.1756, 38.8786], // DC Representative
+          [-85.7547, 38.1918],
+          [-94.6513, 39.0055],
+          [-104.9202, 39.7371],
+          [-111.8576, 40.8830],
+          [-121.5659, 38.5661],
+          [-122.4307, 37.7765]
+        ],
+        "type": "LineString"
+      },
+      "id": 5
+    }
+  ]
+};
+    const colors = ['#00f0ff', '#ff00ff', '#00ff00', '#ff9900', '#00ffff', '#ff0000'];
 const map = new maplibregl.Map({
-  container: 'map',
-  style: 'https://mapsmania.github.io/mapchallenge/data/dark_matter.json',
-  center: [-30.388, 22.517],
-  zoom: 1
+  container:'map',
+  style:'https://mapsmania.github.io/mapchallenge/data/dark_matter.json',
+  center:[-98,39],
+  zoom:4
 });
 
-
-const threatLevels = {
-  "United States": "red",
-  "France": "yellow",
-  "Japan": "green",
-  "Brazil": "red",
-  "Australia": "black"
-};
-
-const haloColors = {
-  red: ["#ff0033", "#ff9900"],
-  yellow: ["#ffff33", "#ffaa00"],
-  green: ["#00ffcc", "#00ffaa"],
-  black: ["#222", "#000"]
-};
-
-map.on('load', () => {
-
-  // Hide the layer that labels water features
-    if (map.getLayer('water_name_point_label')) {
-  map.setLayoutProperty('water_name_point_label', 'visibility', 'none');
+// Haversine distance in miles
+function haversine([lon1,lat1],[lon2,lat2]){
+  const R = 3958.8; 
+  const toRad = Math.PI/180;
+  const dLat = (lat2-lat1)*toRad;
+  const dLon = (lon2-lon1)*toRad;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*toRad)*Math.cos(lat2*toRad)*Math.sin(dLon/2)**2;
+  const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  return R*c;
 }
-   
-  const baseLayer = 'label_country_1';
-  const base = map.getStyle().layers.find(l => l.id === baseLayer);
-  Object.entries(threatLevels).forEach(([country, level], i) => {
-  const layerId = `flash_${country.replace(/\s/g,'_')}`;
+
+// Cumulative distances along a line
+function cumulativeDistances(coords){
+  const cum=[0];
+  for(let i=1;i<coords.length;i++){
+    cum.push(cum[i-1]+haversine(coords[i-1],coords[i]));
+  }
+  return cum;
+}
+
+// Interpolate point along cumulative distance
+function interpolateAlongLine(coords,cumDist,distance){
+  if(distance <=0) return coords[0];
+  const total = cumDist[cumDist.length-1];
+  if(distance >= total) return coords[coords.length-1];
+  for(let i=1;i<cumDist.length;i++){
+    if(cumDist[i]>=distance){
+      const t = (distance - cumDist[i-1])/(cumDist[i]-cumDist[i-1]);
+      return [
+        coords[i-1][0] + t*(coords[i][0]-coords[i-1][0]),
+        coords[i-1][1] + t*(coords[i][1]-coords[i-1][1])
+      ];
+    }
+  }
+}
+
+// Initialize simulation time
+let simulationTime = new Date("2125-11-11T21:43:00Z");
+function updateClock(deltaMinutes){
+  simulationTime.setMinutes(simulationTime.getMinutes() + deltaMinutes);
+  const hours = simulationTime.getUTCHours().toString().padStart(2,'0');
+  const minutes = simulationTime.getUTCMinutes().toString().padStart(2,'0');
+  const day = simulationTime.getUTCDate().toString().padStart(2,'0');
+  const month = (simulationTime.getUTCMonth()+1).toString().padStart(2,'0');
+  const year = simulationTime.getUTCFullYear();
+  document.getElementById('hud-timestamp').textContent = `${year}-${month}-${day} | ${hours}:${minutes} UTC`;
+}
+
+map.on('load',()=>{
+
+  // Dark residential areas
+  if (map.getLayer('landuse_residential')) {
+    map.setPaintProperty('landuse_residential', 'fill-color', '#000000');
+  }
+  // Hide city labels
+  if(map.getLayer('label_city')) {
+    map.setLayoutProperty('label_city', 'visibility', 'none');
+  }
+
+  // Initialize trains
+  const trains = linesData.features.map((f,i)=>{
+    const cumDist = cumulativeDistances(f.geometry.coordinates);
+    return {
+      coords: f.geometry.coordinates,
+      cumDist: cumDist,
+      totalDist: cumDist[cumDist.length-1],
+      progress: Math.random()*cumDist[cumDist.length-1],
+      speed: 5 + Math.random()*5, // miles per frame
+      color: colors[i%colors.length],
+      name: f.properties.name,
+      direction: 1
+    };
+  });
+
+  // Add train sources and layers
+  trains.forEach(train=>{
+    map.addSource(`train-${train.name}`,{
+      type:'geojson',
+      data:{type:'Feature',geometry:{type:'LineString',coordinates:[train.coords[0]]}}
+    });
+    map.addLayer({
+      id:`train-layer-${train.name}`,
+      type:'line',
+      source:`train-${train.name}`,
+      paint:{
+        'line-color': train.color,
+        'line-width':4,
+        'line-opacity':0.9,
+        'line-blur':1
+      }
+    });
+  });
+
+  // Collect all stations
+  const stations = [];
+  linesData.features.forEach(f => f.geometry.coordinates.forEach(c => stations.push(c)));
+
+  // Add stations source and layer
+  map.addSource('stations',{
+    type:'geojson',
+    data: { type:'FeatureCollection', features: stations.map(c=>({type:'Feature',geometry:{type:'Point',coordinates:c}})) }
+  });
   map.addLayer({
-    id: layerId,
-    type: base.type,
-    source: base.source,
-    'source-layer': base['source-layer'],
-    filter: ["==", ["coalesce", ["get", "name_en"], ["get", "name"]], country],
-    layout: base.layout,
-    paint: {
-      ...base.paint,
-      'text-color': '#00f0ff',
-      'text-halo-color': haloColors[level][0],
-      'text-halo-width': 2
+    id:'stations-layer',
+    type:'circle',
+    source:'stations',
+    paint:{
+      'circle-radius':6,
+      'circle-color':'#00f0ff',
+      'circle-opacity':0.9,
+      'circle-blur':1.2
     }
   });
 
-  let flash = false;
-  setInterval(() => {
-    const [c1, c2] = haloColors[level];
-    map.setPaintProperty(layerId, 'text-halo-color', flash ? c2 : c1);
-    flash = !flash;
-  }, 400 + i * 150);
-});
+  const trainLength = 100; // miles
+  const virtualMinutesPerFrame = 1; // HUD minutes per frame
 
-});
+  let pulsePhase = 0; // for station pulsing
+  function animate(){
+    // Animate trains
+    trains.forEach(train=>{
+      train.progress += train.speed * train.direction;
+      if(train.progress >= train.totalDist){ train.progress = train.totalDist; train.direction=-1; }
+      if(train.progress <= 0){ train.progress = 0; train.direction=1; }
 
-  </script>
+      const startDist = Math.max(train.progress - trainLength,0);
+      const endDist = train.progress;
+      const startPoint = interpolateAlongLine(train.coords,train.cumDist,startDist);
+      const endPoint = interpolateAlongLine(train.coords,train.cumDist,endDist);
+
+      map.getSource(`train-${train.name}`).setData({
+        type:'Feature',
+        geometry:{type:'LineString',coordinates:[startPoint,endPoint]}
+      });
+    });
+
+    // Update HUD clock
+    updateClock(virtualMinutesPerFrame);
+
+    // Pulse stations
+    pulsePhase += 0.05;
+    const radius = 6 + Math.sin(pulsePhase)*3;
+    map.setPaintProperty('stations-layer','circle-radius',radius);
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+});
+</script>
 </body>
 </html>
