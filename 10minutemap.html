@@ -16,81 +16,62 @@
   <div id="map"></div>
 
   <script>
-    // --- Fenchurch Street coordinates ---
     const fenchurchCoords = [-0.0788256, 51.5115814];
 
-    // --- Initialize map centered on Fenchurch Street ---
     const map = new maplibregl.Map({
       container: 'map',
-      style: 'https://tiles.openfreemap.org/styles/positron',
+      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json', // working style
       center: fenchurchCoords,
       zoom: 14
     });
 
     map.on('load', () => {
-      // --- Draw 800m circle around Fenchurch Street ---
-      const radiusMeters = 800;
-      const circle = turf.circle(fenchurchCoords, radiusMeters / 1000, {
-        steps: 64,
-        units: 'kilometers'
-      });
-
-      map.addSource('walk-radius', {
-        type: 'geojson',
-        data: circle
-      });
+      // --- 800m circle ---
+      const circle = turf.circle(fenchurchCoords, 0.8, { steps: 64, units: 'kilometers' });
+      map.addSource('walk-radius', { type: 'geojson', data: circle });
 
       map.addLayer({
         id: 'walk-radius-fill',
         type: 'fill',
         source: 'walk-radius',
-        paint: {
-          'fill-color': '#000000',
-          'fill-opacity': 0.2
-        }
+        paint: { 'fill-color': '#000000', 'fill-opacity': 0.2 }
       });
 
       map.addLayer({
         id: 'walk-radius-outline',
         type: 'line',
         source: 'walk-radius',
-        paint: {
-          'line-color': '#000000',
-          'line-width': 2
-        }
+        paint: { 'line-color': '#000000', 'line-width': 2 }
       });
 
-      // --- Add a marker for Fenchurch Street Station ---
+      // --- Fenchurch Street marker ---
       const popup = new maplibregl.Popup({ offset: 25 }).setText('Fenchurch Street Station');
       new maplibregl.Marker({ color: 'black' })
         .setLngLat(fenchurchCoords)
         .setPopup(popup)
         .addTo(map);
 
-      // --- Load and display the Tube walk GeoJSON (points + lines) ---
+      // --- Load Tube walk GeoJSON ---
       fetch('https://mapsmania.github.io/mapchallenge/data/tubewalk.geojson')
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
           map.addSource('tubewalk', { type: 'geojson', data });
 
-          // Add LineStrings
+          // Lines
           map.addLayer({
             id: 'tubewalk-lines',
             type: 'line',
             source: 'tubewalk',
-            filter: ['==', ['geometry-type'], 'LineString'],
-            paint: {
-              'line-color': '#0074D9',
-              'line-width': 3
-            }
+            filter: ['==', '$type', 'LineString'],
+            paint: { 'line-color': '#0074D9', 'line-width': 3 }
           });
 
-          // Add Points
+          // Points
           map.addLayer({
             id: 'tubewalk-points',
             type: 'circle',
             source: 'tubewalk',
-            filter: ['==', ['geometry-type'], 'Point'],
+            filter: ['==', '$type', 'Point'],
             paint: {
               'circle-radius': 5,
               'circle-color': '#FF4136',
@@ -99,12 +80,12 @@
             }
           });
 
-          // Optional: add labels for point features if they have names
+          // Labels
           map.addLayer({
             id: 'tubewalk-labels',
             type: 'symbol',
             source: 'tubewalk',
-            filter: ['==', ['geometry-type'], 'Point'],
+            filter: ['==', '$type', 'Point'],
             layout: {
               'text-field': ['get', 'name'],
               'text-offset': [0, 1],
