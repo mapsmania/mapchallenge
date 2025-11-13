@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Fenchurch Street Connections</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+  <style>
+    body, html { height: 100%; margin: 0; }
+    #map { position: fixed; inset: 0; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script>
+    // --- Fenchurch Street coordinates ---
+    const fenchurchCoords = [-0.0788256, 51.5115814];
+
+    // --- Initialize map centered on Fenchurch Street ---
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://tiles.openfreemap.org/styles/positron',
+      center: fenchurchCoords,
+      zoom: 14
+    });
+
+    map.on('load', () => {
+      // --- Draw 800m circle around Fenchurch Street ---
+      const radiusMeters = 800;
+      const circle = turf.circle(fenchurchCoords, radiusMeters / 1000, {
+        steps: 64,
+        units: 'kilometers'
+      });
+
+      map.addSource('walk-radius', {
+        type: 'geojson',
+        data: circle
+      });
+
+      map.addLayer({
+        id: 'walk-radius-fill',
+        type: 'fill',
+        source: 'walk-radius',
+        paint: {
+          'fill-color': '#000000',
+          'fill-opacity': 0.2
+        }
+      });
+
+      map.addLayer({
+        id: 'walk-radius-outline',
+        type: 'line',
+        source: 'walk-radius',
+        paint: {
+          'line-color': '#000000',
+          'line-width': 2
+        }
+      });
+
+      // --- Add a marker for Fenchurch Street Station ---
+      const popup = new maplibregl.Popup({ offset: 25 }).setText('Fenchurch Street Station');
+      new maplibregl.Marker({ color: 'black' })
+        .setLngLat(fenchurchCoords)
+        .setPopup(popup)
+        .addTo(map);
+
+      // --- Load and display the Tube walk GeoJSON (points + lines) ---
+      fetch('https://mapsmania.github.io/mapchallenge/data/tubewalk.geojson')
+        .then(response => response.json())
+        .then(data => {
+          map.addSource('tubewalk', { type: 'geojson', data });
+
+          // Add LineStrings
+          map.addLayer({
+            id: 'tubewalk-lines',
+            type: 'line',
+            source: 'tubewalk',
+            filter: ['==', ['geometry-type'], 'LineString'],
+            paint: {
+              'line-color': '#0074D9',
+              'line-width': 3
+            }
+          });
+
+          // Add Points
+          map.addLayer({
+            id: 'tubewalk-points',
+            type: 'circle',
+            source: 'tubewalk',
+            filter: ['==', ['geometry-type'], 'Point'],
+            paint: {
+              'circle-radius': 5,
+              'circle-color': '#FF4136',
+              'circle-stroke-color': '#ffffff',
+              'circle-stroke-width': 1
+            }
+          });
+
+          // Optional: add labels for point features if they have names
+          map.addLayer({
+            id: 'tubewalk-labels',
+            type: 'symbol',
+            source: 'tubewalk',
+            filter: ['==', ['geometry-type'], 'Point'],
+            layout: {
+              'text-field': ['get', 'name'],
+              'text-offset': [0, 1],
+              'text-anchor': 'top',
+              'text-size': 12
+            },
+            paint: {
+              'text-color': '#111111',
+              'text-halo-color': '#ffffff',
+              'text-halo-width': 1
+            }
+          });
+        })
+        .catch(err => console.error('Error loading GeoJSON:', err));
+    });
+  </script>
+</body>
+</html>
