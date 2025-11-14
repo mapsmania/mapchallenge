@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>City of London</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <style>
+    body,html{height:100%;margin:0}
+    #map{position:fixed;inset:0}
+    #menu {
+      position:absolute; top:10px; right:10px; background:white; padding:10px; z-index:1;
+      border-radius:4px; box-shadow:0 1px 4px rgba(0,0,0,0.3);
+    }
+    #menu label{display:block; margin-bottom:5px;}
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<div id="menu">
+  <label><input type="checkbox" id="toggle-goswell" checked>
+    <span style="display:inline-block;width:12px;height:12px;background:#ff0000;margin-right:5px;vertical-align:middle;"></span> Roads
+  </label>
+  <label><input type="checkbox" id="toggle-streets" checked>
+    <span style="display:inline-block;width:12px;height:12px;background:#0000ff;margin-right:5px;vertical-align:middle;"></span> Streets
+  </label>
+  <label><input type="checkbox" id="toggle-lanes" checked>
+    <span style="display:inline-block;width:12px;height:12px;background:#00aa00;margin-right:5px;vertical-align:middle;"></span> Lanes
+  </label>
+  <label><input type="checkbox" id="toggle-alleys" checked>
+    <span style="display:inline-block;width:12px;height:12px;background:#aa00aa;margin-right:5px;vertical-align:middle;"></span> Alleys
+  </label>
+  <label><input type="checkbox" id="toggle-avenues" checked>
+    <span style="display:inline-block;width:12px;height:12px;background:#ffaa00;margin-right:5px;vertical-align:middle;"></span> Avenues
+  </label>
+  <label><input type="checkbox" id="toggle-courts" checked>
+    <span style="display:inline-block;width:12px;height:12px;background:#00cccc;margin-right:5px;vertical-align:middle;"></span> Courts
+  </label>
+  <label><input type="checkbox" id="toggle-yards" checked>
+    <span style="display:inline-block;width:12px;height:12px;background:#cc6600;margin-right:5px;vertical-align:middle;"></span> Yards
+  </label>
+</div>
+
+<script>
+const map = new maplibregl.Map({
+  container: 'map',
+  style: 'https://tiles.openfreemap.org/styles/positron',
+  center: [-0.09204, 51.5143342],
+  zoom: 13
+});
+
+map.on('load', () => {
+  const urls = {
+    boundary: "https://mapsmania.github.io/mapchallenge/data/city.geojson",
+    streets: "https://mapsmania.github.io/mapchallenge/data/streets.geojson",
+    lanes: "https://mapsmania.github.io/mapchallenge/data/lanes.geojson",
+    alleys: "https://mapsmania.github.io/mapchallenge/data/alleys.geojson",
+    avenues: "https://mapsmania.github.io/mapchallenge/data/avenues.geojson",
+    courts: "https://mapsmania.github.io/mapchallenge/data/courts.geojson",
+    yards: "https://mapsmania.github.io/mapchallenge/data/yards.geojson"
+  };
+
+  const popup = new maplibregl.Popup({closeButton:true, closeOnClick:true});
+
+  function addRoadLayer(id, geojsonUrl, filterString, color){
+    fetch(geojsonUrl).then(res=>res.json()).then(data=>{
+      let features=[];
+      const allFeatures=data.type==='FeatureCollection'?data.features:[data];
+      allFeatures.forEach(f=>{
+        if(f.geometry?.type==='LineString' && f.properties){
+          for(let k in f.properties){
+            if(k.trim()==='name' && f.properties[k].trim().toLowerCase().includes(filterString)){
+              features.push(f);
+            }
+          }
+        }
+      });
+      if(features.length>0){
+        map.addSource(id, {type:'geojson', data:{type:'FeatureCollection', features}});
+        map.addLayer({
+          id: id+'-line',
+          type:'line',
+          source:id,
+          paint:{'line-color':color,'line-width':5}
+        });
+        map.on('click', id+'-line', e=>{
+          const f=e.features[0];
+          if(f?.properties?.name) popup.setLngLat(e.lngLat).setHTML(`<strong>${f.properties.name}</strong>`).addTo(map);
+        });
+        map.on('mouseenter', id+'-line',()=>map.getCanvas().style.cursor='pointer');
+        map.on('mouseleave', id+'-line',()=>map.getCanvas().style.cursor='');
+      }
+    });
+  }
+
+  // --- Load boundary + Goswell Road ---
+  fetch(urls.boundary).then(res=>res.json()).then(geojson=>{
+    let polygonFeatures=[], goswellFeatures=[];
+    const features = geojson.type==='FeatureCollection'?geojson.features:[geojson];
+    features.forEach(f=>{
+      if(!f.geometry || !f.properties) return;
+      if(f.geometry.type==='Polygon'||f.geometry.type==='MultiPolygon') polygonFeatures.push(f);
+      if(f.geometry.type==='LineString'){
+        for(let k in f.properties){
+          if(k.trim()==='name' && f.properties[k].trim()==='Goswell Road') goswellFeatures.push(f);
+        }
+      }
+    });
+    map.addSource('city-boundary',{type:'geojson', data:{type:'FeatureCollection', features:polygonFeatures}});
+    map.addLayer({id:'city-boundary-line', type:'line', source:'city-boundary', paint:{'line-color':'#000','line-width':1}});
+
+    const bounds=new maplibregl.LngLatBounds();
+    const recurse=arr=>{ if(typeof arr[0]==='number') bounds.extend(arr); else arr.forEach(recurse); };
+    polygonFeatures.forEach(f=>recurse(f.geometry.coordinates));
+    map.fitBounds(bounds,{padding:40});
+
+    if(goswellFeatures.length>0){
+      map.addSource('goswell-road',{type:'geojson', data:{type:'FeatureCollection', features:goswellFeatures}});
+      map.addLayer({id:'goswell-road-line', type:'line', source:'goswell-road', paint:{'line-color':'#ff0000','line-width':5}});
+      map.on('click','goswell-road-line', e=>{
+        const f=e.features[0]; let name=null;
+        for(let k in f.properties){ if(k.trim()==='name') name=f.properties[k].trim(); }
+        if(name) popup.setLngLat(e.lngLat).setHTML(`<strong>${name}</strong>`).addTo(map);
+      });
+      map.on('mouseenter','goswell-road-line',()=>map.getCanvas().style.cursor='pointer');
+      map.on('mouseleave','goswell-road-line',()=>map.getCanvas().style.cursor='');
+    }
+  });
+
+  // --- Add all other road layers ---
+  addRoadLayer('street-roads', urls.streets, 'street','#0000ff');
+  addRoadLayer('lane-roads', urls.lanes, 'lane','#00aa00');
+  addRoadLayer('alley-roads', urls.alleys, 'alley','#aa00aa');
+  addRoadLayer('avenue-roads', urls.avenues, 'avenue','#ffaa00');
+  addRoadLayer('court-roads', urls.courts, 'court','#00cccc');
+  addRoadLayer('yard-roads', urls.yards, 'yard','#cc6600');
+
+  // --- Layer visibility toggles ---
+  const toggles=[
+    ['goswell-road','toggle-goswell'],
+    ['street-roads','toggle-streets'],
+    ['lane-roads','toggle-lanes'],
+    ['alley-roads','toggle-alleys'],
+    ['avenue-roads','toggle-avenues'],
+    ['court-roads','toggle-courts'],
+    ['yard-roads','toggle-yards']
+  ];
+  toggles.forEach(([id, checkboxId])=>{
+    document.getElementById(checkboxId).addEventListener('change', e=>{
+      map.setLayoutProperty(id+'-line','visibility', e.target.checked?'visible':'none');
+    });
+  });
+});
+</script>
+</body>
+</html>
