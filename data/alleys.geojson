@@ -1,0 +1,2196 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2025-11-14T12:51:57Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4231088",
+        "access": "permissive",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "St. Peter's Alley",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0849071,
+            51.5131002
+          ],
+          [
+            -0.0848465,
+            51.5132158
+          ],
+          [
+            -0.0848015,
+            51.5133619
+          ]
+        ]
+      },
+      "id": "way/4231088"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4231093",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "St. Michaels Alley",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0857457,
+            51.5129242
+          ],
+          [
+            -0.0855329,
+            51.5128915
+          ],
+          [
+            -0.0854991,
+            51.5128747
+          ],
+          [
+            -0.085463,
+            51.5128551
+          ],
+          [
+            -0.0853853,
+            51.512835
+          ],
+          [
+            -0.0853465,
+            51.5129579
+          ]
+        ]
+      },
+      "id": "way/4231093"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4231098",
+        "highway": "footway",
+        "name": "Change Alley",
+        "surface": "paving_stones",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0870852,
+            51.5126661
+          ],
+          [
+            -0.0870483,
+            51.5127316
+          ],
+          [
+            -0.0869336,
+            51.5129334
+          ],
+          [
+            -0.0869318,
+            51.5129474
+          ]
+        ]
+      },
+      "id": "way/4231098"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4253642",
+        "highway": "footway",
+        "name": "Magpie Alley",
+        "ref:GB:usrn": "8100342",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1079603,
+            51.5131508
+          ],
+          [
+            -0.1078913,
+            51.5131584
+          ]
+        ]
+      },
+      "id": "way/4253642"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4255189",
+        "highway": "footway",
+        "name": "Northumberland Alley",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0783421,
+            51.512843
+          ],
+          [
+            -0.078292,
+            51.5128022
+          ],
+          [
+            -0.0782567,
+            51.5127735
+          ],
+          [
+            -0.0779965,
+            51.5125362
+          ],
+          [
+            -0.0779728,
+            51.5125158
+          ],
+          [
+            -0.0779767,
+            51.5124942
+          ],
+          [
+            -0.0779685,
+            51.5124739
+          ],
+          [
+            -0.0778845,
+            51.5124033
+          ],
+          [
+            -0.0778654,
+            51.512401
+          ],
+          [
+            -0.0778171,
+            51.5123954
+          ]
+        ]
+      },
+      "id": "way/4255189"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4256030",
+        "highway": "footway",
+        "lit": "no",
+        "name": "Panyer Alley",
+        "postal_code": "EC4",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0976462,
+            51.5147171
+          ],
+          [
+            -0.0976039,
+            51.514403
+          ]
+        ]
+      },
+      "id": "way/4256030"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4260226",
+        "highway": "footway",
+        "name": "St. Dunstan's Alley"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0828118,
+            51.5099465
+          ],
+          [
+            -0.0820438,
+            51.5098012
+          ]
+        ]
+      },
+      "id": "way/4260226"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4551659",
+        "foot": "yes",
+        "highway": "footway",
+        "name": "Barbon Alley",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0793896,
+            51.5164156
+          ],
+          [
+            -0.0794065,
+            51.5163898
+          ],
+          [
+            -0.0794658,
+            51.5163124
+          ],
+          [
+            -0.0797768,
+            51.5160538
+          ],
+          [
+            -0.0798237,
+            51.5160162
+          ]
+        ]
+      },
+      "id": "way/4551659"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4563365",
+        "highway": "footway",
+        "name": "Rose Alley",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100451"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0800696,
+            51.5175647
+          ],
+          [
+            -0.0799834,
+            51.5175218
+          ],
+          [
+            -0.080046,
+            51.5174405
+          ],
+          [
+            -0.0798909,
+            51.5173752
+          ]
+        ]
+      },
+      "id": "way/4563365"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/8020676",
+        "highway": "footway",
+        "name": "Change Alley",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0863917,
+            51.5128509
+          ],
+          [
+            -0.086904,
+            51.5129591
+          ],
+          [
+            -0.0869067,
+            51.5129555
+          ]
+        ]
+      },
+      "id": "way/8020676"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/8020679",
+        "highway": "footway",
+        "lit": "no",
+        "name": "St. Michaels Alley",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0857924,
+            51.5128073
+          ],
+          [
+            -0.0857909,
+            51.5128144
+          ],
+          [
+            -0.0857457,
+            51.5129242
+          ],
+          [
+            -0.0857116,
+            51.5129376
+          ],
+          [
+            -0.0856833,
+            51.513042
+          ],
+          [
+            -0.0856501,
+            51.5133357
+          ]
+        ]
+      },
+      "id": "way/8020679"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/8135901",
+        "highway": "footway",
+        "name": "St. Peter's Alley",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0849071,
+            51.5131002
+          ],
+          [
+            -0.084537,
+            51.5130429
+          ]
+        ]
+      },
+      "id": "way/8135901"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23115750",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Catherine Wheel Alley",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100115",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.07961,
+            51.5178147
+          ],
+          [
+            -0.079486,
+            51.5177514
+          ],
+          [
+            -0.079388,
+            51.5177221
+          ],
+          [
+            -0.0790715,
+            51.5176487
+          ],
+          [
+            -0.0790151,
+            51.517746
+          ]
+        ]
+      },
+      "id": "way/23115750"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23115920",
+        "cycleway:both": "no",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Catherine Wheel Alley",
+        "ref:GB:usrn": "8100115",
+        "sidewalk": "right",
+        "sidewalk:right:surface": "paving_stones",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0790151,
+            51.517746
+          ],
+          [
+            -0.0786001,
+            51.5176568
+          ],
+          [
+            -0.0784803,
+            51.5176324
+          ],
+          [
+            -0.0783657,
+            51.5176089
+          ],
+          [
+            -0.0783029,
+            51.5176007
+          ]
+        ]
+      },
+      "id": "way/23115920"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23162134",
+        "highway": "footway",
+        "name": "Great Bell Alley"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0899299,
+            51.5157224
+          ],
+          [
+            -0.0898945,
+            51.5157197
+          ],
+          [
+            -0.0898815,
+            51.5157187
+          ],
+          [
+            -0.0894194,
+            51.5156745
+          ]
+        ]
+      },
+      "id": "way/23162134"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23162162",
+        "cycleway:right": "lane",
+        "cycleway:right:oneway": "-1",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Great Swan Alley",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "parking:both": "no",
+        "parking:both:restriction": "no_parking",
+        "parking:both:restriction:reason": "markings",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100596",
+        "sidewalk": "both",
+        "sidewalk:both:surface": "paving_stones",
+        "surface": "asphalt",
+        "wikidata": "Q132030165"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0878351,
+            51.5161613
+          ],
+          [
+            -0.0882106,
+            51.516219
+          ],
+          [
+            -0.0886046,
+            51.516242
+          ],
+          [
+            -0.0887591,
+            51.5162481
+          ],
+          [
+            -0.0888281,
+            51.5162549
+          ],
+          [
+            -0.0890113,
+            51.5162838
+          ],
+          [
+            -0.089034,
+            51.5162874
+          ],
+          [
+            -0.0890368,
+            51.5162878
+          ]
+        ]
+      },
+      "id": "way/23162162"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/24810321",
+        "foot": "private",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "St Paul's Alley",
+        "name:etymology:wikidata": "Q173882",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.099242,
+            51.5143501
+          ],
+          [
+            -0.0992245,
+            51.5142362
+          ]
+        ]
+      },
+      "id": "way/24810321"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/27510049",
+        "access": "private",
+        "highway": "service",
+        "name": "Rose Alley",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100451"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0788304,
+            51.5171151
+          ],
+          [
+            -0.0789243,
+            51.5171489
+          ],
+          [
+            -0.0795922,
+            51.5173501
+          ]
+        ]
+      },
+      "id": "way/27510049"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/73836228",
+        "covered": "yes",
+        "foot": "yes",
+        "highway": "service",
+        "name": "Great Swan Alley",
+        "note": "Very narrow for vehicles, but the street markings and kerb appear to indicate this is a public road (rather than a footpath) at the western (Coleman St) end",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100596",
+        "service": "alley",
+        "surface": "paved",
+        "wikidata": "Q132030165"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.089661,
+            51.5163238
+          ],
+          [
+            -0.0895387,
+            51.5163108
+          ]
+        ]
+      },
+      "id": "way/73836228"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/141321088",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "Star Alley",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0808109,
+            51.5119148
+          ],
+          [
+            -0.0807385,
+            51.5118025
+          ]
+        ]
+      },
+      "id": "way/141321088"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/166463504",
+        "highway": "footway",
+        "name": "Botolph Alley",
+        "postal_code": "EC3"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0845615,
+            51.5102613
+          ],
+          [
+            -0.0845168,
+            51.5102543
+          ]
+        ]
+      },
+      "id": "way/166463504"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/169705021",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "St Paul's Alley",
+        "name:etymology:wikidata": "Q173882",
+        "smoothness": "good",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0992245,
+            51.5142362
+          ],
+          [
+            -0.0991967,
+            51.514103
+          ]
+        ]
+      },
+      "id": "way/169705021"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/188118867",
+        "cycleway": "opposite",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Northumberland Alley",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0778167,
+            51.5123614
+          ],
+          [
+            -0.0778024,
+            51.5123428
+          ],
+          [
+            -0.0773182,
+            51.511919
+          ]
+        ]
+      },
+      "id": "way/188118867"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/248219743",
+        "highway": "footway",
+        "name": "Botolph Alley",
+        "postal_code": "EC3",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0844611,
+            51.5102435
+          ],
+          [
+            -0.0844333,
+            51.510238
+          ]
+        ]
+      },
+      "id": "way/248219743"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/248219744",
+        "handrail": "no",
+        "highway": "steps",
+        "name": "Botolph Alley",
+        "postal_code": "EC3",
+        "ramp": "no",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0845168,
+            51.5102543
+          ],
+          [
+            -0.0844611,
+            51.5102435
+          ]
+        ]
+      },
+      "id": "way/248219744"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/258986244",
+        "highway": "footway",
+        "layer": "-1",
+        "name": "Change Alley",
+        "surface": "paving_stones",
+        "tunnel": "yes"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0869809,
+            51.5129517
+          ],
+          [
+            -0.0871804,
+            51.5129875
+          ]
+        ]
+      },
+      "id": "way/258986244"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/258986245",
+        "highway": "footway",
+        "name": "Change Alley",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0871804,
+            51.5129875
+          ],
+          [
+            -0.0872997,
+            51.5130097
+          ]
+        ]
+      },
+      "id": "way/258986245"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/258986246",
+        "highway": "footway",
+        "name": "Change Alley",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0869271,
+            51.5132648
+          ],
+          [
+            -0.086928,
+            51.5132776
+          ]
+        ]
+      },
+      "id": "way/258986246"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/258986247",
+        "highway": "footway",
+        "name": "Change Alley",
+        "surface": "paving_stones",
+        "tunnel": "yes"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0869222,
+            51.5131266
+          ],
+          [
+            -0.0869271,
+            51.5132648
+          ]
+        ]
+      },
+      "id": "way/258986247"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/258986248",
+        "highway": "footway",
+        "level": "-1",
+        "name": "Change Alley",
+        "source:name": "local knowledge",
+        "surface": "paving_stones",
+        "tunnel": "yes"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0872753,
+            51.5132262
+          ],
+          [
+            -0.0872871,
+            51.5131368
+          ]
+        ]
+      },
+      "id": "way/258986248"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/258986249",
+        "highway": "footway",
+        "name": "Change Alley",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0872871,
+            51.5131368
+          ],
+          [
+            -0.0872997,
+            51.5130097
+          ],
+          [
+            -0.0873808,
+            51.5128777
+          ]
+        ]
+      },
+      "id": "way/258986249"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/379678318",
+        "highway": "footway",
+        "name": "Rose Alley",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100451"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0798909,
+            51.5173752
+          ],
+          [
+            -0.0798434,
+            51.5174228
+          ],
+          [
+            -0.0797869,
+            51.5174059
+          ],
+          [
+            -0.0797725,
+            51.5174205
+          ],
+          [
+            -0.0796722,
+            51.5173763
+          ],
+          [
+            -0.0795922,
+            51.5173501
+          ]
+        ]
+      },
+      "id": "way/379678318"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/420950296",
+        "highway": "unclassified",
+        "image": "https://archive.org/details/city-of-london-2019-05-06/DSCN0146.JPG",
+        "name": "Bear Alley",
+        "postal_code": "EC4",
+        "ref:GB:usrn": "8100045",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1044318,
+            51.5160152
+          ],
+          [
+            -0.1041529,
+            51.5160476
+          ],
+          [
+            -0.1039587,
+            51.5160675
+          ],
+          [
+            -0.1038065,
+            51.5160757
+          ]
+        ]
+      },
+      "id": "way/420950296"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/420950305",
+        "highway": "unclassified",
+        "image": "https://archive.org/details/city-of-london-2019-05-06/DSCN0147.JPG",
+        "maxheight": "4.19",
+        "maxheight:backward": "4.27",
+        "maxheight:forward": "4.19",
+        "name": "Bear Alley",
+        "postal_code": "EC4",
+        "ref:GB:usrn": "8100045",
+        "shoulder": "no",
+        "surface": "asphalt",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1045558,
+            51.5160015
+          ],
+          [
+            -0.1044318,
+            51.5160152
+          ]
+        ]
+      },
+      "id": "way/420950305"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/420950311",
+        "highway": "unclassified",
+        "lit": "yes",
+        "name": "Bear Alley",
+        "postal_code": "EC4",
+        "ref:GB:usrn": "8100045",
+        "sidewalk": "both",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1047621,
+            51.5159826
+          ],
+          [
+            -0.1046906,
+            51.5159874
+          ],
+          [
+            -0.1046458,
+            51.5159921
+          ],
+          [
+            -0.1045558,
+            51.5160015
+          ]
+        ]
+      },
+      "id": "way/420950311"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/507180660",
+        "highway": "footway",
+        "name": "Great Swan Alley",
+        "postal_code": "EC2",
+        "surface": "paved",
+        "wikidata": "Q132030165"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0892125,
+            51.5162794
+          ],
+          [
+            -0.0891983,
+            51.516278
+          ],
+          [
+            -0.0891687,
+            51.5162752
+          ],
+          [
+            -0.0891324,
+            51.5162717
+          ],
+          [
+            -0.0891004,
+            51.5162686
+          ]
+        ]
+      },
+      "id": "way/507180660"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/507180661",
+        "foot": "yes",
+        "highway": "service",
+        "name": "Great Swan Alley",
+        "note": "Very narrow for vehicles, but the street markings and kerb appear to indicate this is a public road (rather than a footpath) at the western (Coleman St) end",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100596",
+        "service": "alley",
+        "surface": "paved",
+        "wikidata": "Q132030165"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0897626,
+            51.5163334
+          ],
+          [
+            -0.0896881,
+            51.5163264
+          ],
+          [
+            -0.089661,
+            51.5163238
+          ]
+        ]
+      },
+      "id": "way/507180661"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/516502211",
+        "covered": "yes",
+        "highway": "footway",
+        "name": "Great Swan Alley",
+        "postal_code": "EC2",
+        "surface": "paved",
+        "wikidata": "Q132030165"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0893802,
+            51.5162958
+          ],
+          [
+            -0.0893479,
+            51.5162926
+          ],
+          [
+            -0.0892125,
+            51.5162794
+          ]
+        ]
+      },
+      "id": "way/516502211"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/516502212",
+        "covered": "yes",
+        "foot": "yes",
+        "highway": "service",
+        "name": "Great Swan Alley",
+        "note": "Very narrow for vehicles, but the street markings and kerb appear to indicate this is a public road (rather than a footpath) at the western (Coleman St) end",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100596",
+        "service": "alley",
+        "surface": "paved",
+        "wikidata": "Q132030165"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0894202,
+            51.5162997
+          ],
+          [
+            -0.0893802,
+            51.5162958
+          ]
+        ]
+      },
+      "id": "way/516502212"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/516502213",
+        "foot": "yes",
+        "highway": "service",
+        "name": "Great Swan Alley",
+        "note": "Very narrow for vehicles, but the street markings and kerb appear to indicate this is a public road (rather than a footpath) at the western (Coleman St) end",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100596",
+        "service": "alley",
+        "surface": "paved",
+        "wikidata": "Q132030165"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0895387,
+            51.5163108
+          ],
+          [
+            -0.0894202,
+            51.5162997
+          ]
+        ]
+      },
+      "id": "way/516502213"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/574896136",
+        "cycleway:right": "lane",
+        "cycleway:right:oneway": "-1",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Northumberland Alley",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0773182,
+            51.511919
+          ],
+          [
+            -0.0771976,
+            51.5118574
+          ]
+        ]
+      },
+      "id": "way/574896136"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/604675531",
+        "highway": "footway",
+        "name": "Magpie Alley",
+        "ref:GB:usrn": "8100342",
+        "surface": "paving_stones",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1078913,
+            51.5131584
+          ],
+          [
+            -0.107534,
+            51.5131605
+          ]
+        ]
+      },
+      "id": "way/604675531"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/604675532",
+        "highway": "footway",
+        "name": "Magpie Alley",
+        "ref:GB:usrn": "8100342",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.107534,
+            51.5131605
+          ],
+          [
+            -0.1074855,
+            51.5131617
+          ]
+        ]
+      },
+      "id": "way/604675532"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/639986420",
+        "foot": "permissive",
+        "highway": "footway",
+        "name": "Hartshorn Alley",
+        "postal_code": "EC3",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0784449,
+            51.5128674
+          ],
+          [
+            -0.0784661,
+            51.5128838
+          ],
+          [
+            -0.0785741,
+            51.5130159
+          ],
+          [
+            -0.0785824,
+            51.5130261
+          ],
+          [
+            -0.0786364,
+            51.5130826
+          ],
+          [
+            -0.0786255,
+            51.5132007
+          ],
+          [
+            -0.0786182,
+            51.5132725
+          ]
+        ]
+      },
+      "id": "way/639986420"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/677688438",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Catherine Wheel Alley",
+        "ref:GB:usrn": "8100115",
+        "sidewalk": "both",
+        "sidewalk:both:surface": "paving_stones",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0783029,
+            51.5176007
+          ],
+          [
+            -0.0780994,
+            51.5175771
+          ],
+          [
+            -0.0778817,
+            51.5175573
+          ],
+          [
+            -0.0778202,
+            51.5175675
+          ]
+        ]
+      },
+      "id": "way/677688438"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/677688440",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Catherine Wheel Alley",
+        "ref:GB:usrn": "8100115",
+        "sidewalk": "both",
+        "sidewalk:both:surface": "paving_stones",
+        "source:width": "ARCore",
+        "surface": "asphalt",
+        "width": "7.4"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0778202,
+            51.5175675
+          ],
+          [
+            -0.0777909,
+            51.5175822
+          ],
+          [
+            -0.0777243,
+            51.5176157
+          ]
+        ]
+      },
+      "id": "way/677688440"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/702823177",
+        "foot": "permissive",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "Star Alley",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0806756,
+            51.5117079
+          ],
+          [
+            -0.0806057,
+            51.5116369
+          ],
+          [
+            -0.0801415,
+            51.5116764
+          ]
+        ]
+      },
+      "id": "way/702823177"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/702823178",
+        "covered": "yes",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "Star Alley",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0807385,
+            51.5118025
+          ],
+          [
+            -0.0806756,
+            51.5117079
+          ]
+        ]
+      },
+      "id": "way/702823178"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/745509761",
+        "handrail": "yes",
+        "highway": "steps",
+        "incline": "down",
+        "name": "Harp Alley",
+        "ramp": "no",
+        "ref:GB:usrn": "8100269"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1054122,
+            51.5152051
+          ],
+          [
+            -0.1053707,
+            51.5152147
+          ],
+          [
+            -0.1053509,
+            51.5152225
+          ]
+        ]
+      },
+      "id": "way/745509761"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/745509762",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Harp Alley",
+        "ref:GB:usrn": "8100269",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1053509,
+            51.5152225
+          ],
+          [
+            -0.1052954,
+            51.5152448
+          ],
+          [
+            -0.1051479,
+            51.5152567
+          ],
+          [
+            -0.1048388,
+            51.5152832
+          ],
+          [
+            -0.1047941,
+            51.515287
+          ],
+          [
+            -0.1047671,
+            51.5152894
+          ],
+          [
+            -0.1047355,
+            51.5152921
+          ]
+        ]
+      },
+      "id": "way/745509762"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/835484046",
+        "highway": "footway",
+        "lit": "no",
+        "name": "Rose Alley",
+        "ref:GB:usrn": "8100451",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0801511,
+            51.5176003
+          ],
+          [
+            -0.0800696,
+            51.5175647
+          ]
+        ]
+      },
+      "id": "way/835484046"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/835484047",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Rose Alley",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100451",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0802706,
+            51.5176652
+          ],
+          [
+            -0.0801511,
+            51.5176003
+          ]
+        ]
+      },
+      "id": "way/835484047"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/837408806",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Catherine Wheel Alley",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100115",
+        "surface": "paving_stones",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0797568,
+            51.5178923
+          ],
+          [
+            -0.07961,
+            51.5178147
+          ]
+        ]
+      },
+      "id": "way/837408806"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/837408807",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Catherine Wheel Alley",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100115",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0799613,
+            51.5179991
+          ],
+          [
+            -0.0797568,
+            51.5178923
+          ]
+        ]
+      },
+      "id": "way/837408807"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/867994001",
+        "highway": "footway",
+        "name": "Rose Alley",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0798909,
+            51.5173752
+          ],
+          [
+            -0.0799346,
+            51.5173315
+          ]
+        ]
+      },
+      "id": "way/867994001"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/958513709",
+        "highway": "pedestrian",
+        "name": "Panyer Alley",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0976462,
+            51.5147171
+          ],
+          [
+            -0.0976423,
+            51.5147924
+          ],
+          [
+            -0.0976724,
+            51.5150245
+          ]
+        ]
+      },
+      "id": "way/958513709"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1054574154",
+        "cycleway": "opposite",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Northumberland Alley",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0771976,
+            51.5118574
+          ],
+          [
+            -0.0771552,
+            51.5118358
+          ]
+        ]
+      },
+      "id": "way/1054574154"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1054574155",
+        "cycleway:right": "lane",
+        "cycleway:right:oneway": "-1",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Northumberland Alley",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0778171,
+            51.5123954
+          ],
+          [
+            -0.0778187,
+            51.5123806
+          ],
+          [
+            -0.0778167,
+            51.5123614
+          ]
+        ]
+      },
+      "id": "way/1054574155"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1054937075",
+        "cycleway": "opposite",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Great Swan Alley",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "parking:both": "no",
+        "parking:both:restriction": "no_parking",
+        "parking:both:restriction:reason": "markings",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100596",
+        "sidewalk": "both",
+        "sidewalk:both:surface": "paving_stones",
+        "surface": "asphalt",
+        "wikidata": "Q132030165"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0890368,
+            51.5162878
+          ],
+          [
+            -0.0890898,
+            51.5162961
+          ]
+        ]
+      },
+      "id": "way/1054937075"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1054937076",
+        "cycleway": "opposite",
+        "highway": "unclassified",
+        "maxspeed": "20 mph",
+        "name": "Great Swan Alley",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "sidewalk": "both",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0877987,
+            51.5161557
+          ],
+          [
+            -0.0878351,
+            51.5161613
+          ]
+        ]
+      },
+      "id": "way/1054937076"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1200977546",
+        "highway": "footway",
+        "name": "Harp Alley",
+        "ref:GB:usrn": "8100269"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1054426,
+            51.5151923
+          ],
+          [
+            -0.1054122,
+            51.5152051
+          ]
+        ]
+      },
+      "id": "way/1200977546"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1266368116",
+        "highway": "footway",
+        "name": "Change Alley",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0869406,
+            51.5129358
+          ],
+          [
+            -0.0869809,
+            51.5129517
+          ]
+        ]
+      },
+      "id": "way/1266368116"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1266368117",
+        "highway": "footway",
+        "name": "Change Alley",
+        "surface": "paving_stones",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0869067,
+            51.5129555
+          ],
+          [
+            -0.0869336,
+            51.5129334
+          ],
+          [
+            -0.0869406,
+            51.5129358
+          ]
+        ]
+      },
+      "id": "way/1266368117"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1266368118",
+        "highway": "footway",
+        "name": "Change Alley",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0869318,
+            51.5129474
+          ],
+          [
+            -0.0869222,
+            51.5131266
+          ]
+        ]
+      },
+      "id": "way/1266368118"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1266371189",
+        "highway": "footway",
+        "name": "Change Alley",
+        "source:name": "local knowledge",
+        "surface": "paving_stones",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0873808,
+            51.5128777
+          ],
+          [
+            -0.0874371,
+            51.5127823
+          ]
+        ]
+      },
+      "id": "way/1266371189"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1266371190",
+        "highway": "footway",
+        "name": "Change Alley",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0874371,
+            51.5127823
+          ],
+          [
+            -0.0874493,
+            51.5127628
+          ]
+        ]
+      },
+      "id": "way/1266371190"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1266424504",
+        "highway": "footway",
+        "name": "Botolph Alley",
+        "postal_code": "EC3"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0844333,
+            51.510238
+          ],
+          [
+            -0.0839416,
+            51.5101424
+          ]
+        ]
+      },
+      "id": "way/1266424504"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1266442724",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "St. Peter's Alley",
+        "source:name": "local knowledge",
+        "surface": "sett"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0844379,
+            51.5130294
+          ],
+          [
+            -0.0844213,
+            51.5130269
+          ],
+          [
+            -0.0843455,
+            51.5130161
+          ]
+        ]
+      },
+      "id": "way/1266442724"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1266442725",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "St. Peter's Alley",
+        "source:name": "local knowledge",
+        "surface": "paving_stones",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.084537,
+            51.5130429
+          ],
+          [
+            -0.0844379,
+            51.5130294
+          ]
+        ]
+      },
+      "id": "way/1266442725"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1278237651",
+        "cycleway:both": "no",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "Cannon Alley",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0984702,
+            51.5146643
+          ],
+          [
+            -0.0984688,
+            51.5146564
+          ],
+          [
+            -0.0984672,
+            51.5146466
+          ],
+          [
+            -0.0984118,
+            51.5143601
+          ]
+        ]
+      },
+      "id": "way/1278237651"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1342939708",
+        "highway": "footway",
+        "name": "Change Alley",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0870943,
+            51.5126497
+          ],
+          [
+            -0.0870852,
+            51.5126661
+          ]
+        ]
+      },
+      "id": "way/1342939708"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1342939709",
+        "foot": "yes",
+        "highway": "footway",
+        "layer": "-1",
+        "name": "Popes Head Alley",
+        "surface": "paving_stones",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0878348,
+            51.5132667
+          ],
+          [
+            -0.0879514,
+            51.5129242
+          ]
+        ]
+      },
+      "id": "way/1342939709"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1342939714",
+        "highway": "footway",
+        "name": "Change Alley",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0872722,
+            51.5132535
+          ],
+          [
+            -0.0872753,
+            51.5132262
+          ]
+        ]
+      },
+      "id": "way/1342939714"
+    }
+  ]
+}
