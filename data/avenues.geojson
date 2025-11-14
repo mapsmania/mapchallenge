@@ -1,0 +1,2506 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2025-11-14T12:53:59Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/136129401",
+        "area": "yes",
+        "highway": "pedestrian",
+        "name": "The Avenue",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -0.0778585,
+              51.5165987
+            ],
+            [
+              -0.0779169,
+              51.5165555
+            ],
+            [
+              -0.0779696,
+              51.5165177
+            ],
+            [
+              -0.0779997,
+              51.5164945
+            ],
+            [
+              -0.0779584,
+              51.5164719
+            ],
+            [
+              -0.078242,
+              51.5162558
+            ],
+            [
+              -0.0782762,
+              51.5162721
+            ],
+            [
+              -0.0782954,
+              51.5162586
+            ],
+            [
+              -0.0783306,
+              51.5162338
+            ],
+            [
+              -0.0783443,
+              51.5162242
+            ],
+            [
+              -0.0783574,
+              51.5162149
+            ],
+            [
+              -0.0783968,
+              51.5161872
+            ],
+            [
+              -0.0784154,
+              51.5161741
+            ],
+            [
+              -0.0784316,
+              51.5161627
+            ],
+            [
+              -0.0784631,
+              51.5161354
+            ],
+            [
+              -0.0784745,
+              51.5161274
+            ],
+            [
+              -0.07842,
+              51.5161003
+            ],
+            [
+              -0.0783837,
+              51.5160816
+            ],
+            [
+              -0.0783585,
+              51.5160689
+            ],
+            [
+              -0.0783193,
+              51.5160484
+            ],
+            [
+              -0.0783085,
+              51.51606
+            ],
+            [
+              -0.0782735,
+              51.5160887
+            ],
+            [
+              -0.0782267,
+              51.5161271
+            ],
+            [
+              -0.0782122,
+              51.5161394
+            ],
+            [
+              -0.0781636,
+              51.5161759
+            ],
+            [
+              -0.078118,
+              51.5162132
+            ],
+            [
+              -0.078126,
+              51.5162174
+            ],
+            [
+              -0.0779048,
+              51.5163889
+            ],
+            [
+              -0.0778651,
+              51.5163688
+            ],
+            [
+              -0.0778327,
+              51.5163929
+            ],
+            [
+              -0.0777992,
+              51.5164186
+            ],
+            [
+              -0.0777062,
+              51.5163703
+            ],
+            [
+              -0.0776511,
+              51.5163381
+            ],
+            [
+              -0.0775776,
+              51.5163945
+            ],
+            [
+              -0.077488,
+              51.5164632
+            ],
+            [
+              -0.07746,
+              51.5164576
+            ],
+            [
+              -0.0772557,
+              51.5166109
+            ],
+            [
+              -0.0773037,
+              51.5166332
+            ],
+            [
+              -0.0773748,
+              51.5166657
+            ],
+            [
+              -0.0774075,
+              51.5166807
+            ],
+            [
+              -0.0776706,
+              51.5164989
+            ],
+            [
+              -0.0777823,
+              51.5165582
+            ],
+            [
+              -0.0778585,
+              51.5165987
+            ]
+          ]
+        ]
+      },
+      "id": "way/136129401"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4231083",
+        "highway": "footway",
+        "name": "Royal Exchange Avenue",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0865671,
+            51.5138907
+          ],
+          [
+            -0.0861726,
+            51.513823
+          ],
+          [
+            -0.0861792,
+            51.5137359
+          ],
+          [
+            -0.086109,
+            51.5137226
+          ]
+        ]
+      },
+      "id": "way/4231083"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4253272",
+        "highway": "footway",
+        "name": "St. Bride's Avenue",
+        "ref:GB:usrn": "8100489"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1061566,
+            51.5137077
+          ],
+          [
+            -0.1058019,
+            51.5137154
+          ],
+          [
+            -0.1058315,
+            51.5139805
+          ],
+          [
+            -0.105727,
+            51.5139814
+          ],
+          [
+            -0.1052276,
+            51.5139616
+          ]
+        ]
+      },
+      "id": "way/4253272"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4253274",
+        "highway": "footway",
+        "name": "St. Bride's Avenue"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1057585,
+            51.5138652
+          ],
+          [
+            -0.1057251,
+            51.5139169
+          ],
+          [
+            -0.105727,
+            51.5139814
+          ],
+          [
+            -0.1057262,
+            51.5141302
+          ],
+          [
+            -0.1057261,
+            51.5141555
+          ]
+        ]
+      },
+      "id": "way/4253274"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4254125",
+        "cycleway:left": "no",
+        "cycleway:right": "lane",
+        "cycleway:right:lane": "advisory",
+        "cycleway:right:oneway": "-1",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Lloyd's Avenue",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both",
+        "surface": "asphalt",
+        "wikidata": "Q15860990"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0786779,
+            51.5126757
+          ],
+          [
+            -0.0783447,
+            51.5124048
+          ],
+          [
+            -0.0783299,
+            51.5123848
+          ],
+          [
+            -0.0783336,
+            51.5122957
+          ],
+          [
+            -0.0783226,
+            51.5122777
+          ],
+          [
+            -0.0782613,
+            51.5122222
+          ],
+          [
+            -0.0780613,
+            51.5120511
+          ],
+          [
+            -0.0778014,
+            51.5118737
+          ],
+          [
+            -0.0775001,
+            51.5117498
+          ],
+          [
+            -0.0773762,
+            51.5116792
+          ]
+        ]
+      },
+      "id": "way/4254125"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4255256",
+        "cycleway:both": "no",
+        "highway": "unclassified",
+        "maxspeed": "20 mph",
+        "name": "Carlisle Avenue",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0765917,
+            51.5126692
+          ],
+          [
+            -0.0766699,
+            51.5126691
+          ]
+        ]
+      },
+      "id": "way/4255256"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4255332",
+        "highway": "residential",
+        "lit": "yes",
+        "maxheight": "4.65",
+        "maxspeed": "20 mph",
+        "name": "East Poultry Avenue",
+        "oneway": "yes",
+        "proposed:oneway": "-1",
+        "source:proposed:oneway": "http://democracy.cityoflondon.gov.uk/documents/b72284/Appendices%20Pack%2001st-Dec-2020%2011.00%20Streets%20and%20Walkways%20Sub%20Planning%20and%20Transportation%20Committ.pdf?T=9",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1023096,
+            51.518545
+          ],
+          [
+            -0.1023799,
+            51.5185525
+          ],
+          [
+            -0.1024634,
+            51.5185909
+          ]
+        ]
+      },
+      "id": "way/4255332"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4255333",
+        "access": "no",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "West Poultry Avenue",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1036707,
+            51.5181285
+          ],
+          [
+            -0.1036953,
+            51.5181603
+          ],
+          [
+            -0.1037357,
+            51.5182207
+          ]
+        ]
+      },
+      "id": "way/4255333"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4255334",
+        "access": "no",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "West Poultry Avenue",
+        "surface": "asphalt",
+        "vehicle": "no"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1041703,
+            51.5187569
+          ],
+          [
+            -0.104221,
+            51.5188209
+          ],
+          [
+            -0.1042681,
+            51.5188803
+          ]
+        ]
+      },
+      "id": "way/4255334"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4255335",
+        "access": "permissive",
+        "bicycle": "dismount",
+        "foot": "yes",
+        "highway": "service",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Grand Avenue",
+        "postal_code": "EC1",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1010459,
+            51.5189858
+          ],
+          [
+            -0.1010846,
+            51.5190359
+          ]
+        ]
+      },
+      "id": "way/4255335"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4267620",
+        "foot": "yes",
+        "highway": "service",
+        "name": "Finsbury Avenue",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.085214,
+            51.5184906
+          ],
+          [
+            -0.0850311,
+            51.5187752
+          ],
+          [
+            -0.084921,
+            51.5189466
+          ]
+        ]
+      },
+      "id": "way/4267620"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4563364",
+        "highway": "service",
+        "lit": "yes",
+        "name": "Victoria Avenue",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100546"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0800943,
+            51.517842
+          ],
+          [
+            -0.0797914,
+            51.5176845
+          ],
+          [
+            -0.0797166,
+            51.5176604
+          ],
+          [
+            -0.0793331,
+            51.517553
+          ]
+        ]
+      },
+      "id": "way/4563364"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4719919",
+        "foot": "permissive",
+        "highway": "pedestrian",
+        "name": "Whittington Avenue",
+        "postal_code": "EC3",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.083439,
+            51.5129307
+          ],
+          [
+            -0.0834607,
+            51.5128815
+          ]
+        ]
+      },
+      "id": "way/4719919"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4722352",
+        "access": "no",
+        "highway": "pedestrian",
+        "name": "Whittington Avenue",
+        "note": "Pedestrian Zone. No vehicles. Except for permit holders and loading by goods vehicles Mon-Fri 11pm-10am, Sat-Sun At any time. No waiting at any time",
+        "postal_code": "EC3",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0833948,
+            51.5130734
+          ],
+          [
+            -0.0833868,
+            51.5131003
+          ],
+          [
+            -0.0833644,
+            51.5132108
+          ],
+          [
+            -0.0833377,
+            51.5133685
+          ],
+          [
+            -0.0833372,
+            51.5133872
+          ],
+          [
+            -0.0833432,
+            51.5134372
+          ]
+        ]
+      },
+      "id": "way/4722352"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/8431654",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Basinghall Avenue",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100043",
+        "sidewalk": "both",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0914259,
+            51.5168462
+          ],
+          [
+            -0.0914058,
+            51.5168802
+          ],
+          [
+            -0.0913745,
+            51.5168981
+          ],
+          [
+            -0.0912846,
+            51.5169234
+          ]
+        ]
+      },
+      "id": "way/8431654"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23162101",
+        "highway": "pedestrian",
+        "maxspeed": "20 mph",
+        "maxweightrating:hgv": "7.5",
+        "maxweightrating:hgv:conditional": "none @ destination",
+        "name": "Copthall Avenue",
+        "note": "Maxweight applies to goods vehicles, except for loading",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100146",
+        "sidewalk": "both",
+        "wikidata": "Q66693791"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0866051,
+            51.5156662
+          ],
+          [
+            -0.0866615,
+            51.5156591
+          ],
+          [
+            -0.0867488,
+            51.5156569
+          ],
+          [
+            -0.0871926,
+            51.515652
+          ],
+          [
+            -0.0874997,
+            51.5156532
+          ],
+          [
+            -0.0876326,
+            51.5156537
+          ],
+          [
+            -0.0876643,
+            51.5156549
+          ],
+          [
+            -0.0877196,
+            51.5156607
+          ],
+          [
+            -0.0878123,
+            51.5156844
+          ],
+          [
+            -0.0878585,
+            51.5157095
+          ],
+          [
+            -0.0879,
+            51.5157553
+          ],
+          [
+            -0.0879181,
+            51.5157805
+          ],
+          [
+            -0.0879409,
+            51.5158256
+          ],
+          [
+            -0.0879422,
+            51.5158554
+          ],
+          [
+            -0.0878267,
+            51.5160803
+          ],
+          [
+            -0.0877987,
+            51.5161557
+          ]
+        ]
+      },
+      "id": "way/23162101"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23162103",
+        "foot": "yes",
+        "highway": "footway",
+        "name": "Throgmorton Avenue"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0866051,
+            51.5156662
+          ],
+          [
+            -0.0866241,
+            51.5155897
+          ],
+          [
+            -0.0866254,
+            51.5155426
+          ],
+          [
+            -0.0866498,
+            51.5150124
+          ]
+        ]
+      },
+      "id": "way/23162103"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23162186",
+        "highway": "service",
+        "name": "Broad Street Avenue",
+        "old_name": "Broad Street Mews",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100088"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0832204,
+            51.517193
+          ],
+          [
+            -0.0834803,
+            51.5172323
+          ],
+          [
+            -0.0840106,
+            51.5172739
+          ]
+        ]
+      },
+      "id": "way/23162186"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23171415",
+        "highway": "pedestrian",
+        "lane_markings": "no",
+        "maxspeed": "20 mph",
+        "name": "Throgmorton Avenue",
+        "postal_code": "EC2",
+        "surface": "sett"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0866051,
+            51.5156662
+          ],
+          [
+            -0.0865457,
+            51.5158541
+          ],
+          [
+            -0.0864496,
+            51.5160585
+          ]
+        ]
+      },
+      "id": "way/23171415"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23172873",
+        "highway": "footway",
+        "name": "Masons Avenue",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0901917,
+            51.5157456
+          ],
+          [
+            -0.0903965,
+            51.5157655
+          ],
+          [
+            -0.090462,
+            51.5157693
+          ],
+          [
+            -0.0906184,
+            51.5157713
+          ]
+        ]
+      },
+      "id": "way/23172873"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23172971",
+        "highway": "unclassified",
+        "maxspeed": "20 mph",
+        "name": "Fore Street Avenue",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0900401,
+            51.5178322
+          ],
+          [
+            -0.0899593,
+            51.5179581
+          ],
+          [
+            -0.0898333,
+            51.5181558
+          ],
+          [
+            -0.0892978,
+            51.5180291
+          ]
+        ]
+      },
+      "id": "way/23172971"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23172977",
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "Fore Street Avenue",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0892978,
+            51.5180291
+          ],
+          [
+            -0.0889347,
+            51.5179472
+          ]
+        ]
+      },
+      "id": "way/23172977"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/27120676",
+        "foot": "yes",
+        "highway": "footway",
+        "name": "Aldgate Avenue",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0749097,
+            51.5152516
+          ],
+          [
+            -0.0749998,
+            51.5151923
+          ],
+          [
+            -0.0752459,
+            51.5150082
+          ]
+        ]
+      },
+      "id": "way/27120676"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/141671245",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Fenchurch Avenue",
+        "oneway": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both",
+        "sidewalk:both:surface": "paving_stones",
+        "smoothness": "excellent",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0818063,
+            51.512592
+          ],
+          [
+            -0.0816549,
+            51.5125651
+          ],
+          [
+            -0.081453,
+            51.5125379
+          ],
+          [
+            -0.0812684,
+            51.5125303
+          ]
+        ]
+      },
+      "id": "way/141671245"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/148685788",
+        "highway": "residential",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Temple Avenue",
+        "parking:lane": "right",
+        "postal_code": "EC4",
+        "ref:GB:usrn": "8100531",
+        "sidewalk": "both",
+        "source:width": "ARCore",
+        "surface": "asphalt",
+        "width": "6.7",
+        "wikidata": "Q120999285"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1079892,
+            51.5125407
+          ],
+          [
+            -0.1079826,
+            51.5125035
+          ],
+          [
+            -0.1079819,
+            51.5122865
+          ],
+          [
+            -0.1079826,
+            51.5122468
+          ],
+          [
+            -0.107989,
+            51.5118759
+          ],
+          [
+            -0.1079919,
+            51.5113266
+          ]
+        ]
+      },
+      "id": "way/148685788"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/204645297",
+        "access": "permissive",
+        "bicycle": "dismount",
+        "covered": "yes",
+        "foot": "yes",
+        "highway": "service",
+        "image": "https://archive.org/details/city-of-london-2019-05-06/DSCN0241.JPG",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Grand Avenue",
+        "postal_code": "EC1",
+        "surface": "asphalt",
+        "vehicle": "destination"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1010846,
+            51.5190359
+          ],
+          [
+            -0.1011082,
+            51.519067
+          ],
+          [
+            -0.1015712,
+            51.5196341
+          ]
+        ]
+      },
+      "id": "way/204645297"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/204645299",
+        "access": "permissive",
+        "bicycle": "dismount",
+        "foot": "yes",
+        "highway": "service",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Grand Avenue",
+        "postal_code": "EC1",
+        "surface": "asphalt",
+        "vehicle": "destination"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1016078,
+            51.5196822
+          ],
+          [
+            -0.1016282,
+            51.519709
+          ],
+          [
+            -0.1016309,
+            51.5197457
+          ]
+        ]
+      },
+      "id": "way/204645299"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/204645302",
+        "access": "no",
+        "covered": "yes",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "West Poultry Avenue",
+        "surface": "concrete"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1037648,
+            51.5182584
+          ],
+          [
+            -0.1041703,
+            51.5187569
+          ]
+        ]
+      },
+      "id": "way/204645302"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/204645303",
+        "highway": "residential",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "East Poultry Avenue",
+        "oneway": "yes",
+        "proposed:oneway": "-1",
+        "source:proposed:oneway": "http://democracy.cityoflondon.gov.uk/documents/b72284/Appendices%20Pack%2001st-Dec-2020%2011.00%20Streets%20and%20Walkways%20Sub%20Planning%20and%20Transportation%20Committ.pdf?T=9",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1029063,
+            51.519153
+          ],
+          [
+            -0.1029391,
+            51.5191931
+          ],
+          [
+            -0.1029685,
+            51.5192276
+          ],
+          [
+            -0.1030011,
+            51.5192653
+          ]
+        ]
+      },
+      "id": "way/204645303"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/204645304",
+        "covered": "yes",
+        "highway": "residential",
+        "lit": "yes",
+        "maxheight": "4.65",
+        "maxspeed": "20 mph",
+        "name": "East Poultry Avenue",
+        "oneway": "yes",
+        "proposed:oneway": "-1",
+        "source:proposed:oneway": "http://democracy.cityoflondon.gov.uk/documents/b72284/Appendices%20Pack%2001st-Dec-2020%2011.00%20Streets%20and%20Walkways%20Sub%20Planning%20and%20Transportation%20Committ.pdf?T=9",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1025119,
+            51.518651
+          ],
+          [
+            -0.1027145,
+            51.5189078
+          ],
+          [
+            -0.1029063,
+            51.519153
+          ]
+        ]
+      },
+      "id": "way/204645304"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/242164466",
+        "foot": "yes",
+        "highway": "pedestrian",
+        "name": "Finsbury Avenue",
+        "postal_code": "EC2",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.084921,
+            51.5189466
+          ],
+          [
+            -0.0847425,
+            51.519242
+          ]
+        ]
+      },
+      "id": "way/242164466"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/320040505",
+        "foot": "no",
+        "highway": "cycleway",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Temple Avenue",
+        "oneway": "no",
+        "postal_code": "EC4",
+        "sidewalk": "left",
+        "surface": "asphalt",
+        "width": "4",
+        "wikidata": "Q120999285"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1079945,
+            51.5111741
+          ],
+          [
+            -0.1079993,
+            51.5111232
+          ]
+        ]
+      },
+      "id": "way/320040505"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/325326303",
+        "foot": "yes",
+        "handrail": "no",
+        "highway": "steps",
+        "incline": "down",
+        "name": "St. Bride's Avenue",
+        "ramp": "no",
+        "source": "survey",
+        "step_count": "6"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1052276,
+            51.5139616
+          ],
+          [
+            -0.1051186,
+            51.5139569
+          ]
+        ]
+      },
+      "id": "way/325326303"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/361573708",
+        "cycleway:right": "lane",
+        "cycleway:right:oneway": "-1",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "maxweightrating:hgv": "7.5",
+        "maxweightrating:hgv:conditional": "none @ destination",
+        "name": "Copthall Avenue",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100146",
+        "sidewalk": "both",
+        "sidewalk:both:surface": "paving_stones",
+        "surface": "asphalt",
+        "wikidata": "Q66693791"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0876003,
+            51.5170942
+          ],
+          [
+            -0.087605,
+            51.5170679
+          ],
+          [
+            -0.0876067,
+            51.5170583
+          ],
+          [
+            -0.0877103,
+            51.5164731
+          ],
+          [
+            -0.0877625,
+            51.5162535
+          ],
+          [
+            -0.0877819,
+            51.5162012
+          ]
+        ]
+      },
+      "id": "way/361573708"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/416690581",
+        "cycleway:surface": "asphalt",
+        "foot": "yes",
+        "footway:surface": "paving_stones",
+        "highway": "cycleway",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Temple Avenue",
+        "oneway": "no",
+        "postal_code": "EC4",
+        "segregated": "yes",
+        "sidewalk": "both",
+        "sidewalk:surface": "paving_stones",
+        "source:width": "ARCore",
+        "surface": "paved",
+        "width": "4",
+        "wikidata": "Q120999285"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1079919,
+            51.5113266
+          ],
+          [
+            -0.1079943,
+            51.5111776
+          ],
+          [
+            -0.1079945,
+            51.5111741
+          ]
+        ]
+      },
+      "id": "way/416690581"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/492801851",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Fenchurch Avenue",
+        "oneway": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both",
+        "smoothness": "intermediate",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0812684,
+            51.5125303
+          ],
+          [
+            -0.0811106,
+            51.5125291
+          ],
+          [
+            -0.0810283,
+            51.5125276
+          ],
+          [
+            -0.0807134,
+            51.512537
+          ],
+          [
+            -0.0805227,
+            51.5125523
+          ]
+        ]
+      },
+      "id": "way/492801851"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/492801852",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Fenchurch Avenue",
+        "oneway": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0805227,
+            51.5125523
+          ],
+          [
+            -0.0803177,
+            51.5125704
+          ]
+        ]
+      },
+      "id": "way/492801852"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/501117900",
+        "cycleway:right": "lane",
+        "cycleway:right:oneway": "-1",
+        "highway": "unclassified",
+        "maxheight": "4.11",
+        "maxspeed": "20 mph",
+        "name": "Carlisle Avenue",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC3",
+        "sidewalk:left": "yes",
+        "sidewalk:right": "no",
+        "surface": "asphalt",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0767128,
+            51.5126689
+          ],
+          [
+            -0.0767887,
+            51.5126671
+          ],
+          [
+            -0.0768567,
+            51.5126647
+          ]
+        ]
+      },
+      "id": "way/501117900"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/501117901",
+        "cycleway": "opposite",
+        "highway": "unclassified",
+        "maxspeed": "20 mph",
+        "name": "Carlisle Avenue",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.076934,
+            51.5126577
+          ],
+          [
+            -0.0770718,
+            51.5126361
+          ],
+          [
+            -0.0773389,
+            51.5125781
+          ],
+          [
+            -0.0775202,
+            51.5125355
+          ],
+          [
+            -0.0775984,
+            51.5125081
+          ]
+        ]
+      },
+      "id": "way/501117901"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/510234232",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Basinghall Avenue",
+        "postal_code": "EC2",
+        "priority": "forward",
+        "ref:GB:usrn": "8100043",
+        "sidewalk": "both",
+        "sidewalk:both:surface": "paving_stones",
+        "smoothness": "good",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0912846,
+            51.5169234
+          ],
+          [
+            -0.0907535,
+            51.5168966
+          ],
+          [
+            -0.0905016,
+            51.5168882
+          ]
+        ]
+      },
+      "id": "way/510234232"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/510234237",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Basinghall Avenue",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100043",
+        "sidewalk:both": "separate",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0902955,
+            51.5168829
+          ],
+          [
+            -0.0898638,
+            51.5168802
+          ],
+          [
+            -0.0897065,
+            51.5168798
+          ]
+        ]
+      },
+      "id": "way/510234237"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/516502202",
+        "covered": "yes",
+        "highway": "footway",
+        "name": "Masons Avenue",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0899933,
+            51.5157166
+          ],
+          [
+            -0.0901917,
+            51.5157456
+          ]
+        ]
+      },
+      "id": "way/516502202"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/516502203",
+        "foot": "yes",
+        "highway": "footway",
+        "name": "Mason's Avenue",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0899299,
+            51.5157224
+          ],
+          [
+            -0.0899789,
+            51.5157179
+          ]
+        ]
+      },
+      "id": "way/516502203"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/574896134",
+        "cycleway": "opposite",
+        "highway": "unclassified",
+        "maxspeed": "20 mph",
+        "name": "Carlisle Avenue",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC3",
+        "sidewalk:left": "yes",
+        "sidewalk:right": "no",
+        "surface": "asphalt",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0768567,
+            51.5126647
+          ],
+          [
+            -0.076934,
+            51.5126577
+          ]
+        ]
+      },
+      "id": "way/574896134"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/574896135",
+        "cycleway:right": "lane",
+        "cycleway:right:oneway": "-1",
+        "highway": "unclassified",
+        "maxspeed": "20 mph",
+        "name": "Carlisle Avenue",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0775984,
+            51.5125081
+          ],
+          [
+            -0.0777761,
+            51.5124376
+          ],
+          [
+            -0.0778016,
+            51.5124147
+          ],
+          [
+            -0.0778171,
+            51.5123954
+          ]
+        ]
+      },
+      "id": "way/574896135"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/581729097",
+        "covered": "yes",
+        "highway": "footway",
+        "name": "Mason's Avenue",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0906184,
+            51.5157713
+          ],
+          [
+            -0.0906587,
+            51.5157722
+          ]
+        ]
+      },
+      "id": "way/581729097"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/581729098",
+        "covered": "yes",
+        "highway": "footway",
+        "name": "Masons Avenue",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.090801,
+            51.5157708
+          ],
+          [
+            -0.0909094,
+            51.515773
+          ]
+        ]
+      },
+      "id": "way/581729098"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/581729103",
+        "highway": "footway",
+        "name": "Masons Avenue",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0906587,
+            51.5157722
+          ],
+          [
+            -0.090801,
+            51.5157708
+          ]
+        ]
+      },
+      "id": "way/581729103"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/581731162",
+        "covered": "yes",
+        "cycleway:both": "no",
+        "highway": "pedestrian",
+        "lane_markings": "no",
+        "maxheight": "default",
+        "maxspeed": "20 mph",
+        "name": "Throgmorton Avenue",
+        "postal_code": "EC2",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0861668,
+            51.5166599
+          ],
+          [
+            -0.0861141,
+            51.5167706
+          ]
+        ]
+      },
+      "id": "way/581731162"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/581731163",
+        "cycleway:both": "no",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Throgmorton Avenue",
+        "postal_code": "EC2",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0861141,
+            51.5167706
+          ],
+          [
+            -0.0860862,
+            51.5168332
+          ],
+          [
+            -0.0860658,
+            51.5168788
+          ]
+        ]
+      },
+      "id": "way/581731163"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/617724348",
+        "highway": "residential",
+        "lit": "yes",
+        "maxheight": "4.65",
+        "maxspeed": "20 mph",
+        "name": "East Poultry Avenue",
+        "oneway": "yes",
+        "proposed:oneway": "-1",
+        "source:proposed:oneway": "http://democracy.cityoflondon.gov.uk/documents/b72284/Appendices%20Pack%2001st-Dec-2020%2011.00%20Streets%20and%20Walkways%20Sub%20Planning%20and%20Transportation%20Committ.pdf?T=9",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1024634,
+            51.5185909
+          ],
+          [
+            -0.1024812,
+            51.5186134
+          ]
+        ]
+      },
+      "id": "way/617724348"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/841719273",
+        "highway": "residential",
+        "lit": "yes",
+        "maxheight": "4.65",
+        "maxspeed": "20 mph",
+        "name": "East Poultry Avenue",
+        "oneway": "yes",
+        "proposed:oneway": "-1",
+        "source:proposed:oneway": "http://democracy.cityoflondon.gov.uk/documents/b72284/Appendices%20Pack%2001st-Dec-2020%2011.00%20Streets%20and%20Walkways%20Sub%20Planning%20and%20Transportation%20Committ.pdf?T=9",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1024812,
+            51.5186134
+          ],
+          [
+            -0.1025119,
+            51.518651
+          ]
+        ]
+      },
+      "id": "way/841719273"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/851964765",
+        "access": "no",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "West Poultry Avenue",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1037357,
+            51.5182207
+          ],
+          [
+            -0.1037648,
+            51.5182584
+          ]
+        ]
+      },
+      "id": "way/851964765"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/958434666",
+        "foot": "yes",
+        "highway": "footway",
+        "name": "Throgmorton Avenue"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0866573,
+            51.5148768
+          ],
+          [
+            -0.0866589,
+            51.5148464
+          ]
+        ]
+      },
+      "id": "way/958434666"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/958434667",
+        "foot": "yes",
+        "highway": "footway",
+        "name": "Throgmorton Avenue",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0866498,
+            51.5150124
+          ],
+          [
+            -0.0866573,
+            51.5148768
+          ]
+        ]
+      },
+      "id": "way/958434667"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/958434689",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "maxspeed": "20 mph",
+        "name": "Copthall Avenue",
+        "postal_code": "EC2",
+        "sidewalk": "both",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0878585,
+            51.5157095
+          ],
+          [
+            -0.0879174,
+            51.5156745
+          ]
+        ]
+      },
+      "id": "way/958434689"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/958582027",
+        "highway": "footway",
+        "name": "Mason's Avenue",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0909094,
+            51.515773
+          ],
+          [
+            -0.0909391,
+            51.5157739
+          ]
+        ]
+      },
+      "id": "way/958582027"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/958587773",
+        "foot": "yes",
+        "highway": "footway",
+        "name": "Mason's Avenue",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0899789,
+            51.5157179
+          ],
+          [
+            -0.0899933,
+            51.5157166
+          ]
+        ]
+      },
+      "id": "way/958587773"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1004710680",
+        "cycleway:both": "no",
+        "highway": "pedestrian",
+        "lane_markings": "no",
+        "maxspeed": "20 mph",
+        "name": "Throgmorton Avenue",
+        "postal_code": "EC2",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0864496,
+            51.5160585
+          ],
+          [
+            -0.0863411,
+            51.5162892
+          ],
+          [
+            -0.0862355,
+            51.5165138
+          ],
+          [
+            -0.0861668,
+            51.5166599
+          ]
+        ]
+      },
+      "id": "way/1004710680"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1053197970",
+        "foot": "yes",
+        "highway": "footway",
+        "name": "Finsbury Avenue"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0844852,
+            51.5196618
+          ],
+          [
+            -0.0844668,
+            51.5196269
+          ],
+          [
+            -0.084624,
+            51.5193523
+          ],
+          [
+            -0.0846871,
+            51.5193298
+          ],
+          [
+            -0.0847425,
+            51.519242
+          ]
+        ]
+      },
+      "id": "way/1053197970"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1054569650",
+        "cycleway": "opposite",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Lloyd's Avenue",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both",
+        "surface": "asphalt",
+        "wikidata": "Q15860990"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0773762,
+            51.5116792
+          ],
+          [
+            -0.0773355,
+            51.5116588
+          ]
+        ]
+      },
+      "id": "way/1054569650"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1054574157",
+        "cycleway:right": "lane",
+        "cycleway:right:oneway": "-1",
+        "highway": "unclassified",
+        "maxspeed": "20 mph",
+        "name": "Carlisle Avenue",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0766699,
+            51.5126691
+          ],
+          [
+            -0.0767128,
+            51.5126689
+          ]
+        ]
+      },
+      "id": "way/1054574157"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1054937077",
+        "cycleway": "opposite",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "maxweightrating:hgv": "7.5",
+        "maxweightrating:hgv:conditional": "none @ destination",
+        "name": "Copthall Avenue",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100146",
+        "sidewalk": "both",
+        "sidewalk:both:surface": "paving_stones",
+        "surface": "asphalt",
+        "wikidata": "Q66693791"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0877819,
+            51.5162012
+          ],
+          [
+            -0.0877987,
+            51.5161557
+          ]
+        ]
+      },
+      "id": "way/1054937077"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1054937078",
+        "cycleway": "opposite",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "maxweightrating:hgv": "7.5",
+        "maxweightrating:hgv:conditional": "none @ destination",
+        "name": "Copthall Avenue",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100146",
+        "sidewalk": "both",
+        "sidewalk:both:surface": "paving_stones",
+        "surface": "asphalt",
+        "wikidata": "Q66693791"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0875907,
+            51.5171182
+          ],
+          [
+            -0.0876003,
+            51.5170942
+          ]
+        ]
+      },
+      "id": "way/1054937078"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1186060032",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Fenchurch Avenue",
+        "oneway": "no",
+        "postal_code": "EC3",
+        "sidewalk": "both",
+        "smoothness": "excellent",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0821557,
+            51.5126538
+          ],
+          [
+            -0.0818063,
+            51.512592
+          ]
+        ]
+      },
+      "id": "way/1186060032"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1256909809",
+        "access": "permissive",
+        "bicycle": "dismount",
+        "foot": "yes",
+        "highway": "service",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Grand Avenue",
+        "postal_code": "EC1",
+        "surface": "asphalt",
+        "vehicle": "destination"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1015712,
+            51.5196341
+          ],
+          [
+            -0.1015867,
+            51.5196545
+          ],
+          [
+            -0.1016078,
+            51.5196822
+          ]
+        ]
+      },
+      "id": "way/1256909809"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1256918979",
+        "access": "permissive",
+        "bicycle": "dismount",
+        "foot": "yes",
+        "highway": "service",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Grand Avenue",
+        "postal_code": "EC1",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1010236,
+            51.5189569
+          ],
+          [
+            -0.1010459,
+            51.5189858
+          ]
+        ]
+      },
+      "id": "way/1256918979"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1266381639",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Royal Exchange Avenue",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.086016,
+            51.5137044
+          ],
+          [
+            -0.0859444,
+            51.5136947
+          ]
+        ]
+      },
+      "id": "way/1266381639"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1266381640",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Royal Exchange Avenue",
+        "source:name": "local knowledge",
+        "surface": "paving_stones",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.086109,
+            51.5137226
+          ],
+          [
+            -0.086016,
+            51.5137044
+          ]
+        ]
+      },
+      "id": "way/1266381640"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1416999874",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Basinghall Avenue",
+        "postal_code": "EC2",
+        "priority": "forward",
+        "ref:GB:usrn": "8100043",
+        "sidewalk:both": "separate",
+        "smoothness": "good",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0905016,
+            51.5168882
+          ],
+          [
+            -0.0904435,
+            51.5168866
+          ],
+          [
+            -0.0902955,
+            51.5168829
+          ]
+        ]
+      },
+      "id": "way/1416999874"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1417647456",
+        "access": "no",
+        "highway": "pedestrian",
+        "name": "Whittington Avenue",
+        "note": "Pedestrian Zone. No vehicles. Except for permit holders and loading by goods vehicles Mon-Fri 11pm-10am, Sat-Sun At any time. No waiting at any time",
+        "postal_code": "EC3",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0834186,
+            51.5129931
+          ],
+          [
+            -0.0833948,
+            51.5130734
+          ]
+        ]
+      },
+      "id": "way/1417647456"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1417647457",
+        "foot": "permissive",
+        "highway": "pedestrian",
+        "name": "Whittington Avenue",
+        "note": "Pedestrian Zone. No vehicles. Except for permit holders and loading by goods vehicles Mon-Fri 11pm-10am, Sat-Sun At any time. No waiting at any time",
+        "postal_code": "EC3",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.083439,
+            51.5129307
+          ],
+          [
+            -0.0834331,
+            51.5129443
+          ],
+          [
+            -0.0834186,
+            51.5129931
+          ]
+        ]
+      },
+      "id": "way/1417647457"
+    }
+  ]
+}
