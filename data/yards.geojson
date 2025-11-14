@@ -1,0 +1,3692 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2025-11-14T13:03:06Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/172357790",
+        "area": "yes",
+        "highway": "footway",
+        "name": "Staple Inn Courtyard"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -0.1110966,
+              51.517939
+            ],
+            [
+              -0.1111398,
+              51.5179421
+            ],
+            [
+              -0.111314,
+              51.5179544
+            ],
+            [
+              -0.1113548,
+              51.5179566
+            ],
+            [
+              -0.1113881,
+              51.5176781
+            ],
+            [
+              -0.1111394,
+              51.5176651
+            ],
+            [
+              -0.1111385,
+              51.5176781
+            ],
+            [
+              -0.1111223,
+              51.5176772
+            ],
+            [
+              -0.1110096,
+              51.5176721
+            ],
+            [
+              -0.1109975,
+              51.5178106
+            ],
+            [
+              -0.1110132,
+              51.5178126
+            ],
+            [
+              -0.1109923,
+              51.5179316
+            ],
+            [
+              -0.1110529,
+              51.5179359
+            ],
+            [
+              -0.1110966,
+              51.517939
+            ]
+          ]
+        ]
+      },
+      "id": "way/172357790"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/230477993",
+        "area": "yes",
+        "highway": "pedestrian",
+        "name": "Abchurch Yard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -0.0882838,
+              51.5114222
+            ],
+            [
+              -0.0882374,
+              51.5114965
+            ],
+            [
+              -0.0881955,
+              51.5115506
+            ],
+            [
+              -0.0881866,
+              51.5115635
+            ],
+            [
+              -0.0882073,
+              51.5115696
+            ],
+            [
+              -0.0884742,
+              51.5116504
+            ],
+            [
+              -0.0885077,
+              51.5116497
+            ],
+            [
+              -0.088491,
+              51.5115972
+            ],
+            [
+              -0.0884788,
+              51.5115591
+            ],
+            [
+              -0.0884746,
+              51.5115459
+            ],
+            [
+              -0.0884675,
+              51.5115237
+            ],
+            [
+              -0.0884715,
+              51.511513
+            ],
+            [
+              -0.088488,
+              51.5114687
+            ],
+            [
+              -0.0884917,
+              51.511459
+            ],
+            [
+              -0.088478,
+              51.5114565
+            ],
+            [
+              -0.0884691,
+              51.5114549
+            ],
+            [
+              -0.0884431,
+              51.5114503
+            ],
+            [
+              -0.0883741,
+              51.5114381
+            ],
+            [
+              -0.0883146,
+              51.5114276
+            ],
+            [
+              -0.0882838,
+              51.5114222
+            ]
+          ]
+        ]
+      },
+      "id": "way/230477993"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/282084535",
+        "area": "yes",
+        "covered": "yes",
+        "highway": "pedestrian",
+        "name": "Western Courtyard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -0.0789413,
+              51.5165527
+            ],
+            [
+              -0.0788151,
+              51.5165171
+            ],
+            [
+              -0.0786965,
+              51.5164833
+            ],
+            [
+              -0.0784743,
+              51.516791
+            ],
+            [
+              -0.0784578,
+              51.5168166
+            ],
+            [
+              -0.0784463,
+              51.5168313
+            ],
+            [
+              -0.078226,
+              51.5171416
+            ],
+            [
+              -0.0784801,
+              51.5172114
+            ],
+            [
+              -0.0786982,
+              51.5168906
+            ],
+            [
+              -0.0787433,
+              51.516824
+            ],
+            [
+              -0.0789413,
+              51.5165527
+            ]
+          ]
+        ]
+      },
+      "id": "way/282084535"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/308226900",
+        "area": "yes",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "Central Courtyard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -0.0778585,
+              51.5165987
+            ],
+            [
+              -0.0778826,
+              51.5166115
+            ],
+            [
+              -0.0778836,
+              51.5166215
+            ],
+            [
+              -0.077881,
+              51.5166295
+            ],
+            [
+              -0.0778029,
+              51.5166866
+            ],
+            [
+              -0.0777239,
+              51.5167445
+            ],
+            [
+              -0.0775417,
+              51.5168936
+            ],
+            [
+              -0.0776172,
+              51.5169222
+            ],
+            [
+              -0.0776725,
+              51.5169451
+            ],
+            [
+              -0.0777184,
+              51.5169165
+            ],
+            [
+              -0.07788,
+              51.5168003
+            ],
+            [
+              -0.0779032,
+              51.5167999
+            ],
+            [
+              -0.0779329,
+              51.5168141
+            ],
+            [
+              -0.0779517,
+              51.5168016
+            ],
+            [
+              -0.0779914,
+              51.5168219
+            ],
+            [
+              -0.0780544,
+              51.5168543
+            ],
+            [
+              -0.0780858,
+              51.5168704
+            ],
+            [
+              -0.0780677,
+              51.5168838
+            ],
+            [
+              -0.0781012,
+              51.5169024
+            ],
+            [
+              -0.0781012,
+              51.5169205
+            ],
+            [
+              -0.0779413,
+              51.5170278
+            ],
+            [
+              -0.0777462,
+              51.5171939
+            ],
+            [
+              -0.0777961,
+              51.517225
+            ],
+            [
+              -0.0778468,
+              51.5172496
+            ],
+            [
+              -0.0778898,
+              51.5172696
+            ],
+            [
+              -0.0779629,
+              51.5171757
+            ],
+            [
+              -0.0780798,
+              51.5169931
+            ],
+            [
+              -0.0781059,
+              51.5169981
+            ],
+            [
+              -0.0782107,
+              51.5168545
+            ],
+            [
+              -0.0782201,
+              51.5168372
+            ],
+            [
+              -0.0782144,
+              51.5168274
+            ],
+            [
+              -0.0782224,
+              51.5168144
+            ],
+            [
+              -0.0782579,
+              51.51679
+            ],
+            [
+              -0.0782807,
+              51.5167743
+            ],
+            [
+              -0.0783305,
+              51.5167093
+            ],
+            [
+              -0.078303,
+              51.5166946
+            ],
+            [
+              -0.0779696,
+              51.5165177
+            ],
+            [
+              -0.0779169,
+              51.5165555
+            ],
+            [
+              -0.0778585,
+              51.5165987
+            ]
+          ]
+        ]
+      },
+      "id": "way/308226900"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/539320023",
+        "area": "yes",
+        "foot": "yes",
+        "highway": "pedestrian",
+        "name": "Guildhall Yard",
+        "surface": "paving_stones",
+        "wikidata": "Q65926195"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -0.0920533,
+              51.5153853
+            ],
+            [
+              -0.0919025,
+              51.5153833
+            ],
+            [
+              -0.0917699,
+              51.5153816
+            ],
+            [
+              -0.0917676,
+              51.5153893
+            ],
+            [
+              -0.0917623,
+              51.5154066
+            ],
+            [
+              -0.0917469,
+              51.5154577
+            ],
+            [
+              -0.0917495,
+              51.515565
+            ],
+            [
+              -0.0917489,
+              51.515703
+            ],
+            [
+              -0.0917522,
+              51.5157357
+            ],
+            [
+              -0.0918659,
+              51.5157367
+            ],
+            [
+              -0.0919915,
+              51.5157378
+            ],
+            [
+              -0.0921103,
+              51.5157388
+            ],
+            [
+              -0.0921105,
+              51.5157157
+            ],
+            [
+              -0.0927147,
+              51.5157159
+            ],
+            [
+              -0.0927137,
+              51.5156499
+            ],
+            [
+              -0.0926913,
+              51.5156499
+            ],
+            [
+              -0.0926699,
+              51.5156651
+            ],
+            [
+              -0.0925771,
+              51.5156657
+            ],
+            [
+              -0.0925555,
+              51.5156493
+            ],
+            [
+              -0.0925553,
+              51.5156103
+            ],
+            [
+              -0.0925802,
+              51.5155902
+            ],
+            [
+              -0.0926679,
+              51.5155921
+            ],
+            [
+              -0.0926923,
+              51.5156105
+            ],
+            [
+              -0.0927117,
+              51.5156118
+            ],
+            [
+              -0.0927132,
+              51.515476
+            ],
+            [
+              -0.0927148,
+              51.5154538
+            ],
+            [
+              -0.0926096,
+              51.5154557
+            ],
+            [
+              -0.0925853,
+              51.5154519
+            ],
+            [
+              -0.0922096,
+              51.5153936
+            ],
+            [
+              -0.0920533,
+              51.5153853
+            ]
+          ]
+        ]
+      },
+      "id": "way/539320023"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/652601960",
+        "area": "yes",
+        "highway": "pedestrian",
+        "lit": "no",
+        "name": "Bow Churchyard",
+        "smoothness": "excellent",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -0.0941691,
+              51.5136626
+            ],
+            [
+              -0.0937806,
+              51.5135945
+            ],
+            [
+              -0.0937747,
+              51.5136057
+            ],
+            [
+              -0.0937684,
+              51.5136192
+            ],
+            [
+              -0.0937635,
+              51.5136177
+            ],
+            [
+              -0.0937308,
+              51.5136949
+            ],
+            [
+              -0.0936273,
+              51.5139393
+            ],
+            [
+              -0.0937337,
+              51.5139536
+            ],
+            [
+              -0.0938496,
+              51.51397
+            ],
+            [
+              -0.0939101,
+              51.5138312
+            ],
+            [
+              -0.0941252,
+              51.5138659
+            ],
+            [
+              -0.0941476,
+              51.5138009
+            ],
+            [
+              -0.0941989,
+              51.5136682
+            ],
+            [
+              -0.0941691,
+              51.5136626
+            ]
+          ]
+        ]
+      },
+      "id": "way/652601960"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/3709363",
+        "highway": "pedestrian",
+        "lit": "no",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "postal_code": "EC4",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0970206,
+            51.5144203
+          ],
+          [
+            -0.097209,
+            51.5144208
+          ],
+          [
+            -0.0976039,
+            51.514403
+          ]
+        ]
+      },
+      "id": "way/3709363"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/3978944",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Steelyard Passage",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0917253,
+            51.5094585
+          ],
+          [
+            -0.0916808,
+            51.509452
+          ],
+          [
+            -0.0916578,
+            51.5094479
+          ]
+        ]
+      },
+      "id": "way/3978944"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4075116",
+        "bicycle": "dismount",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Bell Yard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1117664,
+            51.5140293
+          ],
+          [
+            -0.1117534,
+            51.5140015
+          ],
+          [
+            -0.111647,
+            51.5138152
+          ],
+          [
+            -0.1116387,
+            51.5138039
+          ],
+          [
+            -0.1116153,
+            51.5137447
+          ]
+        ]
+      },
+      "id": "way/4075116"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4211264",
+        "highway": "footway",
+        "name": "Abchurch Yard",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0884195,
+            51.5118174
+          ],
+          [
+            -0.0884277,
+            51.5117986
+          ],
+          [
+            -0.0884943,
+            51.5116467
+          ],
+          [
+            -0.0882187,
+            51.5115581
+          ],
+          [
+            -0.0881955,
+            51.5115506
+          ]
+        ]
+      },
+      "id": "way/4211264"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4223930",
+        "highway": "footway",
+        "lit": "no",
+        "name": "Bow Churchyard",
+        "postal_code": "EC4",
+        "smoothness": "excellent",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0937124,
+            51.514001
+          ],
+          [
+            -0.0937337,
+            51.5139536
+          ],
+          [
+            -0.0938108,
+            51.5137825
+          ],
+          [
+            -0.0938658,
+            51.5136378
+          ],
+          [
+            -0.0938437,
+            51.5136234
+          ],
+          [
+            -0.0937747,
+            51.5136057
+          ],
+          [
+            -0.0936772,
+            51.5135806
+          ],
+          [
+            -0.0934198,
+            51.5135287
+          ]
+        ]
+      },
+      "id": "way/4223930"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4231090",
+        "highway": "service",
+        "lit": "yes",
+        "name": "Bell Inn Yard",
+        "source:name": "local knowledge",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0852397,
+            51.5126837
+          ],
+          [
+            -0.0849503,
+            51.5126082
+          ]
+        ]
+      },
+      "id": "way/4231090"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4231091",
+        "access": "yes",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "George Yard",
+        "sidewalk": "both",
+        "sidewalk:both:surface": "paving_stones",
+        "source:name": "local knowledge",
+        "source:width": "ARCore",
+        "surface": "sett",
+        "width": "5.2"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0862621,
+            51.512248
+          ],
+          [
+            -0.0862394,
+            51.5122745
+          ],
+          [
+            -0.0859985,
+            51.5125482
+          ],
+          [
+            -0.0858832,
+            51.5125763
+          ]
+        ]
+      },
+      "id": "way/4231091"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4231092",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "George Yard",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0858832,
+            51.5125763
+          ],
+          [
+            -0.0858606,
+            51.5126601
+          ],
+          [
+            -0.085794,
+            51.5127948
+          ],
+          [
+            -0.0857924,
+            51.5128073
+          ]
+        ]
+      },
+      "id": "way/4231092"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4254050",
+        "highway": "service",
+        "name": "Saracen's Head Yard",
+        "oneway": "yes",
+        "postal_code": "EC3",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0769951,
+            51.5131125
+          ],
+          [
+            -0.0767898,
+            51.5131981
+          ]
+        ]
+      },
+      "id": "way/4254050"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4255539",
+        "highway": "unclassified",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Glasshouse Yard",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0974779,
+            51.5221893
+          ],
+          [
+            -0.0975871,
+            51.5221653
+          ],
+          [
+            -0.0976246,
+            51.5221571
+          ]
+        ]
+      },
+      "id": "way/4255539"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4256445",
+        "highway": "unclassified",
+        "maxspeed": "20 mph",
+        "name": "Playhouse Yard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1033442,
+            51.5127379
+          ],
+          [
+            -0.1027456,
+            51.51274
+          ],
+          [
+            -0.102656,
+            51.5127578
+          ],
+          [
+            -0.1026027,
+            51.5127766
+          ],
+          [
+            -0.1025702,
+            51.5128017
+          ],
+          [
+            -0.102554,
+            51.5128393
+          ]
+        ]
+      },
+      "id": "way/4256445"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4256446",
+        "highway": "pedestrian",
+        "maxspeed": "20 mph",
+        "name": "Ireland Yard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1013122,
+            51.5127261
+          ],
+          [
+            -0.1013631,
+            51.5127389
+          ],
+          [
+            -0.1014949,
+            51.5127498
+          ],
+          [
+            -0.1018152,
+            51.5127838
+          ],
+          [
+            -0.1021265,
+            51.5128138
+          ],
+          [
+            -0.1023173,
+            51.5128254
+          ]
+        ]
+      },
+      "id": "way/4256446"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4894034",
+        "bicycle": "yes",
+        "hazmat": "designated",
+        "highway": "trunk",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Goodman's Yard",
+        "oneway": "yes",
+        "operator": "Transport for London",
+        "operator:wikidata": "Q682520",
+        "ref": "A1211",
+        "sidewalk:left": "no",
+        "sidewalk:right": "separate",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0732297,
+            51.5112097
+          ],
+          [
+            -0.0731069,
+            51.5111835
+          ],
+          [
+            -0.0730305,
+            51.5111743
+          ],
+          [
+            -0.0729522,
+            51.5111604
+          ]
+        ]
+      },
+      "id": "way/4894034"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/6246730",
+        "cycleway:both": "no",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Glasshouse Yard",
+        "oneway": "no",
+        "sidewalk": "right",
+        "sidewalk:right:surface": "asphalt",
+        "source:width": "Bing",
+        "surface": "asphalt",
+        "width": "3.7"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0978715,
+            51.5214331
+          ],
+          [
+            -0.0974849,
+            51.5214296
+          ],
+          [
+            -0.0974426,
+            51.5214292
+          ]
+        ]
+      },
+      "id": "way/6246730"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/7225336",
+        "highway": "footway",
+        "name": "Bow Churchyard",
+        "source:name": "local knowledge",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0936772,
+            51.5135806
+          ],
+          [
+            -0.0937797,
+            51.5133596
+          ],
+          [
+            -0.0937174,
+            51.5133482
+          ]
+        ]
+      },
+      "id": "way/7225336"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/8020678",
+        "highway": "footway",
+        "name": "George Yard",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0853792,
+            51.5127255
+          ],
+          [
+            -0.0853718,
+            51.5127359
+          ],
+          [
+            -0.0853528,
+            51.5127678
+          ],
+          [
+            -0.0853534,
+            51.5127853
+          ],
+          [
+            -0.0853853,
+            51.512835
+          ]
+        ]
+      },
+      "id": "way/8020678"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/8332404",
+        "highway": "unclassified",
+        "maxspeed": "20 mph",
+        "name": "King's Arms Yard",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0883813,
+            51.5152377
+          ],
+          [
+            -0.0884247,
+            51.5152412
+          ],
+          [
+            -0.0885827,
+            51.515247
+          ],
+          [
+            -0.0888077,
+            51.5152688
+          ],
+          [
+            -0.0893292,
+            51.51533
+          ]
+        ]
+      },
+      "id": "way/8332404"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/8431662",
+        "foot": "yes",
+        "highway": "pedestrian",
+        "name": "Guildhall Yard",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0920533,
+            51.5153853
+          ],
+          [
+            -0.0920678,
+            51.5153168
+          ],
+          [
+            -0.092104,
+            51.5151461
+          ]
+        ]
+      },
+      "id": "way/8431662"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/8431663",
+        "foot": "yes",
+        "highway": "pedestrian",
+        "name": "Guildhall Yard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0920533,
+            51.5153853
+          ],
+          [
+            -0.0918024,
+            51.5154037
+          ]
+        ]
+      },
+      "id": "way/8431663"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/20205232",
+        "highway": "unclassified",
+        "maxspeed": "20 mph",
+        "name": "Tokenhouse Yard",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.088446,
+            51.5146712
+          ],
+          [
+            -0.0884451,
+            51.5147018
+          ],
+          [
+            -0.0883813,
+            51.5152377
+          ],
+          [
+            -0.088338,
+            51.5154778
+          ],
+          [
+            -0.0883325,
+            51.5154775
+          ],
+          [
+            -0.0880837,
+            51.5154693
+          ]
+        ]
+      },
+      "id": "way/20205232"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23125372",
+        "highway": "footway",
+        "name": "Bishopsgate Churchyard",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100058",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0814168,
+            51.516452
+          ],
+          [
+            -0.0815009,
+            51.5164726
+          ],
+          [
+            -0.0815657,
+            51.5164971
+          ],
+          [
+            -0.0817646,
+            51.51653
+          ],
+          [
+            -0.0821877,
+            51.5166012
+          ],
+          [
+            -0.0824195,
+            51.5166391
+          ],
+          [
+            -0.0825277,
+            51.5166603
+          ],
+          [
+            -0.0826339,
+            51.5166768
+          ]
+        ]
+      },
+      "id": "way/23125372"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/23609284",
+        "foot": "yes",
+        "highway": "footway",
+        "name": "Tokenhouse Yard",
+        "surface": "paving_stones",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0883331,
+            51.5155208
+          ],
+          [
+            -0.0883231,
+            51.5156146
+          ]
+        ]
+      },
+      "id": "way/23609284"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/39276130",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "New Bell Yard",
+        "ref:GB:usrn": "8100872",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1002148,
+            51.5130316
+          ],
+          [
+            -0.1002346,
+            51.5129165
+          ],
+          [
+            -0.1002619,
+            51.5126057
+          ],
+          [
+            -0.1002589,
+            51.5125652
+          ]
+        ]
+      },
+      "id": "way/39276130"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/39508938",
+        "highway": "footway",
+        "layer": "-1",
+        "lit": "yes",
+        "name": "Steelyard Passage",
+        "surface": "paving_stones",
+        "tunnel": "yes"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0916578,
+            51.5094479
+          ],
+          [
+            -0.0908048,
+            51.5092903
+          ]
+        ]
+      },
+      "id": "way/39508938"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/39508939",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Steelyard Passage",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0908048,
+            51.5092903
+          ],
+          [
+            -0.0907932,
+            51.5092795
+          ],
+          [
+            -0.0907817,
+            51.5092687
+          ]
+        ]
+      },
+      "id": "way/39508939"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/39658108",
+        "highway": "service",
+        "name": "Bishopsgate Churchyard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0830825,
+            51.5167493
+          ],
+          [
+            -0.0831598,
+            51.5167347
+          ],
+          [
+            -0.083308,
+            51.5167567
+          ],
+          [
+            -0.0834172,
+            51.5167348
+          ]
+        ]
+      },
+      "id": "way/39658108"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/46614645",
+        "access": "private",
+        "highway": "service",
+        "name": "The Courtyard",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1036604,
+            51.5190628
+          ],
+          [
+            -0.103716,
+            51.5191301
+          ],
+          [
+            -0.1037254,
+            51.5191415
+          ]
+        ]
+      },
+      "id": "way/46614645"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/49780450",
+        "cycleway:both": "lane",
+        "cycleway:both:lane": "exclusive",
+        "cycleway:left": "share_busway",
+        "highway": "tertiary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:bus:forward:conditional": "1 @ (Mo-Su 07:00-19:00)",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "not:name": "Cannon Street",
+        "sidewalk:both": "separate",
+        "sidewalk:both:surface": "paving_stones",
+        "surface": "asphalt",
+        "wikidata": "Q64026160"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0977722,
+            51.5131657
+          ],
+          [
+            -0.0976619,
+            51.51314
+          ]
+        ]
+      },
+      "id": "way/49780450"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/49780452",
+        "bicycle": "no",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "postal_code": "EC4",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0976039,
+            51.514403
+          ],
+          [
+            -0.0976723,
+            51.5144002
+          ],
+          [
+            -0.0984118,
+            51.5143601
+          ]
+        ]
+      },
+      "id": "way/49780452"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/49780453",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "postal_code": "EC4",
+        "smoothness": "good",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0986462,
+            51.5143437
+          ],
+          [
+            -0.0986742,
+            51.5142755
+          ]
+        ]
+      },
+      "id": "way/49780453"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/100684530",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "St Paul's Churchyard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.098698,
+            51.5142162
+          ],
+          [
+            -0.0986148,
+            51.5142238
+          ],
+          [
+            -0.0986046,
+            51.5142242
+          ]
+        ]
+      },
+      "id": "way/100684530"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/119684494",
+        "highway": "service",
+        "name": "White Horse Yard"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0897479,
+            51.5165192
+          ],
+          [
+            -0.0897934,
+            51.5165193
+          ],
+          [
+            -0.0898239,
+            51.5165205
+          ],
+          [
+            -0.0899443,
+            51.5165285
+          ]
+        ]
+      },
+      "id": "way/119684494"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/153817627",
+        "access": "permissive",
+        "bicycle": "dismount",
+        "highway": "footway",
+        "horse": "no",
+        "motor_vehicle": "no",
+        "name": "Churchyard Path"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0999499,
+            51.5189056
+          ],
+          [
+            -0.0999127,
+            51.518878
+          ],
+          [
+            -0.0998793,
+            51.5188519
+          ],
+          [
+            -0.0998762,
+            51.5188406
+          ],
+          [
+            -0.0998519,
+            51.5188134
+          ],
+          [
+            -0.0998237,
+            51.5187758
+          ],
+          [
+            -0.099817,
+            51.5187572
+          ],
+          [
+            -0.0998425,
+            51.5187314
+          ],
+          [
+            -0.0999095,
+            51.518693
+          ],
+          [
+            -0.0999132,
+            51.5186925
+          ],
+          [
+            -0.0999454,
+            51.5186754
+          ],
+          [
+            -0.099962,
+            51.5186679
+          ]
+        ]
+      },
+      "id": "way/153817627"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/155451001",
+        "cycleway:both": "lane",
+        "cycleway:both:lane": "exclusive",
+        "highway": "tertiary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:bus:forward:conditional": "1 @ (Mo-Su 07:00-19:00)",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "sidewalk:both": "separate",
+        "surface": "asphalt",
+        "wikidata": "Q64026160"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0990073,
+            51.5132876
+          ],
+          [
+            -0.0989258,
+            51.5132851
+          ],
+          [
+            -0.0988084,
+            51.5132838
+          ],
+          [
+            -0.0985264,
+            51.5132822
+          ]
+        ]
+      },
+      "id": "way/155451001"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/159844956",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "maxspeed": "20 mph",
+        "name": "King's Arms Yard",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0893292,
+            51.51533
+          ],
+          [
+            -0.0893626,
+            51.5153344
+          ],
+          [
+            -0.0894512,
+            51.5153439
+          ],
+          [
+            -0.0895459,
+            51.5153498
+          ],
+          [
+            -0.0900376,
+            51.5153989
+          ]
+        ]
+      },
+      "id": "way/159844956"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/180867979",
+        "access": "permissive",
+        "bicycle": "dismount",
+        "highway": "footway",
+        "horse": "no",
+        "motor_vehicle": "no",
+        "name": "Churchyard Path"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1002492,
+            51.5184887
+          ],
+          [
+            -0.1001927,
+            51.5185157
+          ]
+        ]
+      },
+      "id": "way/180867979"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/180867980",
+        "access": "permissive",
+        "bicycle": "dismount",
+        "highway": "footway",
+        "horse": "no",
+        "motor_vehicle": "no",
+        "name": "Churchyard Path"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0998762,
+            51.5188406
+          ],
+          [
+            -0.0999591,
+            51.5187948
+          ],
+          [
+            -0.1000275,
+            51.5187581
+          ],
+          [
+            -0.1000961,
+            51.5187195
+          ],
+          [
+            -0.1000042,
+            51.5186479
+          ],
+          [
+            -0.099962,
+            51.5186679
+          ]
+        ]
+      },
+      "id": "way/180867980"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/184629892",
+        "bicycle": "yes",
+        "busway:left": "lane",
+        "cycleway:left": "separate",
+        "cycleway:left:oneway": "no",
+        "cycleway:right": "no",
+        "hazmat": "designated",
+        "highway": "trunk",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Goodman's Yard",
+        "oneway": "yes",
+        "operator": "Transport for London",
+        "operator:wikidata": "Q682520",
+        "parking:left": "no",
+        "parking:left:restriction": "no_stopping",
+        "parking:left:restriction:reason": "markings",
+        "ref": "A1211",
+        "sidewalk:both": "separate",
+        "surface": "asphalt",
+        "turn:lanes": "left|left|right|right"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0745221,
+            51.5111929
+          ],
+          [
+            -0.0743579,
+            51.5111939
+          ],
+          [
+            -0.0742441,
+            51.5111958
+          ]
+        ]
+      },
+      "id": "way/184629892"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/227779760",
+        "bicycle": "yes",
+        "busway:left": "lane",
+        "cycleway:left": "separate",
+        "cycleway:left:oneway": "no",
+        "cycleway:right": "no",
+        "highway": "trunk",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Goodman's Yard",
+        "oneway": "yes",
+        "operator": "Transport for London",
+        "operator:wikidata": "Q682520",
+        "parking:left": "no",
+        "parking:left:restriction": "no_stopping",
+        "parking:left:restriction:reason": "markings",
+        "ref": "A1211",
+        "sidewalk:left": "separate",
+        "sidewalk:right": "no",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0732297,
+            51.5112097
+          ],
+          [
+            -0.0731372,
+            51.5112598
+          ]
+        ]
+      },
+      "id": "way/227779760"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/274708114",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "George Yard",
+        "source:name": "local knowledge",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0853512,
+            51.5127163
+          ],
+          [
+            -0.0852397,
+            51.5126837
+          ]
+        ]
+      },
+      "id": "way/274708114"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/331459128",
+        "highway": "cycleway",
+        "is_sidepath": "yes",
+        "lanes": "2",
+        "lit": "yes",
+        "name": "Goodman's Yard",
+        "oneway": "no",
+        "separation:both": "kerb",
+        "sidewalk:left": "separate",
+        "sidewalk:right": "no",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0748244,
+            51.5112933
+          ],
+          [
+            -0.0748,
+            51.5112797
+          ],
+          [
+            -0.0732685,
+            51.5112938
+          ],
+          [
+            -0.0732202,
+            51.5112926
+          ]
+        ]
+      },
+      "id": "way/331459128"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/435782771",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "Bishopsgate Churchyard",
+        "postal_code": "EC2",
+        "ref:GB:usrn": "8100058",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0826339,
+            51.5166768
+          ],
+          [
+            -0.0830825,
+            51.5167493
+          ]
+        ]
+      },
+      "id": "way/435782771"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/470093543",
+        "highway": "pedestrian",
+        "maxspeed": "20 mph",
+        "name": "Playhouse Yard"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.102554,
+            51.5128393
+          ],
+          [
+            -0.1023173,
+            51.5128254
+          ]
+        ]
+      },
+      "id": "way/470093543"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/516268548",
+        "access": "private",
+        "highway": "service",
+        "name": "White Horse Yard",
+        "service": "loading"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.090137,
+            51.5165505
+          ],
+          [
+            -0.0903097,
+            51.5165579
+          ]
+        ]
+      },
+      "id": "way/516268548"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/516268549",
+        "highway": "service",
+        "name": "White Horse Yard",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0899443,
+            51.5165285
+          ],
+          [
+            -0.090137,
+            51.5165505
+          ]
+        ]
+      },
+      "id": "way/516268549"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/522699911",
+        "highway": "footway",
+        "name": "Bow Churchyard",
+        "source:name": "local knowledge",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0935649,
+            51.5133203
+          ],
+          [
+            -0.0935222,
+            51.5133125
+          ]
+        ]
+      },
+      "id": "way/522699911"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/522699912",
+        "highway": "footway",
+        "name": "Bow Churchyard",
+        "source:name": "local knowledge",
+        "surface": "paved",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0937174,
+            51.5133482
+          ],
+          [
+            -0.0935649,
+            51.5133203
+          ]
+        ]
+      },
+      "id": "way/522699912"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/814784305",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "New Bell Yard",
+        "ref:GB:usrn": "8100872",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1002564,
+            51.5125318
+          ],
+          [
+            -0.1002519,
+            51.5124717
+          ]
+        ]
+      },
+      "id": "way/814784305"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/814784306",
+        "foot": "yes",
+        "handrail:left": "yes",
+        "handrail:right": "yes",
+        "highway": "steps",
+        "incline": "up",
+        "lit": "yes",
+        "name": "New Bell Yard",
+        "step_count": "6",
+        "surface": "paving_stones",
+        "wheelchair": "no"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1002564,
+            51.5125318
+          ],
+          [
+            -0.1002589,
+            51.5125652
+          ]
+        ]
+      },
+      "id": "way/814784306"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/863516670",
+        "highway": "service",
+        "lit": "yes",
+        "name": "Bell Inn Yard",
+        "smoothness": "excellent",
+        "source:name": "local knowledge",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0847981,
+            51.5125704
+          ],
+          [
+            -0.0847721,
+            51.5125628
+          ],
+          [
+            -0.0846662,
+            51.51253
+          ]
+        ]
+      },
+      "id": "way/863516670"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/863516671",
+        "highway": "service",
+        "lit": "yes",
+        "maxheight:signed": "no",
+        "name": "Bell Inn Yard",
+        "source:name": "local knowledge",
+        "surface": "asphalt",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0849503,
+            51.5126082
+          ],
+          [
+            -0.0847981,
+            51.5125704
+          ]
+        ]
+      },
+      "id": "way/863516671"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/865177001",
+        "highway": "service",
+        "name": "Saracen's Head Yard",
+        "oneway": "yes",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0767757,
+            51.5131078
+          ],
+          [
+            -0.0767865,
+            51.5131053
+          ],
+          [
+            -0.0769621,
+            51.5130861
+          ],
+          [
+            -0.0769957,
+            51.5130852
+          ]
+        ]
+      },
+      "id": "way/865177001"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/865177002",
+        "highway": "service",
+        "name": "Saracen's Head Yard",
+        "oneway": "yes"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0769957,
+            51.5130852
+          ],
+          [
+            -0.0770342,
+            51.5130857
+          ]
+        ]
+      },
+      "id": "way/865177002"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/865177003",
+        "highway": "service",
+        "name": "Saracen's Head Yard",
+        "oneway": "yes"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0766436,
+            51.5131281
+          ],
+          [
+            -0.0767757,
+            51.5131078
+          ]
+        ]
+      },
+      "id": "way/865177003"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/865177004",
+        "highway": "service",
+        "name": "Saracen's Head Yard",
+        "postal_code": "EC3"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0772202,
+            51.5129583
+          ],
+          [
+            -0.0770342,
+            51.5130857
+          ]
+        ]
+      },
+      "id": "way/865177004"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/865177005",
+        "highway": "service",
+        "name": "Saracen's Head Yard",
+        "oneway": "yes",
+        "postal_code": "EC3"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0770342,
+            51.5130857
+          ],
+          [
+            -0.0769951,
+            51.5131125
+          ]
+        ]
+      },
+      "id": "way/865177005"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/865177006",
+        "highway": "service",
+        "name": "Saracen's Head Yard",
+        "oneway": "yes",
+        "postal_code": "EC3",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0767898,
+            51.5131981
+          ],
+          [
+            -0.0766617,
+            51.5132229
+          ]
+        ]
+      },
+      "id": "way/865177006"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/896794978",
+        "cycleway:left": "lane",
+        "highway": "tertiary",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "postal_code": "EC4",
+        "sidewalk:both": "separate",
+        "smoothness": "excellent",
+        "source:name": "OS_OpenData_StreetView",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1001002,
+            51.5135708
+          ],
+          [
+            -0.1002281,
+            51.5136556
+          ]
+        ]
+      },
+      "id": "way/896794978"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/896794980",
+        "cycleway:left": "lane",
+        "highway": "tertiary",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "postal_code": "EC4",
+        "sidewalk:both": "separate",
+        "smoothness": "excellent",
+        "source:name": "OS_OpenData_StreetView",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1002281,
+            51.5136556
+          ],
+          [
+            -0.1003606,
+            51.5137242
+          ],
+          [
+            -0.1003665,
+            51.5137268
+          ]
+        ]
+      },
+      "id": "way/896794980"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/896794981",
+        "cycleway": "lane",
+        "highway": "tertiary",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "sidewalk:both": "separate",
+        "smoothness": "excellent",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0999968,
+            51.5135126
+          ],
+          [
+            -0.0999181,
+            51.5134746
+          ]
+        ]
+      },
+      "id": "way/896794981"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/896794982",
+        "cycleway:both": "no",
+        "highway": "tertiary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:bus:forward:conditional": "1 @ (Mo-Su 07:00-19:00)",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "sidewalk:both": "separate",
+        "sidewalk:both:surface": "paving_stones",
+        "smoothness": "excellent",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0999181,
+            51.5134746
+          ],
+          [
+            -0.0998721,
+            51.5134571
+          ],
+          [
+            -0.0997746,
+            51.5134196
+          ],
+          [
+            -0.0996857,
+            51.5133932
+          ]
+        ]
+      },
+      "id": "way/896794982"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/896794983",
+        "cycleway:both": "no",
+        "highway": "tertiary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:bus:forward:conditional": "1 @ (Mo-Su 07:00-19:00)",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "sidewalk:both": "separate",
+        "sidewalk:both:surface": "paving_stones",
+        "smoothness": "excellent",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0996857,
+            51.5133932
+          ],
+          [
+            -0.0995524,
+            51.5133574
+          ],
+          [
+            -0.0994254,
+            51.5133332
+          ],
+          [
+            -0.0992968,
+            51.5133143
+          ]
+        ]
+      },
+      "id": "way/896794983"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/896794985",
+        "cycleway:both": "no",
+        "highway": "tertiary",
+        "lane_markings": "no",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "sidewalk:both": "separate",
+        "surface": "asphalt",
+        "wikidata": "Q64026160"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0985264,
+            51.5132822
+          ],
+          [
+            -0.098437,
+            51.5132839
+          ],
+          [
+            -0.09835,
+            51.5132805
+          ],
+          [
+            -0.098233,
+            51.513268
+          ],
+          [
+            -0.0980394,
+            51.5132283
+          ]
+        ]
+      },
+      "id": "way/896794985"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/896794986",
+        "cycleway:both": "no",
+        "highway": "tertiary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:bus:forward:conditional": "1 @ (Mo-Su 07:00-19:00)",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "not:name": "Cannon Street",
+        "sidewalk:both": "separate",
+        "surface": "asphalt",
+        "wikidata": "Q64026160"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0980394,
+            51.5132283
+          ],
+          [
+            -0.0979654,
+            51.5132106
+          ]
+        ]
+      },
+      "id": "way/896794986"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/901407353",
+        "cycleway:left": "lane",
+        "cycleway:right": "lane",
+        "highway": "tertiary",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "postal_code": "EC4",
+        "sidewalk:both": "separate",
+        "smoothness": "excellent",
+        "source:name": "OS_OpenData_StreetView",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0999968,
+            51.5135126
+          ],
+          [
+            -0.1001002,
+            51.5135708
+          ]
+        ]
+      },
+      "id": "way/901407353"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/958513707",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "postal_code": "EC4",
+        "smoothness": "good",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0986742,
+            51.5142755
+          ],
+          [
+            -0.098698,
+            51.5142162
+          ],
+          [
+            -0.0991967,
+            51.514103
+          ],
+          [
+            -0.0994782,
+            51.5140657
+          ]
+        ]
+      },
+      "id": "way/958513707"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/958582020",
+        "foot": "yes",
+        "highway": "pedestrian",
+        "name": "Guildhall Yard",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0921058,
+            51.5151372
+          ],
+          [
+            -0.0921149,
+            51.5150918
+          ]
+        ]
+      },
+      "id": "way/958582020"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/958582023",
+        "foot": "yes",
+        "highway": "pedestrian",
+        "name": "Guildhall Yard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.092104,
+            51.5151461
+          ],
+          [
+            -0.0921058,
+            51.5151372
+          ]
+        ]
+      },
+      "id": "way/958582023"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/975142235",
+        "cycleway:both": "lane",
+        "cycleway:both:lane": "exclusive",
+        "highway": "tertiary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:bus:forward:conditional": "1 @ (Mo-Su 07:00-19:00)",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "not:name": "Cannon Street",
+        "sidewalk:both": "separate",
+        "sidewalk:both:surface": "paving_stones",
+        "surface": "asphalt",
+        "wikidata": "Q64026160"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0979654,
+            51.5132106
+          ],
+          [
+            -0.0977722,
+            51.5131657
+          ]
+        ]
+      },
+      "id": "way/975142235"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/975142236",
+        "cycleway": "lane",
+        "highway": "tertiary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:bus:forward:conditional": "1 @ (Mo-Su 07:00-19:00)",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "not:name": "Cannon Street",
+        "sidewalk": "both",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0975148,
+            51.5131082
+          ],
+          [
+            -0.0975026,
+            51.5131055
+          ]
+        ]
+      },
+      "id": "way/975142236"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/975142237",
+        "cycleway": "lane",
+        "highway": "tertiary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:bus:forward:conditional": "1 @ (Mo-Su 07:00-19:00)",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "not:name": "Cannon Street",
+        "sidewalk:both": "separate",
+        "surface": "asphalt",
+        "wikidata": "Q64026160"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0971911,
+            51.5130375
+          ],
+          [
+            -0.0970974,
+            51.5130169
+          ]
+        ]
+      },
+      "id": "way/975142237"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/975142238",
+        "cycleway:right": "lane",
+        "highway": "tertiary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:bus:forward:conditional": "1 @ (Mo-Su 07:00-19:00)",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "not:name": "Cannon Street",
+        "sidewalk:both": "separate",
+        "surface": "asphalt",
+        "wikidata": "Q64026160"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0975026,
+            51.5131055
+          ],
+          [
+            -0.0974293,
+            51.5130891
+          ],
+          [
+            -0.0971911,
+            51.5130375
+          ]
+        ]
+      },
+      "id": "way/975142238"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/975142239",
+        "cycleway:right": "lane",
+        "highway": "tertiary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:bus:forward:conditional": "1 @ (Mo-Su 07:00-19:00)",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "sidewalk:both": "separate",
+        "smoothness": "excellent",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0991775,
+            51.5133002
+          ],
+          [
+            -0.0990866,
+            51.5132924
+          ],
+          [
+            -0.0990073,
+            51.5132876
+          ]
+        ]
+      },
+      "id": "way/975142239"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/975142240",
+        "cycleway:both": "no",
+        "highway": "tertiary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:bus:forward:conditional": "1 @ (Mo-Su 07:00-19:00)",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "sidewalk:both": "separate",
+        "sidewalk:both:surface": "paving_stones",
+        "smoothness": "excellent",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0992968,
+            51.5133143
+          ],
+          [
+            -0.0991775,
+            51.5133002
+          ]
+        ]
+      },
+      "id": "way/975142240"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1052347594",
+        "foot": "yes",
+        "highway": "cycleway",
+        "name": "Goodman's Yard",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0749787,
+            51.5113133
+          ],
+          [
+            -0.0749337,
+            51.5113029
+          ],
+          [
+            -0.0748845,
+            51.5112951
+          ],
+          [
+            -0.0748244,
+            51.5112933
+          ]
+        ]
+      },
+      "id": "way/1052347594"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1053704464",
+        "bicycle": "yes",
+        "cycleway:left": "separate",
+        "cycleway:left:oneway": "no",
+        "cycleway:right": "no",
+        "hazmat": "designated",
+        "highway": "trunk",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Goodman's Yard",
+        "oneway": "yes",
+        "operator": "Transport for London",
+        "operator:wikidata": "Q682520",
+        "parking:left": "no",
+        "parking:left:restriction": "no_stopping",
+        "parking:left:restriction:reason": "markings",
+        "ref": "A1211",
+        "sidewalk:both": "separate",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0747602,
+            51.5111894
+          ],
+          [
+            -0.0745221,
+            51.5111929
+          ]
+        ]
+      },
+      "id": "way/1053704464"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1053704465",
+        "bicycle": "yes",
+        "cycleway:left": "separate",
+        "cycleway:left:oneway": "no",
+        "cycleway:right": "no",
+        "highway": "trunk",
+        "lanes": "1",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Goodman's Yard",
+        "oneway": "yes",
+        "operator": "Transport for London",
+        "operator:wikidata": "Q682520",
+        "parking:left": "no",
+        "parking:left:restriction": "no_stopping",
+        "parking:left:restriction:reason": "markings",
+        "ref": "A1211",
+        "sidewalk:left": "separate",
+        "sidewalk:right": "no",
+        "source:name": "Travelodge address;survey",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0731372,
+            51.5112598
+          ],
+          [
+            -0.0730821,
+            51.5112916
+          ],
+          [
+            -0.0730406,
+            51.5113215
+          ]
+        ]
+      },
+      "id": "way/1053704465"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1053721822",
+        "bicycle": "designated",
+        "footway": "sidewalk",
+        "highway": "footway",
+        "name": "Goodman's Yard",
+        "oneway": "no",
+        "segregated": "no",
+        "street:name": "Goodman's Yard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0731381,
+            51.5113208
+          ],
+          [
+            -0.0730955,
+            51.5113476
+          ]
+        ]
+      },
+      "id": "way/1053721822"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1065099803",
+        "cycleway:both": "lane",
+        "cycleway:both:lane": "exclusive",
+        "highway": "tertiary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:bus:forward:conditional": "1 @ (Mo-Su 07:00-19:00)",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "not:name": "Cannon Street",
+        "sidewalk:both": "separate",
+        "surface": "asphalt",
+        "wikidata": "Q64026160"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0976619,
+            51.51314
+          ],
+          [
+            -0.0975148,
+            51.5131082
+          ]
+        ]
+      },
+      "id": "way/1065099803"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1069996197",
+        "access": "permissive",
+        "bicycle": "dismount",
+        "highway": "steps",
+        "horse": "no",
+        "motor_vehicle": "no",
+        "name": "Churchyard Path"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.099962,
+            51.5186679
+          ],
+          [
+            -0.0999372,
+            51.5186456
+          ]
+        ]
+      },
+      "id": "way/1069996197"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1101832605",
+        "bicycle": "yes",
+        "busway:left": "lane",
+        "cycleway:left": "separate",
+        "cycleway:left:oneway": "no",
+        "cycleway:right": "no",
+        "hazmat": "designated",
+        "highway": "trunk",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "20 mph",
+        "name": "Goodman's Yard",
+        "oneway": "yes",
+        "operator": "Transport for London",
+        "operator:wikidata": "Q682520",
+        "parking:left": "no",
+        "parking:left:restriction": "no_stopping",
+        "parking:left:restriction:reason": "markings",
+        "ref": "A1211",
+        "sidewalk:both": "separate",
+        "surface": "asphalt",
+        "turn:lanes": "left|left|right|right"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0742441,
+            51.5111958
+          ],
+          [
+            -0.0736893,
+            51.5112032
+          ],
+          [
+            -0.0732297,
+            51.5112097
+          ]
+        ]
+      },
+      "id": "way/1101832605"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1134399790",
+        "foot": "yes",
+        "highway": "footway",
+        "name": "Tokenhouse Yard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0883231,
+            51.5156146
+          ],
+          [
+            -0.0883222,
+            51.5156242
+          ]
+        ]
+      },
+      "id": "way/1134399790"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1134399791",
+        "foot": "yes",
+        "highway": "footway",
+        "name": "Tokenhouse Yard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.088338,
+            51.5154778
+          ],
+          [
+            -0.0883331,
+            51.5155208
+          ]
+        ]
+      },
+      "id": "way/1134399791"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1193826459",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "maxspeed": "20 mph",
+        "name": "King's Arms Yard",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0900376,
+            51.5153989
+          ],
+          [
+            -0.0900868,
+            51.5154069
+          ]
+        ]
+      },
+      "id": "way/1193826459"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1256918986",
+        "bicycle": "no",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "St Paul's Churchyard",
+        "name:etymology:wikidata": "Q173882",
+        "postal_code": "EC4",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0984118,
+            51.5143601
+          ],
+          [
+            -0.0986462,
+            51.5143437
+          ]
+        ]
+      },
+      "id": "way/1256918986"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1264757323",
+        "access": "permissive",
+        "bicycle": "dismount",
+        "highway": "footway",
+        "horse": "no",
+        "motor_vehicle": "no",
+        "name": "Churchyard Path",
+        "tunnel": "building_passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1001927,
+            51.5185157
+          ],
+          [
+            -0.1001442,
+            51.5185415
+          ]
+        ]
+      },
+      "id": "way/1264757323"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1264757324",
+        "access": "permissive",
+        "bicycle": "dismount",
+        "highway": "footway",
+        "horse": "no",
+        "motor_vehicle": "no",
+        "name": "Churchyard Path"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1001442,
+            51.5185415
+          ],
+          [
+            -0.0999372,
+            51.5186456
+          ],
+          [
+            -0.0997388,
+            51.5187432
+          ]
+        ]
+      },
+      "id": "way/1264757324"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1352962173",
+        "footway": "sidewalk",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Goodman's Yard",
+        "street:name": "Goodman's Yard",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0743126,
+            51.5111124
+          ],
+          [
+            -0.0747351,
+            51.5111165
+          ]
+        ]
+      },
+      "id": "way/1352962173"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1352962175",
+        "footway": "sidewalk",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Goodman's Yard",
+        "street:name": "Goodman's Yard",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0741506,
+            51.5111146
+          ],
+          [
+            -0.0730475,
+            51.5111277
+          ],
+          [
+            -0.0729765,
+            51.5111196
+          ]
+        ]
+      },
+      "id": "way/1352962175"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1352962176",
+        "covered": "partial",
+        "footway": "sidewalk",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Goodman's Yard",
+        "street:name": "Goodman's Yard",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0742863,
+            51.5113071
+          ],
+          [
+            -0.0731788,
+            51.5113189
+          ]
+        ]
+      },
+      "id": "way/1352962176"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1352962177",
+        "footway": "sidewalk",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Goodman's Yard",
+        "street:name": "Goodman's Yard",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0748244,
+            51.5112933
+          ],
+          [
+            -0.074785,
+            51.5113048
+          ],
+          [
+            -0.0745423,
+            51.5113041
+          ],
+          [
+            -0.0742863,
+            51.5113071
+          ]
+        ]
+      },
+      "id": "way/1352962177"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1352962178",
+        "footway": "sidewalk",
+        "highway": "footway",
+        "lit": "yes",
+        "name": "Goodman's Yard",
+        "street:name": "Goodman's Yard",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0731788,
+            51.5113189
+          ],
+          [
+            -0.0731381,
+            51.5113208
+          ]
+        ]
+      },
+      "id": "way/1352962178"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1353658512",
+        "bicycle": "designated",
+        "cycleway": "sidewalk",
+        "highway": "cycleway",
+        "is_sidepath": "yes",
+        "name": "Goodman's Yard",
+        "oneway": "no",
+        "street:name": "Goodman's Yard",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0732202,
+            51.5112926
+          ],
+          [
+            -0.0731747,
+            51.511301
+          ],
+          [
+            -0.0731519,
+            51.5113121
+          ],
+          [
+            -0.0731381,
+            51.5113208
+          ]
+        ]
+      },
+      "id": "way/1353658512"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1442101166",
+        "highway": "service",
+        "name": "St Paul's Churchyard",
+        "smoothness": "excellent",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.1002281,
+            51.5136556
+          ],
+          [
+            -0.1001478,
+            51.5137238
+          ]
+        ]
+      },
+      "id": "way/1442101166"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1442101167",
+        "highway": "pedestrian",
+        "motor_vehicle": "private",
+        "name": "St Paul's Churchyard",
+        "smoothness": "good",
+        "surface": "paving_stones"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.0994782,
+            51.5140657
+          ],
+          [
+            -0.0998204,
+            51.5139766
+          ],
+          [
+            -0.099974,
+            51.5138998
+          ],
+          [
+            -0.100033,
+            51.5138413
+          ],
+          [
+            -0.1001027,
+            51.5137671
+          ],
+          [
+            -0.1001478,
+            51.5137238
+          ]
+        ]
+      },
+      "id": "way/1442101167"
+    }
+  ]
+}
