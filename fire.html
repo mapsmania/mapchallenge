@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ring of Fire - Washington DC</title>
+  
+  <link href="https://unpkg.com/maplibre-gl@3.5.2/dist/maplibre-gl.css" rel="stylesheet" />
+  
+  <style>
+    html,body{height:100%;margin:0;background:#000;overflow:hidden;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    #map{position:absolute;inset:0;}
+    #canvas{display:block;width:100vw;height:100vh;position:absolute;inset:0;z-index:5;pointer-events:none}
+    .ring-overlay{
+      position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+      width:320px;height:320px;
+      pointer-events:none;
+      border-radius:50%;
+      box-shadow:0 0 60px 18px rgba(255,120,20,0.06) inset, 0 0 30px 4px rgba(255,180,80,0.02) inset;
+      mix-blend-mode:screen;
+    }
+    @media (max-width:700px){.ring-overlay{width:240px;height:240px}}
+    #search {
+      position:absolute;top:10px;left:10px;z-index:999;padding:6px 10px;border-radius:6px;border:none;box-shadow:0 0 6px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <input id="search" placeholder="Search for a place…" />
+  <div id="map"></div>
+  <canvas id="canvas"></canvas>
+  <div class="ring-overlay"></div>
+  
+  <script src="https://unpkg.com/maplibre-gl@3.5.2/dist/maplibre-gl.js"></script>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', {alpha:true});
+
+    // Washington DC coordinates
+    const FIRE_CENTER_LON_LAT = [-77.0369, 38.9072];
+    const SIZE_REF_LON_LAT = [FIRE_CENTER_LON_LAT[0]+0.01, FIRE_CENTER_LON_LAT[1]];
+
+    let fireCenterScreen = {x:0,y:0};
+    let fireRadiusScreen = 0;
+    let center = {x:innerWidth/2,y:innerHeight/2};
+    let radius = Math.min(innerWidth,innerHeight)*0.1;
+    const particleCount = 150;  
+    let intensity = 0.8;
+
+    function updateFirePositionAndSize(){
+      if(!window.map||!map.loaded()) return;
+      const centerPoint = map.project(FIRE_CENTER_LON_LAT);
+      fireCenterScreen.x=centerPoint.x;
+      fireCenterScreen.y=centerPoint.y;
+      const sizeRefPoint = map.project(SIZE_REF_LON_LAT);
+      fireRadiusScreen = Math.abs(centerPoint.x-sizeRefPoint.x);
+      center = fireCenterScreen;
+      radius = fireRadiusScreen;
+
+      const overlay = document.querySelector('.ring-overlay');
+      if(overlay){
+        overlay.style.left=center.x+'px';
+        overlay.style.top=center.y+'px';
+        overlay.style.opacity=(center.x<0||center.x>innerWidth||center.y<0||center.y>innerHeight)?'0':'1';
+      }
+    }
+
+    function resize(){
+      const dpr=Math.max(1,window.devicePixelRatio||1);
+      canvas.width=Math.floor(innerWidth*dpr);
+      canvas.height=Math.floor(innerHeight*dpr);
+      canvas.style.width=innerWidth+'px';
+      canvas.style.height=innerHeight+'px';
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      updateFirePositionAndSize();
+    }
+    window.addEventListener('resize', resize);
+
+    class Particle{
+      constructor(i){this.reset(i);}
+      reset(i){
+        const t=Math.random()*Math.PI*2;
+        this.baseAngle=t;
+        this.angle=t+(Math.random()-0.5)*0.3;
+        this.dist=radius+(Math.random()-0.5)*15;
+        this.size=2+Math.random()*4;
+        this.life=0.2+Math.random()*0.8;
+        this.maxLife=0.8+Math.random()*1.6;
+        this.hue=26+Math.random()*40;
+        this.alpha=0.1+Math.random()*0.9;
+        this.phase=Math.random()*1000;
+        this.speed=0.2+Math.random()*1.2;
+      }
+      update(dt){
+        this.phase+=dt*(0.5+Math.random()*1.5);
+        this.angle+=dt*0.2*this.speed;
+        const jitter=Math.sin(this.phase*2)*4;
+        this.radialJitter=jitter;
+        this.life+=dt;
+        if(this.life>this.maxLife) this.reset();
+      }
+      draw(ctx){
+        const x=center.x+Math.cos(this.angle)*(this.dist+this.radialJitter);
+        const y=center.y+Math.sin(this.angle)*(this.dist+this.radialJitter*0.5)-Math.abs(this.radialJitter)*0.2;
+
+        ctx.save();
+        ctx.globalCompositeOperation='lighter';
+        const fade=Math.max(0,1-(this.life/this.maxLife));
+        const size=this.size*(0.6+fade*1.8);
+        ctx.shadowBlur=Math.min(20,10+size*4);
+        ctx.shadowColor=`hsla(${this.hue},100%,55%,${0.6*fade*this.alpha})`;
+
+        const g=ctx.createRadialGradient(x,y,0,x,y,size);
+        g.addColorStop(0,`hsla(${this.hue},100%,60%,${0.95*fade*this.alpha})`);
+        g.addColorStop(0.4,`hsla(${this.hue-25},100%,45%,${0.6*fade*this.alpha})`);
+        g.addColorStop(1,`hsla(${this.hue-50},100%,30%,${0.05*fade*this.alpha})`);
+        ctx.fillStyle=g;
+        ctx.beginPath();
+        ctx.ellipse(x,y,size,size*1.4,0,0,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    let particles=[];
+    for(let i=0;i<particleCount;i++) particles.push(new Particle(i));
+    let last=performance.now();
+
+    function frame(now){
+      updateFirePositionAndSize(); // always update fire center each frame
+      const dt=Math.min(0.05,(now-last)/1000);
+      last=now;
+
+      ctx.clearRect(0,0,innerWidth,innerHeight);
+      ctx.fillStyle='rgba(0,0,0,0.08)';
+      ctx.fillRect(0,0,innerWidth,innerHeight);
+
+      // soft base ring
+      const ringThickness=Math.max(10,radius*0.14);
+      const ringGrad=ctx.createRadialGradient(center.x,center.y,radius-ringThickness,center.x,center.y,radius+ringThickness);
+      ringGrad.addColorStop(0,'rgba(0,0,0,0)');
+      ringGrad.addColorStop(0.45,'rgba(255,140,40,0.03)');
+      ringGrad.addColorStop(0.6,'rgba(255,90,20,0.045)');
+      ringGrad.addColorStop(1,'rgba(255,40,10,0.09)');
+      ctx.save();
+      ctx.globalCompositeOperation='lighter';
+      ctx.fillStyle=ringGrad;
+      ctx.beginPath();
+      ctx.arc(center.x,center.y,radius+ringThickness*0.2,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+
+      for(let p of particles){p.update(dt*intensity);p.draw(ctx);}
+
+      // occasional flares
+      if(Math.random()<0.01*intensity){
+        const a=Math.random()*Math.PI*2;
+        const x=center.x+Math.cos(a)*radius;
+        const y=center.y+Math.sin(a)*radius;
+        const g=ctx.createRadialGradient(x,y,0,x,y,50+Math.random()*50);
+        g.addColorStop(0,'rgba(255,250,200,0.8)');
+        g.addColorStop(0.2,'rgba(255,160,60,0.3)');
+        g.addColorStop(1,'rgba(255,70,20,0)');
+        ctx.fillStyle=g;
+        ctx.beginPath();
+        ctx.arc(x,y,50+Math.random()*50,0,Math.PI*2);
+        ctx.fill();
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    window.addEventListener('keydown', (e)=>{
+      if(e.key==='+') radius*=1.08;
+      if(e.key==='-') radius/=1.08;
+    });
+
+    const map = new maplibregl.Map({
+      style: 'https://tiles.openfreemap.org/styles/positron',
+      center: FIRE_CENTER_LON_LAT,
+      zoom: 12,
+      container: 'map'
+    });
+
+    window.map=map;
+
+    // Search input
+    const searchInput=document.getElementById('search');
+    searchInput.addEventListener('change', async (e) => {
+      const query = encodeURIComponent(e.target.value);
+      const url = `https://photon.komoot.io/api/?q=${query}&limit=1`;
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (!data.features || !data.features.length) { alert("Location not found"); return; }
+
+        const [lon, lat] = data.features[0].geometry.coordinates;
+
+        // Update fire center and size reference
+        FIRE_CENTER_LON_LAT[0] = lon;
+        FIRE_CENTER_LON_LAT[1] = lat;
+        SIZE_REF_LON_LAT[0] = lon + 0.01;
+        SIZE_REF_LON_LAT[1] = lat;
+
+        // Fly to new location
+        map.flyTo({ center: [lon, lat], zoom: 12 });
+        // updateFirePositionAndSize will run automatically during fly via map 'move' event
+      } catch (err) {
+        console.error("Photon search error:", err);
+      }
+    });
+
+    // Update fire on map movements
+    map.on('move', updateFirePositionAndSize);
+    map.on('moveend', updateFirePositionAndSize);
+    map.on('load', updateFirePositionAndSize);
+
+    resize();
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,innerWidth,innerHeight);
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
