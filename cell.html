@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Conway's Game of Life</title>
+  <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet" />
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; width:100%; }
+    #lifeCanvas { pointer-events: none; position: absolute; top: 0; left: 0; }
+
+    /* Glassmorphism Controls Panel */
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+      display: flex;
+      gap: 6px;
+      font-family: 'Arial', sans-serif;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    #controls button {
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      background-color: rgba(76, 175, 80, 0.8);
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    #controls button:hover {
+      background-color: rgba(76, 175, 80, 1);
+      transform: translateY(-1px);
+    }
+
+    #controls button:active {
+      transform: translateY(0);
+      background-color: rgba(62, 142, 65, 1);
+    }
+
+    #controls input[type="range"] {
+      cursor: pointer;
+      width: 100px;
+    }
+
+    #controls label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: white;
+      font-weight: bold;
+    }
+
+    /* Modal overlay */
+    .modal {
+      display: none; 
+      position: fixed; 
+      z-index: 10; 
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto; 
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    /* Modal content with glassmorphism */
+    .modal-content {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 12px;
+      width: 80%;
+      max-width: 500px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    #closeModal {
+      color: white;
+      float: right;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #closeModal:hover {
+      color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<canvas id="lifeCanvas"></canvas>
+
+<!-- Controls -->
+<div id="controls">
+  <button id="playBtn">Play</button>
+  <button id="pauseBtn">Pause</button>
+  <button id="stepBtn">Step</button>
+  <button id="resetBtn">Reset</button>
+  <button id="zoomInBtn">+</button>
+  <button id="zoomOutBtn">−</button>
+  <button id="infoBtn">i</button>
+  <label>
+    Speed:
+    <input id="speedSlider" type="range" min="1" max="60" value="30">
+  </label>
+</div>
+
+<!-- Info Modal -->
+<div id="infoModal" class="modal">
+  <div class="modal-content">
+    <span id="closeModal">&times;</span>
+    <h2>Conway's Game of Life</h2>
+    <p>
+      Conway's Game of Life is a cellular automaton devised by mathematician John Conway.
+      It consists of a grid of cells that evolve over time according to simple rules:
+    </p>
+    <ul>
+      <li>Any live cell with 2 or 3 live neighbors survives.</li>
+      <li>Any dead cell with exactly 3 live neighbors becomes alive.</li>
+      <li>All other cells die or remain dead.</li>
+    </ul>
+    <p>
+  This simulation uses a global grid where each cell represents a 0.5° x 0.5° area of the Earth.
+  The grid spans from -180° to +180° longitude and -90° to +90° latitude, resulting in
+  a 360 (latitude) × 720 (longitude) cell grid. Each cell evolves independently based on its neighbors,
+  creating a dynamic pattern over the entire world.
+</p>
+  </div>
+</div>
+
+<script>
+  // --- Initialize MapLibre ---
+  const map = new maplibregl.Map({
+    container: 'map',
+    style: 'https://tiles.openfreemap.org/styles/positron',
+    center: [0, 0],
+    zoom: 1
+  });
+
+  const canvas = document.getElementById('lifeCanvas');
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvas() {
+    canvas.width = map.getCanvas().width;
+    canvas.height = map.getCanvas().height;
+  }
+  map.on('resize', () => { resizeCanvas(); drawGrid(); });
+  resizeCanvas();
+
+  // --- High-Resolution Grid (0.5° per cell) ---
+  const cellSize = 0.5;
+  const rows = 180 / cellSize; // 360
+  const cols = 360 / cellSize; // 720
+  let grid = [];
+
+  function initGrid() {
+    grid = [];
+    for (let y = 0; y < rows; y++) {
+      grid[y] = [];
+      for (let x = 0; x < cols; x++) {
+        grid[y][x] = Math.random() < 0.2;
+      }
+    }
+  }
+  initGrid();
+
+  // --- Conway logic ---
+  function countNeighbors(x, y) {
+    let count = 0;
+    for (let dy=-1; dy<=1; dy++) {
+      for (let dx=-1; dx<=1; dx++) {
+        if(dx===0 && dy===0) continue;
+        const nx = (x+dx+cols)%cols;
+        const ny = (y+dy+rows)%rows;
+        if(grid[ny][nx]) count++;
+      }
+    }
+    return count;
+  }
+
+  function updateGrid() {
+    const newGrid = [];
+    for (let y=0; y<rows; y++) {
+      newGrid[y] = [];
+      for (let x=0; x<cols; x++) {
+        const alive = grid[y][x];
+        const neighbors = countNeighbors(x, y);
+        newGrid[y][x] = alive ? (neighbors===2||neighbors===3) : (neighbors===3);
+      }
+    }
+    grid = newGrid;
+  }
+
+  // --- Draw only visible cells ---
+  function drawGrid() {
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    const bounds = map.getBounds();
+
+    const startY = Math.max(0, Math.floor((90 - bounds.getNorth()) / cellSize));
+    const endY = Math.min(rows, Math.ceil((90 - bounds.getSouth()) / cellSize));
+    const startX = Math.max(0, Math.floor((bounds.getWest() + 180) / cellSize));
+    const endX = Math.min(cols, Math.ceil((bounds.getEast() + 180) / cellSize));
+
+    for (let y = startY; y < endY; y++) {
+      for (let x = startX; x < endX; x++) {
+        if (!grid[y][x]) continue;
+
+        const lat = 90 - y*cellSize;
+        const lon = x*cellSize - 180;
+        const p = map.project([lon, lat]);
+        const cellWidth = map.project([lon+cellSize, lat]).x - p.x;
+        const cellHeight = map.project([lon, lat-cellSize]).y - p.y;
+
+        ctx.fillStyle = 'red';
+        ctx.fillRect(p.x, p.y, cellWidth, cellHeight);
+      }
+    }
+  }
+
+  // --- Animation ---
+  let isPlaying = false;
+  let fps = 30;
+  let lastUpdate = 0;
+
+  const speedSlider = document.getElementById('speedSlider');
+  speedSlider.addEventListener('input', () => fps = Number(speedSlider.value));
+
+  function animate(timestamp) {
+    requestAnimationFrame(animate);
+    if(!isPlaying) return;
+
+    if(timestamp - lastUpdate >= 1000 / fps){
+      updateGrid();
+      drawGrid();
+      lastUpdate = timestamp;
+    }
+  }
+
+  map.on('load', () => {
+    drawGrid(); // initial draw
+    requestAnimationFrame(animate);
+  });
+
+  // --- Redraw on pan and zoom ---
+  map.on('move', drawGrid);
+  map.on('zoom', drawGrid);
+
+  // --- Button Events ---
+  document.getElementById('playBtn').addEventListener('click', () => isPlaying = true);
+  document.getElementById('pauseBtn').addEventListener('click', () => isPlaying = false);
+  document.getElementById('stepBtn').addEventListener('click', () => {
+    updateGrid();
+    drawGrid();
+  });
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    initGrid();
+    drawGrid();
+  });
+
+  document.getElementById('zoomInBtn').addEventListener('click', () => {
+    map.zoomTo(map.getZoom() + 1, {duration: 300});
+  });
+  document.getElementById('zoomOutBtn').addEventListener('click', () => {
+    map.zoomTo(map.getZoom() - 1, {duration: 300});
+  });
+
+  // --- Info Modal ---
+  const infoBtn = document.getElementById('infoBtn');
+  const infoModal = document.getElementById('infoModal');
+  const closeModal = document.getElementById('closeModal');
+
+  infoBtn.addEventListener('click', () => { infoModal.style.display = 'block'; });
+  closeModal.addEventListener('click', () => { infoModal.style.display = 'none'; });
+  window.addEventListener('click', (e) => { if(e.target === infoModal) infoModal.style.display = 'none'; });
+</script>
+</body>
+</html>
