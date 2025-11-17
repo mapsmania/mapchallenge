@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Joyplot Map</title>
+
+<link href="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<style>
+  body { margin: 0; display: flex; font-family: sans-serif; }
+  #map { width: 60%; height: 100vh; position: relative; }
+ #plot { 
+  width: 40%; 
+  height: 100vh; 
+  padding: 0; /* remove padding */
+  overflow: hidden; /* prevent scrollbars */
+  background-color: #000;
+}
+svg { 
+  width: 100%; 
+  height: 100%; 
+  display: block; /* remove extra space below inline-block */
+  background-color: #000; 
+}
+#draw-toggle {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  transition: background-color 0.3s, transform 0.2s;
+  color: #fff;
+}
+
+/* Draw mode */
+#draw-toggle.draw-mode {
+  background-color: #1abc9c;
+}
+#draw-toggle.draw-mode:hover {
+  background-color: #16a085;
+  transform: translateY(-2px);
+}
+#draw-toggle.draw-mode:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Non-draw mode */
+#draw-toggle.no-draw-mode {
+  background-color: #7f8c8d;
+}
+#draw-toggle.no-draw-mode:hover {
+  background-color: #606c76;
+  transform: translateY(-2px);
+}
+#draw-toggle.no-draw-mode:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+  #status {
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    z-index: 1000;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #fff;
+    background-color: rgba(0,0,0,0.6);
+    border-radius: 4px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="map">
+  <button id="draw-toggle">Draw Rectangle</button>
+  <div id="status">Sampling...</div>
+</div>
+<div id="plot">
+  <svg id="joyplot"></svg>
+</div>
+
+<script>
+////////////////////////////////////////////////////////////
+// 1. MAP INITIALIZATION
+////////////////////////////////////////////////////////////
+const TERRARIUM_URL = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png";
+
+const map = new maplibregl.Map({
+  container: "map",
+  style: {
+    version: 8,
+    sources: {
+      osm: { type: "raster", tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize: 256 },
+      terrain: { type: "raster", tiles: [TERRARIUM_URL], tileSize: 256 }
+    },
+    layers: [
+      { id: "osm", type: "raster", source: "osm" },
+      { id: "terrain", type: "raster", source: "terrain", paint: {"raster-opacity": 0.6} }
+    ]
+  },
+  center: [0, 20],
+  zoom: 2
+});
+
+////////////////////////////////////////////////////////////
+// 2. TERRARIUM DECODER
+////////////////////////////////////////////////////////////
+function decodeTerrarium(r, g, b) {
+  return (r * 256 + g + b / 256) - 32768;
+}
+
+function lngLatToTilePixel(lng, lat, z) {
+  const scale = 2 ** z;
+  const worldX = (lng + 180) / 360 * scale;
+  const worldY = (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * scale;
+  const tileX = Math.floor(worldX);
+  const tileY = Math.floor(worldY);
+  const px = Math.floor((worldX - tileX) * 256);
+  const py = Math.floor((worldY - tileY) * 256);
+  return { tileX, tileY, px, py };
+}
+
+////////////////////////////////////////////////////////////
+// 3. TILE CACHE
+////////////////////////////////////////////////////////////
+const tileCache = new Map();
+
+async function fetchTile(z, x, y) {
+  const key = `${z}_${x}_${y}`;
+  if (tileCache.has(key)) return tileCache.get(key);
+
+  const url = TERRARIUM_URL.replace("{z}", z).replace("{x}", x).replace("{y}", y);
+  const img = await createImageBitmap(await fetch(url).then(r => r.blob()));
+  const canvas = new OffscreenCanvas(256, 256);
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+  const data = ctx.getImageData(0, 0, 256, 256);
+  tileCache.set(key, data);
+  return data;
+}
+
+async function getElevationCached(lng, lat, zoom = 10) {
+  const { tileX, tileY, px, py } = lngLatToTilePixel(lng, lat, zoom);
+  const tileData = await fetchTile(zoom, tileX, tileY);
+  const idx = (py * 256 + px) * 4;
+  const r = tileData.data[idx];
+  const g = tileData.data[idx + 1];
+  const b = tileData.data[idx + 2];
+  return decodeTerrarium(r, g, b);
+}
+
+////////////////////////////////////////////////////////////
+// 4. RECTANGLE DRAWING
+////////////////////////////////////////////////////////////
+map.on("load", () => {
+  map.addSource("rect", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+  map.addLayer({ id: "rect-fill", type: "fill", source: "rect", paint: { "fill-color": "#22a6b3", "fill-opacity": 0.25 } });
+  map.addLayer({ id: "rect-line", type: "line", source: "rect", paint: { "line-color": "#0652DD", "line-width": 2 } });
+});
+
+let drawing = false;
+let drawingEnabled = false;
+let start = null;
+
+////////////////////////////////////////////////////////////
+// 5. DRAW TOGGLE BUTTON
+////////////////////////////////////////////////////////////
+const drawBtn = document.getElementById("draw-toggle");
+const statusDiv = document.getElementById("status");
+
+// Initialize button with non-draw color
+drawBtn.classList.add("no-draw-mode");
+drawBtn.textContent = "Draw Rectangle";
+
+drawBtn.addEventListener("click", () => {
+  drawingEnabled = !drawingEnabled;
+  drawBtn.textContent = drawingEnabled ? "Exit Draw Mode" : "Draw Rectangle";
+
+  if (drawingEnabled) {
+    drawBtn.classList.add("draw-mode");
+    drawBtn.classList.remove("no-draw-mode");
+  } else {
+    drawBtn.classList.add("no-draw-mode");
+    drawBtn.classList.remove("draw-mode");
+  }
+});
+
+////////////////////////////////////////////////////////////
+// 6. MAX RECTANGLE SIZE
+////////////////////////////////////////////////////////////
+const MAX_RECT_LNG = 5;  // degrees longitude
+const MAX_RECT_LAT = 5;  // degrees latitude
+
+////////////////////////////////////////////////////////////
+// 7. RECTANGLE EVENT HANDLERS
+////////////////////////////////////////////////////////////
+map.on("mousedown", e => {
+  if (!drawingEnabled) return;
+  drawing = true;
+  start = e.lngLat;
+  map.dragPan.disable();
+  tileCache.clear();
+});
+
+map.on("mousemove", e => {
+  if (!drawingEnabled || !drawing) return;
+  const c = e.lngLat;
+  const rect = { type: "Feature", geometry: { type: "Polygon", coordinates: [[
+    [start.lng, start.lat],
+    [c.lng, start.lat],
+    [c.lng, c.lat],
+    [start.lng, c.lat],
+    [start.lng, start.lat]
+  ]] }};
+  const rectSource = map.getSource("rect");
+  if (!rectSource) return;
+  rectSource.setData({ type: "FeatureCollection", features: [rect] });
+});
+
+map.on("mouseup", async e => {
+  if (!drawingEnabled || !drawing || !start) return;
+  drawing = false;
+  map.dragPan.enable();
+
+  const end = e.lngLat;
+
+  if (start.lng === end.lng || start.lat === end.lat) return;
+
+  const west = Math.min(start.lng, end.lng);
+  const east = Math.max(start.lng, end.lng);
+  const south = Math.min(start.lat, end.lat);
+  const north = Math.max(start.lat, end.lat);
+
+  // Check if rectangle is too large
+  if ((east - west) > MAX_RECT_LNG || (north - south) > MAX_RECT_LAT) {
+    statusDiv.textContent = "Rectangle too large! Zoom in and draw smaller area.";
+    statusDiv.style.display = "block";
+    setTimeout(() => { statusDiv.style.display = "none"; }, 3000);
+    return;
+  }
+
+  const bounds = { west, east, south, north };
+
+  // Show sampling indicator
+  statusDiv.textContent = "Sampling...";
+  statusDiv.style.display = "block";
+
+  const slices = await sampleRectangle(bounds, 48, 60);
+  drawJoyplot(slices);
+
+  statusDiv.style.display = "none";
+});
+
+////////////////////////////////////////////////////////////
+// 8. SAMPLE RECTANGLE
+////////////////////////////////////////////////////////////
+async function sampleRectangle(b, numSlices = 48, points = 60) {
+  const slices = [];
+  const latStep = (b.north - b.south) / (numSlices - 1);
+
+  for (let i = 0; i < numSlices; i++) {
+    const lat = b.south + latStep * i;
+    const slicePromises = [];
+    for (let j = 0; j < points; j++) {
+      const lng = b.west + (b.east - b.west) * (j / (points - 1));
+      slicePromises.push(getElevationCached(lng, lat));
+    }
+    const elevations = await Promise.all(slicePromises);
+    const slice = elevations.map((elev, j) => ({ x: j, y: elev }));
+    slices.push(slice);
+  }
+  return slices;
+}
+
+////////////////////////////////////////////////////////////
+// 9. D3 RIDGELINE PLOT WITH VERTICAL EXAGGERATION
+////////////////////////////////////////////////////////////
+const VERTICAL_EXAGGERATION = 12;  // multiply elevations by this factor
+const SLICE_OFFSET = 15;          // vertical spacing between ridgelines
+
+function drawJoyplot(slices) {
+  const svg = d3.select("#joyplot");
+  svg.selectAll("*").remove();
+  svg.style("background-color", "#000");
+
+  const width = svg.node().clientWidth;
+  const height = svg.node().clientHeight;
+
+  const x = d3.scaleLinear()
+    .domain([0, slices[0].length - 1])
+    .range([40, width - 20]);
+
+  const y = d3.scaleLinear()
+    .domain([d3.min(slices.flat(), d => d.y * VERTICAL_EXAGGERATION),
+             d3.max(slices.flat(), d => d.y * VERTICAL_EXAGGERATION)])
+    .range([20, 0]);
+
+  slices.forEach((slice, i) => {
+    const line = d3.line()
+      .x(d => x(d.x))
+      .y(d => y(d.y * VERTICAL_EXAGGERATION) + i * SLICE_OFFSET)
+      .curve(d3.curveCatmullRom.alpha(0.5));
+
+    svg.append("path")
+      .datum(slice)
+      .attr("d", line)
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 1)
+      .attr("fill", "none");
+  });
+}
+</script>
+
+</body>
+</html>
