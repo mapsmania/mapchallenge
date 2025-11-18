@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Winter on Mars</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Load Leaflet-Snow -->
+  <script src="leaflet-snow-browser.js"></script>
+
+
+  <style>
+    body { margin:0; padding:0; }
+    #map { width: 100%; height: 100vh; }
+ #marsGreeting {
+  position: absolute;
+  top: 5vh;             /* distance from the top */
+  right: 2vw;           /* distance from the right */
+  font-size: 10vh;      /* scale text with viewport height */
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 0 10px rgba(0,0,0,0.7);
+  z-index: 1000;        /* ensure it sits above the map */
+  pointer-events: none; /* allow map interaction under it */
+  text-align: center;   /* center multi-line text */
+  transform: rotate(15deg); /* slant the text - adjust degrees as needed */
+}
+  
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+<div id="marsGreeting">Happy <br>Christmas <br>from <br>Mars</div>
+
+
+<script>
+  // --- Initialize Map ---
+  var map = L.map('map', {
+    crs: L.CRS.EPSG4326,
+    minZoom: 0,
+    maxZoom: 7,
+    center: [0, -80],
+    zoom: 3
+  });
+
+  var baselayer = L.tileLayer(
+    'http://s3-eu-west-1.amazonaws.com/whereonmars.cartodb.net/celestia_mars-shaded-16k_global/{z}/{x}/{y}.png',
+    { tms: true,
+    attribution: 'Map Data © <a href="https://www.openplanetary.org/opm/basemaps" target="_blank">OpenPlanetary Basemaps</a>'
+}
+  ).addTo(map);
+
+ L.snow({
+  color: "rgba(255,255,255,0.9)",
+  layers: [
+    { density: 60, speed: 0.6, size: 1.5, drift: 0.2 },   // far layer (slow)
+    { density: 40, speed: 1.2, size: 2.2, drift: 0.5 },   // mid layer
+    { density: 20, speed: 2.0, size: 3.5, drift: 1.0 }    // close layer (fast)
+  ]
+}).addTo(map);
+
+  
+
+
+
+</script>
+
+</body>
+</html>
