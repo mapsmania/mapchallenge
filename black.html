@@ -4,32 +4,50 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MapLibre — Fullscreen Map (black tiles)</title>
-  <!-- MapLibre GL CSS -->
   <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
   <style>
     html, body, #map { height: 100%; margin: 0; padding: 0; }
-
+    #waterToggle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 5;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: sans-serif;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
- 
+  <button id="waterToggle">Toggle Water</button>
 
-  <!-- MapLibre GL JS -->
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
   <script>
     const map = new maplibregl.Map({
-    style: 'https://mapsmania.github.io/mapchallenge/data/black.json',
-    center: [13.388, 52.517],
-    zoom: 9.5,
-    container: 'map',
-  })
-        // Controls
-        map.addControl(new maplibregl.NavigationControl({showCompass:true}), 'top-left');
-        map.addControl(new maplibregl.FullscreenControl(), 'top-left');
-        map.addControl(new maplibregl.ScaleControl({maxWidth: 200, unit: 'metric'}));
+      style: 'https://mapsmania.github.io/mapchallenge/data/black.json',
+      center: [13.388, 52.517],
+      zoom: 9.5,
+      container: 'map',
+    });
 
-     
+    map.addControl(new maplibregl.NavigationControl({showCompass:true}), 'top-left');
+    map.addControl(new maplibregl.FullscreenControl(), 'top-left');
+    map.addControl(new maplibregl.ScaleControl({maxWidth: 200, unit: 'metric'}));
+
+    let waterWhite = false;
+
+    map.on('load', () => {
+      document.getElementById('waterToggle').onclick = () => {
+        waterWhite = !waterWhite;
+        if (map.getLayer('water')) {
+          map.setPaintProperty('water', 'fill-color', waterWhite ? '#ffffff' : '#000000');
+        }
+      };
+    });
   </script>
 </body>
 </html>
