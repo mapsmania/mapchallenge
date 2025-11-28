@@ -3,80 +3,255 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Back to Black</title>
+  <title>MapLibre – Experimental Animated Map</title>
 
   <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
 
   <style>
-    html, body, #map { height: 100%; margin: 0; padding: 0; }
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: black;
+    }
+
+    #controlBox {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
+      background: rgba(255,255,255,0.9);
+      padding: 10px;
+      border-radius: 8px;
+      font-family: sans-serif;
+      width: 180px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    #controlBox button {
+      width: 100%;
+      padding: 6px;
+      margin-top: 6px;
+      cursor: pointer;
+      border: 1px solid #aaa;
+      border-radius: 5px;
+      background: white;
+      font-size: 14px;
+    }
+
+    #controlBox button:hover {
+      background: #eee;
+    }
   </style>
 </head>
 
 <body>
-  <div id="map"></div>
+<div id="map"></div>
 
-  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+<div id="controlBox">
+  <button id="waterToggle">Toggle Water</button>
+  <button id="countryToggle">Toggle Country Labels</button>
+  <button id="boundaryToggle">Toggle Boundaries</button>
+  <button id="fadeToggle">Slow Fade Mode</button>
+  <button id="rainbowToggle">Rainbow Mode</button>
+  <button id="psyToggle">Psychedelic Mode</button>
+  <button id="resetBtn">Reset to Black</button>
+</div>
 
-  <script>
-    const map = new maplibregl.Map({
-      style: 'https://mapsmania.github.io/mapchallenge/data/black.json',
-      center: [0, 20],
-      zoom: 1.1,
-      container: 'map',
-    });
+<script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 
-    map.addControl(new maplibregl.NavigationControl({showCompass:true}), 'top-left');
-    map.addControl(new maplibregl.FullscreenControl(), 'top-left');
-    map.addControl(new maplibregl.ScaleControl({maxWidth: 200, unit: 'metric'}));
+<script>
+  // -----------------------------
+  //  SETUP MAP
+  // -----------------------------
+  const map = new maplibregl.Map({
+    style: 'https://mapsmania.github.io/mapchallenge/data/black.json',
+    center: [0, 20],
+    zoom: 1.1,
+    container: 'map',
+  });
 
-    // Layer IDs
-    const waterLayer = 'water';
-    const countryLabelLayers = ['label_country_1', 'label_country_2', 'label_country_3'];
-    const boundaryLayers = ['boundary_2', 'boundary_3'];
+  map.addControl(new maplibregl.NavigationControl({showCompass:true}), 'top-left');
+  map.addControl(new maplibregl.FullscreenControl(), 'top-left');
+  map.addControl(new maplibregl.ScaleControl({maxWidth: 200, unit: 'metric'}));
 
-    // Convert grayscale value (0..1) to hex
-    function gray(v) {
-      const g = Math.floor(v * 255).toString(16).padStart(2, '0');
-      return `#${g}${g}${g}`;
+  // -----------------------------
+  //  LAYER GROUPS
+  // -----------------------------
+  const waterLayer = 'water';
+
+  const countryLabelLayers = [
+    'label_country_1',
+    'label_country_2',
+    'label_country_3'
+  ];
+
+  const boundaryLayers = [
+    'boundary_2',
+    'boundary_3'
+  ];
+
+  // ------------------------------------------------
+  //  UTIL: HSL to HEX (needed for animations)
+  // ------------------------------------------------
+  function hslToHex(h, s, l) {
+    l = Math.max(0, Math.min(1, l));
+    s = Math.max(0, Math.min(1, s));
+
+    const a = s * Math.min(l, 1 - l);
+    const f = n => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(-1, Math.min(k - 3, Math.min(9 - k, 1)));
+      return Math.round(255 * color).toString(16).padStart(2, "0");
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  }
+
+  // ------------------------------------------------
+  //  HELPER: SET ALL COLORS
+  // ------------------------------------------------
+  function setAllColors(water, labels, boundaries) {
+    if (map.getLayer(waterLayer)) {
+      map.setPaintProperty(waterLayer, 'fill-color', water);
     }
-
-    map.on('load', () => {
-
-      // Animation variables
-      let t = -Math.PI / 2;     // time counter
-      const speed = 0.0025;     // animation speed (smaller = slower)
-      const fps = 60;           // smoothness
-
-      setInterval(() => {
-        t += speed;
-
-        // Use sine wave to smoothly go dark→light→dark forever
-        // (result always between 0..1)
-        const v = (Math.sin(t) + 1) / 2;
-        const color = gray(v);
-
-        // Apply to water
-        if (map.getLayer(waterLayer)) {
-          map.setPaintProperty(waterLayer, 'fill-color', color);
-        }
-
-        // Apply to country labels
-        countryLabelLayers.forEach(id => {
-          if (map.getLayer(id)) {
-            map.setPaintProperty(id, 'text-color', color);
-          }
-        });
-
-        // Apply to boundaries
-        boundaryLayers.forEach(id => {
-          if (map.getLayer(id)) {
-            map.setPaintProperty(id, 'line-color', color);
-          }
-        });
-
-      }, 1000 / fps);  // run 60 times per second
-
+    countryLabelLayers.forEach(id => {
+      if (map.getLayer(id)) {
+        map.setPaintProperty(id, 'text-color', labels);
+      }
     });
-  </script>
+    boundaryLayers.forEach(id => {
+      if (map.getLayer(id)) {
+        map.setPaintProperty(id, 'line-color', boundaries);
+      }
+    });
+  }
+
+  // ------------------------------------------------
+  //  MODE STATE
+  // ------------------------------------------------
+  let fadeOn = false;
+  let rainbowOn = false;
+  let psyOn = false;
+
+  let fadeFrame = -Math.PI / 2;
+  let rainbowFrame = 0;
+  let psyFrame = 0;
+
+  // ------------------------------------------------
+  //  STOP ALL MODES
+  // ------------------------------------------------
+  function stopAllModes() {
+    fadeOn = false;
+    rainbowOn = false;
+    psyOn = false;
+  }
+
+  // ------------------------------------------------
+  //  ANIMATION LOOPS
+  // ------------------------------------------------
+  function animateFade() {
+    if (!fadeOn) return;
+
+    fadeFrame += 0.02;
+    const v = (Math.sin(fadeFrame) + 1) / 2;
+    const shade = `rgb(${v*255}, ${v*255}, ${v*255})`;
+
+    setAllColors(shade, shade, shade);
+
+    requestAnimationFrame(animateFade);
+  }
+
+  function animateRainbow() {
+    if (!rainbowOn) return;
+
+    rainbowFrame++;
+
+    const hue = rainbowFrame % 360;
+    const color = hslToHex(hue, 1, 0.5);
+
+    setAllColors(color, color, color);
+
+    requestAnimationFrame(animateRainbow);
+  }
+
+  function animatePsy() {
+    if (!psyOn) return;
+
+    psyFrame++;
+
+    const pulse = (Math.sin(psyFrame * 0.05) + 1) / 2;
+
+    const waterHue = (psyFrame * 0.8) % 360;
+    const labelHue = (psyFrame * 1.3) % 360;
+    const boundaryHue = (psyFrame * 2.1) % 360;
+
+    const waterColor = hslToHex(waterHue, 1, 0.3 + pulse * 0.4);
+    const labelColor = hslToHex(labelHue, 1, 0.3 + pulse * 0.4);
+    const boundaryColor = hslToHex(boundaryHue, 1, 0.3 + pulse * 0.4);
+
+    setAllColors(waterColor, labelColor, boundaryColor);
+
+    requestAnimationFrame(animatePsy);
+  }
+
+  // ------------------------------------------------
+  //  BUTTON ACTIONS
+  // ------------------------------------------------
+  map.on('load', () => {
+
+    document.getElementById('waterToggle').onclick = () => {
+      stopAllModes();
+      const current = map.getPaintProperty(waterLayer, 'fill-color');
+      const next = current === '#ffffff' ? '#000000' : '#ffffff';
+      map.setPaintProperty(waterLayer, 'fill-color', next);
+    };
+
+    document.getElementById('countryToggle').onclick = () => {
+      stopAllModes();
+      countryLabelLayers.forEach(id => {
+        if (map.getLayer(id)) {
+          const current = map.getPaintProperty(id, 'text-color');
+          const next = current === '#ffffff' ? '#000000' : '#ffffff';
+          map.setPaintProperty(id, 'text-color', next);
+        }
+      });
+    };
+
+    document.getElementById('boundaryToggle').onclick = () => {
+      stopAllModes();
+      boundaryLayers.forEach(id => {
+        if (map.getLayer(id)) {
+          const current = map.getPaintProperty(id, 'line-color');
+          const next = current === '#ffffff' ? '#000000' : '#ffffff';
+          map.setPaintProperty(id, 'line-color', next);
+        }
+      });
+    };
+
+    document.getElementById('fadeToggle').onclick = () => {
+      stopAllModes();
+      fadeOn = true;
+      requestAnimationFrame(animateFade);
+    };
+
+    document.getElementById('rainbowToggle').onclick = () => {
+      stopAllModes();
+      rainbowOn = true;
+      requestAnimationFrame(animateRainbow);
+    };
+
+    document.getElementById('psyToggle').onclick = () => {
+      stopAllModes();
+      psyOn = true;
+      requestAnimationFrame(animatePsy);
+    };
+
+    document.getElementById('resetBtn').onclick = () => {
+      stopAllModes();
+      setAllColors('#000000', '#000000', '#000000');
+    };
+
+  });
+</script>
 </body>
 </html>
