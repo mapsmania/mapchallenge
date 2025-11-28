@@ -514,7 +514,7 @@
         ]
       ],
       "layout": {"line-cap": "round", "line-join": "round"},
-      "paint": {"line-color": "hsla(0,0%,85%,0.69)", "line-width": 2}
+      "paint": {"line-color": "#000", "line-width": 2}
     },
     {
       "id": "highway_motorway_casing",
@@ -1016,8 +1016,8 @@
         "text-size": 14
       },
       "paint": {
-        "text-color": "#495e91",
-        "text-halo-color": "rgba(255,255,255,0.7)",
+        "text-color": "#000",
+        "text-halo-color": "#000",
         "text-halo-width": 1.5
       }
     },
@@ -1314,8 +1314,9 @@
       "paint": {
         "text-color": "#000",
         "text-halo-blur": 1,
-        "text-halo-color": "#fff",
-        "text-halo-width": 1
+        "text-halo-color": "#000",
+        "text-halo-width": 1,
+        "icon-halo-color": "#000"
       }
     },
     {
@@ -1352,7 +1353,7 @@
       "paint": {
         "text-color": "#000",
         "text-halo-blur": 1,
-        "text-halo-color": "#fff",
+        "text-halo-color": "#000",
         "text-halo-width": 1
       }
     },
@@ -1502,7 +1503,7 @@
       "paint": {
         "text-color": "#000",
         "text-halo-blur": 1,
-        "text-halo-color": "rgba(255, 255, 255, 1)",
+        "text-halo-color": "#000",
         "text-halo-width": 1,
         "icon-halo-color": "#000"
       }
