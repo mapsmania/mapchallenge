@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MapLibre — Animated Layers</title>
+
+  <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
+
+  <style>
+    html, body, #map { height: 100%; margin: 0; padding: 0; }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+
+  <script>
+    const map = new maplibregl.Map({
+      style: 'https://mapsmania.github.io/mapchallenge/data/black.json',
+      center: [0, 20],
+      zoom: 1.1,
+      container: 'map',
+    });
+
+    map.addControl(new maplibregl.NavigationControl({showCompass:true}), 'top-left');
+    map.addControl(new maplibregl.FullscreenControl(), 'top-left');
+    map.addControl(new maplibregl.ScaleControl({maxWidth: 200, unit: 'metric'}));
+
+    // Layer IDs
+    const waterLayer = 'water';
+    const countryLabelLayers = ['label_country_1', 'label_country_2', 'label_country_3'];
+    const boundaryLayers = ['boundary_2', 'boundary_3'];
+
+    // Convert grayscale value (0..1) to hex
+    function gray(v) {
+      const g = Math.floor(v * 255).toString(16).padStart(2, '0');
+      return `#${g}${g}${g}`;
+    }
+
+    map.on('load', () => {
+
+      // Animation variables
+      let t = 0;                // time counter
+      const speed = 0.0025;     // animation speed (smaller = slower)
+      const fps = 60;           // smoothness
+
+      setInterval(() => {
+        t += speed;
+
+        // Use sine wave to smoothly go dark→light→dark forever
+        // (result always between 0..1)
+        const v = (Math.sin(t) + 1) / 2;
+        const color = gray(v);
+
+        // Apply to water
+        if (map.getLayer(waterLayer)) {
+          map.setPaintProperty(waterLayer, 'fill-color', color);
+        }
+
+        // Apply to country labels
+        countryLabelLayers.forEach(id => {
+          if (map.getLayer(id)) {
+            map.setPaintProperty(id, 'text-color', color);
+          }
+        });
+
+        // Apply to boundaries
+        boundaryLayers.forEach(id => {
+          if (map.getLayer(id)) {
+            map.setPaintProperty(id, 'line-color', color);
+          }
+        });
+
+      }, 1000 / fps);  // run 60 times per second
+
+    });
+  </script>
+</body>
+</html>
