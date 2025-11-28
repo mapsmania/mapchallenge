@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MapLibre — Fullscreen Map (black tiles)</title>
+  <title>Back to Black</title>
 
   <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
 
@@ -46,10 +46,11 @@
 <body>
   <div id="map"></div>
 
-  <!-- Floating control box with unlimited buttons -->
+  <!-- Floating control box -->
   <div id="controlBox">
     <button id="waterToggle">Toggle Water</button>
     <button id="countryToggle">Toggle Country Labels</button>
+    <button id="boundaryToggle">Toggle Boundaries</button>
   </div>
 
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
@@ -68,6 +69,7 @@
 
     let waterWhite = false;
     let labelsWhite = false;
+    let boundariesWhite = false;
 
     map.on('load', () => {
 
@@ -88,10 +90,24 @@
 
       document.getElementById('countryToggle').onclick = () => {
         labelsWhite = !labelsWhite;
-
         countryLabelLayers.forEach(id => {
           if (map.getLayer(id)) {
             map.setPaintProperty(id, 'text-color', labelsWhite ? '#ffffff' : '#000000');
+          }
+        });
+      };
+
+      // --- BOUNDARY LINES TOGGLE ---
+      const boundaryLayers = [
+        'boundary_2',
+        'boundary_3'
+      ];
+
+      document.getElementById('boundaryToggle').onclick = () => {
+        boundariesWhite = !boundariesWhite;
+        boundaryLayers.forEach(id => {
+          if (map.getLayer(id)) {
+            map.setPaintProperty(id, 'line-color', boundariesWhite ? '#ffffff' : '#000000');
           }
         });
       };
