@@ -10,19 +10,35 @@
   <style>
     html, body, #map { height: 100%; margin: 0; padding: 0; }
 
-    #waterToggle, #countryToggle {
+    /* Floating control box container */
+    #controlBox {
       position: absolute;
       top: 10px;
       right: 10px;
-      z-index: 5;
+      z-index: 10;
       background: white;
       border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px;
+      font-family: sans-serif;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+
+    /* Style for each button inside the box */
+    #controlBox button {
+      display: block;
+      width: 150px;
+      margin-bottom: 6px;
       padding: 6px 10px;
+      background: white;
+      border: 1px solid #ccc;
       border-radius: 4px;
       cursor: pointer;
-      font-family: sans-serif;
-      display: block;
-      margin-top: 5px;
+      text-align: left;
+    }
+
+    #controlBox button:last-child {
+      margin-bottom: 0;
     }
   </style>
 </head>
@@ -30,8 +46,11 @@
 <body>
   <div id="map"></div>
 
-  <button id="waterToggle">Toggle Water</button>
-  <button id="countryToggle">Toggle Country Labels</button>
+  <!-- Floating control box with unlimited buttons -->
+  <div id="controlBox">
+    <button id="waterToggle">Toggle Water</button>
+    <button id="countryToggle">Toggle Country Labels</button>
+  </div>
 
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 
