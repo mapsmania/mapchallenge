@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matterhorn — Neon Contours</title>
+<style>
+  html, body { margin:0; width:100%; height:100%; overflow:hidden; background:#02060b; color:#bafaff; font-family:Arial,sans-serif; }
+  #scene { position:fixed; inset:0; }
+  #hud { position:fixed; left:22px; top:20px; z-index:2; text-shadow:0 0 12px #00dfff; }
+  h1 { margin:0 0 7px; font-size:clamp(20px,3vw,34px); letter-spacing:.13em; font-weight:500; }
+  #sub { color:#6db9c9; font-size:11px; letter-spacing:.18em; text-transform:uppercase; }
+  #sub a {
+  color: #72ddeb;
+  text-decoration: none;
+}
+
+#sub a:hover {
+  color: #bafaff;
+}  
+  #status { position:fixed; left:22px; bottom:20px; z-index:2; color:#79cbd8; font-size:12px; max-width:min(560px,calc(100vw - 44px)); line-height:1.5; }
+  #credit { position:fixed; right:18px; bottom:16px; z-index:2; color:#477b88; font-size:10px; }
+  #credit a { color:#72ddeb; }
+  #error { color:#ff8b9b; }
+</style>
+<script type="importmap">
+{"imports":{
+ "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+ "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<div id="scene"></div>
+<div id="hud"><h1>MATTERHORN</h1><div id="sub">by  <a href="https://mapterhorn.com/attribution" target="_blank">© Mapterhorn</a></div></div>
+<div id="status">Fetching Mapterhorn elevation tiles…</div>
+<div id="credit">Elevation: <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">© Mapterhorn</a></div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const CENTER = { lon: 7.6586, lat: 45.9763 };
+const ZOOM = 14;                 // Regional Mapterhorn coverage; higher zooms are available
+const TILE_SIZE = 512;
+const TILE_RADIUS = 2;           // 4 x 4 tiles, roughly 7 km across here
+const GRID_SIZE = 640;            // Resampled terrain grid
+const CONTOUR_INTERVAL = 50;      // metres
+const VERTICAL_EXAGGERATION = 1.0;
+const statusEl = document.getElementById('status');
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x02060b);
+const camera = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, 0.1, 100000);
+camera.position.set(0, 4200, 6500);
+const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.getElementById('scene').appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.5;    
+controls.enableDamping = true;
+controls.dampingFactor = 0.055;
+controls.target.set(0, 1800, 0);
+controls.minDistance = 700;
+controls.maxDistance = 15000;
+controls.maxPolarAngle = Math.PI * 0.49;
+
+scene.add(new THREE.AmbientLight(0x5bd9ff, 0.35));
+const keyLight = new THREE.DirectionalLight(0x55dfff, 0.55);
+keyLight.position.set(-3000, 5000, 3500);
+scene.add(keyLight);
+
+function lonLatToTile(lon, lat, z) {
+  const n = 2 ** z;
+  const x = (lon + 180) / 360 * n;
+  const latRad = lat * Math.PI / 180;
+  const y = (1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2 * n;
+  return { x, y };
+}
+function tileUrl(z, x, y) {
+  return `https://tiles.mapterhorn.com/${z}/${x}/${y}.webp`;
+}
+function decodeTerrarium(r,g,b) {
+  return (r * 256 + g + b / 256) - 32768;
+}
+async function loadTile(z,x,y) {
+  const response = await fetch(tileUrl(z,x,y));
+  if (!response.ok) throw new Error(`Tile request failed (${response.status}) at ${z}/${x}/${y}`);
+  const blob = await response.blob();
+  const bitmap = await createImageBitmap(blob);
+  const canvas = document.createElement('canvas');
+  canvas.width = TILE_SIZE; canvas.height = TILE_SIZE;
+  const ctx = canvas.getContext('2d', {willReadFrequently:true});
+  ctx.drawImage(bitmap,0,0,TILE_SIZE,TILE_SIZE);
+  bitmap.close();
+  return ctx.getImageData(0,0,TILE_SIZE,TILE_SIZE).data;
+}
+function sampleBilinear(data, width, height, x, y) {
+  x = THREE.MathUtils.clamp(x,0,width-1.001);
+  y = THREE.MathUtils.clamp(y,0,height-1.001);
+  const x0=Math.floor(x), y0=Math.floor(y), x1=x0+1, y1=y0+1;
+  const tx=x-x0, ty=y-y0;
+  const at=(xx,yy)=>data[yy*width+xx];
+  return (at(x0,y0)*(1-tx)*(1-ty) + at(x1,y0)*tx*(1-ty) +
+          at(x0,y1)*(1-tx)*ty + at(x1,y1)*tx*ty);
+}
+function addContourSegment(out, a, b, level) {
+  const t = (level-a.h)/(b.h-a.h);
+  out.push(a.x+(b.x-a.x)*t, a.y+(b.y-a.y)*t, a.z+(b.z-a.z)*t);
+}
+function makeContours(heights, size, worldWidth, worldDepth, minH, maxH) {
+  const positions=[];
+  const stepX=worldWidth/(size-1), stepZ=worldDepth/(size-1);
+  const first=Math.ceil(minH/CONTOUR_INTERVAL)*CONTOUR_INTERVAL;
+  for(let level=first; level<=maxH; level+=CONTOUR_INTERVAL) {
+    for(let j=0;j<size-1;j++) {
+      for(let i=0;i<size-1;i++) {
+        const h00=heights[j*size+i], h10=heights[j*size+i+1];
+        const h01=heights[(j+1)*size+i], h11=heights[(j+1)*size+i+1];
+        const x=-worldWidth/2+i*stepX, z=-worldDepth/2+j*stepZ;
+        const p=[
+          {x,y:h00*VERTICAL_EXAGGERATION,z,h:h00},
+          {x:x+stepX,y:h10*VERTICAL_EXAGGERATION,z,h:h10},
+          {x:x+stepX,y:h11*VERTICAL_EXAGGERATION,z:z+stepZ,h:h11},
+          {x,y:h01*VERTICAL_EXAGGERATION,z:z+stepZ,h:h01}
+        ];
+        const hits=[];
+        for(let e=0;e<4;e++) {
+          const a=p[e], b=p[(e+1)%4];
+          if((a.h<level && b.h>=level)||(b.h<level && a.h>=level)) {
+            const t=(level-a.h)/(b.h-a.h);
+            hits.push({x:a.x+(b.x-a.x)*t,y:level*VERTICAL_EXAGGERATION+1.5,z:a.z+(b.z-a.z)*t});
+          }
+        }
+        if(hits.length===2) positions.push(hits[0].x,hits[0].y,hits[0].z,hits[1].x,hits[1].y,hits[1].z);
+        else if(hits.length===4) {
+          // Resolve saddle cells using the cell's average height.
+          const center=(h00+h10+h01+h11)/4;
+          const pairs=center>=level ? [[0,1],[2,3]] : [[0,3],[1,2]];
+          for(const [a,b] of pairs) positions.push(hits[a].x,hits[a].y,hits[a].z,hits[b].x,hits[b].y,hits[b].z);
+        }
+      }
+    }
+  }
+  const geometry=new THREE.BufferGeometry();
+  geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  return geometry;
+}
+
+async function build() {
+  const centerTile=lonLatToTile(CENTER.lon,CENTER.lat,ZOOM);
+  const cx=Math.floor(centerTile.x), cy=Math.floor(centerTile.y);
+  const firstX=cx-TILE_RADIUS, firstY=cy-TILE_RADIUS;
+  const count=TILE_RADIUS*2;
+  const fullSize=count*TILE_SIZE;
+  const mosaic=new Float32Array(fullSize*fullSize);
+  const tasks=[];
+  for(let ty=0;ty<count;ty++) for(let tx=0;tx<count;tx++) {
+    tasks.push((async()=>{
+      const data=await loadTile(ZOOM,firstX+tx,firstY+ty);
+      for(let row=0;row<TILE_SIZE;row++) {
+        const dest=(ty*TILE_SIZE+row)*fullSize+tx*TILE_SIZE;
+        for(let col=0;col<TILE_SIZE;col++) {
+          const k=(row*TILE_SIZE+col)*4;
+          mosaic[dest+col]=decodeTerrarium(data[k],data[k+1],data[k+2]);
+        }
+      }
+    })());
+  }
+  let done=0;
+  await Promise.all(tasks.map(p=>p.then(()=>{done++;statusEl.textContent=`Loading elevation tiles… ${done}/${tasks.length}`;})));
+  const centerPx=(centerTile.x-firstX)*TILE_SIZE;
+  const centerPy=(centerTile.y-firstY)*TILE_SIZE;
+  const cosLat=Math.cos(CENTER.lat*Math.PI/180);
+  const metresPerPixel=40075016.685/(2**ZOOM*TILE_SIZE)*cosLat;
+  const worldWidth=fullSize*metresPerPixel;
+  const worldDepth=worldWidth;
+  const heights=new Float32Array(GRID_SIZE*GRID_SIZE);
+  let minH=Infinity,maxH=-Infinity;
+  for(let j=0;j<GRID_SIZE;j++) {
+    for(let i=0;i<GRID_SIZE;i++) {
+      const sx=i/(GRID_SIZE-1)*(fullSize-1);
+      const sy=j/(GRID_SIZE-1)*(fullSize-1);
+      const h=sampleBilinear(mosaic,fullSize,fullSize,sx,sy);
+      heights[j*GRID_SIZE+i]=h;
+      if(h<minH) minH=h;
+      if(h>maxH) maxH=h;
+    }
+  }
+
+  // Convert the sampled raster into a gently lit, dark terrain surface.
+  const verts=[], indices=[], colors=[];
+  const dx=worldWidth/(GRID_SIZE-1), dz=worldDepth/(GRID_SIZE-1);
+  for(let j=0;j<GRID_SIZE;j++) for(let i=0;i<GRID_SIZE;i++) {
+    const h=heights[j*GRID_SIZE+i];
+    verts.push(-worldWidth/2+i*dx,h*VERTICAL_EXAGGERATION,-worldDepth/2+j*dz);
+    const t=THREE.MathUtils.clamp((h-minH)/(maxH-minH),0,1);
+    colors.push(0.008+0.025*t,0.025+0.08*t,0.045+0.12*t);
+    if(i<GRID_SIZE-1 && j<GRID_SIZE-1) {
+      const a=j*GRID_SIZE+i,b=a+1,c=a+GRID_SIZE,d=c+1;
+      indices.push(a,c,b,b,c,d);
+    }
+  }
+  const terrainGeo=new THREE.BufferGeometry();
+  terrainGeo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
+  terrainGeo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+  terrainGeo.setIndex(indices);
+  terrainGeo.computeVertexNormals();
+  const terrain=new THREE.Mesh(terrainGeo,new THREE.MeshStandardMaterial({
+    vertexColors:true, roughness:0.95, metalness:0.15, side:THREE.DoubleSide
+  }));
+  scene.add(terrain);
+
+  const contourGeo=makeContours(heights,GRID_SIZE,worldWidth,worldDepth,minH,maxH);
+  const glow=new THREE.LineSegments(contourGeo,new THREE.LineBasicMaterial({
+    color:0x00aaff,transparent:true,opacity:0.25, blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  const bright=new THREE.LineSegments(contourGeo,new THREE.LineBasicMaterial({
+    color:0x42f6ff,transparent:true,opacity:0.95, blending:THREE.AdditiveBlending
+  }));
+  scene.add(glow,bright);
+
+  // A restrained summit marker: a small luminous point at the approximate Matterhorn position.
+  const summitGeo=new THREE.SphereGeometry(22,16,12);
+  const summit=new THREE.Mesh(summitGeo,new THREE.MeshBasicMaterial({color:0xffffff}));
+  const sx=(centerTile.x-firstX)*TILE_SIZE;
+  const sy=(centerTile.y-firstY)*TILE_SIZE;
+  const ix=Math.round((sx/fullSize)*(GRID_SIZE-1));
+  const iz=Math.round((sy/fullSize)*(GRID_SIZE-1));
+  summit.position.set(-worldWidth/2+ix*dx,heights[iz*GRID_SIZE+ix]+28,-worldDepth/2+iz*dz);
+  scene.add(summit);
+
+  // Reframe to include the full terrain.
+  controls.target.set(0, Math.max(900,maxH*0.45), 0);
+  camera.position.set(worldWidth*0.48, maxH*1.15+worldWidth*0.55, worldDepth*0.72);
+  camera.lookAt(controls.target);
+  controls.update();
+  statusEl.textContent=`${(worldWidth/1000).toFixed(1)} km terrain window · ${CONTOUR_INTERVAL} m contour interval · drag to orbit, scroll to zoom`;
+}
+build().catch(err=>{
+  console.error(err);
+  statusEl.innerHTML=`<span id="error">Could not load elevation tiles: ${err.message}. Check that the page is served over HTTPS and that tiles.mapterhorn.com is reachable.</span>`;
+});
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
