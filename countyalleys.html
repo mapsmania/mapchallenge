@@ -1,0 +1,420 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Britain's Street Name Clusters</title>
+
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #07111d;
+  color: #e5faff;
+  font-family: Arial, sans-serif;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+}
+
+#panel {
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  left: 18px;
+  width: 300px;
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  padding: 20px;
+  background: rgba(5, 15, 29, 0.96);
+  border: 1px solid #17465b;
+  border-radius: 8px;
+  box-shadow: 0 5px 25px #0009;
+}
+
+h1 {
+  font-size: 21px;
+  line-height: 1.2;
+  margin: 0 0 8px;
+  color: #00e5ff;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #91adbd;
+  margin-bottom: 18px;
+}
+
+label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #7798aa;
+  margin-bottom: 8px;
+}
+
+select {
+  width: 100%;
+  padding: 10px;
+  background: #102b40;
+  color: #e5faff;
+  border: 1px solid #176078;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+}
+
+#total {
+  font-size: 13px;
+  color: #00ffcc;
+  margin: 16px 0 20px;
+}
+
+.legend-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #7798aa;
+  margin-bottom: 10px;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  color: #c7dce5;
+}
+
+.swatch {
+  width: 22px;
+  height: 14px;
+  border: 1px solid #ffffff33;
+  border-radius: 2px;
+}
+
+#status {
+  margin-top: 15px;
+  font-size: 11px;
+  color: #91adbd;
+  line-height: 1.5;
+}
+
+.maplibregl-popup-content {
+  background: #102b40;
+  color: #e5faff;
+  border: 1px solid #00dfff;
+  border-radius: 6px;
+  padding: 13px 16px;
+  min-width: 160px;
+}
+
+.maplibregl-popup-close-button {
+  color: white;
+  font-size: 17px;
+}
+
+.popup-name {
+  font-size: 15px;
+  font-weight: bold;
+  color: #00e5ff;
+  margin-bottom: 6px;
+}
+
+.popup-count {
+  font-size: 13px;
+  color: #e5faff;
+}
+
+@media(max-width: 600px) {
+  #panel {
+    top: 10px;
+    left: 10px;
+    width: 250px;
+    padding: 14px;
+    max-height: 70vh;
+  }
+  h1 { font-size: 17px; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<div id="panel">
+
+  <h1>THE GEOGRAPHY OF WORDS</h1>
+
+  <div class="subtitle">
+    Mapping Britain's regional street-name vocabulary.
+    Explore the distribution of different alleyway names.
+  </div>
+
+  <label for="wordSelect">Select a street-name word</label>
+  <select id="wordSelect">
+    <option value="Twitten">Twitten</option>
+    <option value="Ginnel">Ginnel</option>
+    <option value="Vennel">Vennel</option>
+    <option value="Chare">Chare</option>
+    <option value="Loke">Loke</option>
+    <option value="Jitty">Jitty</option>
+    <option value="Wynd">Wynd</option>
+    <option value="Ope">Ope</option>
+    <option value="Shut">Shut</option>
+    <option value="Entry">Entry</option>
+    <option value="Pend">Pend</option>
+  </select>
+
+  <div id="total">Loading data...</div>
+
+  <div class="legend-title">Number of named features</div>
+  <div id="legend" class="legend"></div>
+
+  <div id="status">Loading county boundaries and street names...</div>
+
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@turf/turf@7.2.0/turf.min.js"></script>
+
+<script>
+
+const colours = [
+  '#FDE0DD',
+  '#FCC5C0',
+  '#FA9FB5',
+  '#F768A1',
+  '#C51B8A'
+];
+
+// Fixed count breaks, shared by every word
+const breaks = [0, 1, 3, 6, 11, 999999];
+
+const map = new maplibregl.Map({
+  container: 'map',
+  style: 'https://tiles.openfreemap.org/styles/dark',
+  center: [-2.5, 54.5],
+  zoom: 5
+});
+
+map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+let countiesData;
+let streetData;
+
+function getColour(count) {
+  if (count === 0) return '#263744';
+  if (count <= 2) return colours[0];
+  if (count <= 5) return colours[1];
+  if (count <= 10) return colours[2];
+  if (count <= 20) return colours[3];
+  return colours[4];
+}
+
+function makeLegend() {
+  const ranges = [
+    ['0', '#263744'],
+    ['1–2', colours[0]],
+    ['3–5', colours[1]],
+    ['6–10', colours[2]],
+    ['11–20', colours[3]],
+    ['21+', colours[4]]
+  ];
+
+  document.getElementById('legend').innerHTML =
+    ranges.map(([label, colour]) => `
+      <div class="legend-row">
+        <span class="swatch" style="background:${colour}"></span>
+        <span>${label} locations</span>
+      </div>
+    `).join('');
+}
+
+function calculateCounts(word) {
+
+  // Reset all county counts
+  const features = countiesData.features.map(feature => ({
+    ...feature,
+    properties: {
+      ...feature.properties,
+      count: 0
+    }
+  }));
+
+  const countyCollection = {
+    type: 'FeatureCollection',
+    features
+  };
+
+  // Count points falling inside each county
+  const points = streetData.features.filter(feature =>
+    String(feature.properties.cluster_word).toLowerCase() === word.toLowerCase()
+  );
+
+  points.forEach(point => {
+    for (const county of features) {
+      if (turf.booleanPointInPolygon(point, county)) {
+        county.properties.count++;
+        break;
+      }
+    }
+  });
+
+  const total = points.length;
+
+  document.getElementById('total').textContent =
+    total.toLocaleString() + ' ' + word + ' locations';
+
+  return countyCollection;
+}
+
+function updateMap() {
+
+  const word = document.getElementById('wordSelect').value;
+  const countedData = calculateCounts(word);
+
+  map.getSource('counties').setData(countedData);
+
+  document.getElementById('status').textContent =
+    'Showing the number of recorded ' + word +
+    ' street names in each county.';
+}
+
+map.on('load', async () => {
+
+  try {
+
+    const [countyResponse, streetResponse] = await Promise.all([
+      fetch('https://mapsmania.github.io/mapchallenge/counties2.geojson'),
+      fetch('https://mapsmania.github.io/mapchallenge/street_word_clusters.geojson')
+    ]);
+
+    if (!countyResponse.ok || !streetResponse.ok) {
+      throw new Error('Could not load one or both GeoJSON files.');
+    }
+
+    countiesData = await countyResponse.json();
+    streetData = await streetResponse.json();
+
+    map.addSource('counties', {
+      type: 'geojson',
+      data: countiesData
+    });
+
+    map.addLayer({
+      id: 'county-fill',
+      type: 'fill',
+      source: 'counties',
+      paint: {
+        'fill-color': [
+  'case',
+  ['==', ['get', 'count'], 0],
+  'rgba(0,0,0,0)',
+  [
+    'step',
+    ['get', 'count'],
+    colours[0],
+    3, colours[1],
+    6, colours[2],
+    11, colours[3],
+    21, colours[4]
+  ]
+],
+        'fill-opacity': 0.8
+      }
+    });
+
+    map.addLayer({
+      id: 'county-outline',
+      type: 'line',
+      source: 'counties',
+      paint: {
+        'line-color': '#8295a3',
+        'line-width': 0.7,
+        'line-opacity': 0.7
+      }
+    });
+
+    // County click popup
+    map.on('click', 'county-fill', e => {
+
+      const p = e.features[0].properties;
+      const word = document.getElementById('wordSelect').value;
+
+      new maplibregl.Popup()
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <div class="popup-name">${p.shapeName}</div>
+          <div class="popup-count">
+            ${p.count.toLocaleString()} ${word} locations
+          </div>
+        `)
+        .addTo(map);
+
+    });
+
+    map.on('mouseenter', 'county-fill', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+
+    map.on('mouseleave', 'county-fill', () => {
+      map.getCanvas().style.cursor = '';
+    });
+
+    // Fit map to county boundaries
+    const bounds = new maplibregl.LngLatBounds();
+
+    countiesData.features.forEach(feature => {
+      const b = turf.bbox(feature);
+      bounds.extend([b[0], b[1]]);
+      bounds.extend([b[2], b[3]]);
+    });
+
+    map.fitBounds(bounds, {
+      padding: 45,
+      maxZoom: 6
+    });
+
+    makeLegend();
+
+    // Initial map
+    updateMap();
+
+    document.getElementById('wordSelect')
+      .addEventListener('change', updateMap);
+
+    document.getElementById('status').textContent =
+      'County counts calculated from Ordnance Survey Open Names.';
+
+  } catch (error) {
+    console.error(error);
+    document.getElementById('status').textContent =
+      'Error loading data: ' + error.message;
+  }
+
+});
+
+</script>
+
+</body>
+</html>
