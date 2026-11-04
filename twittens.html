@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Britain's Street Name Clusters</title>
+
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #07111d;
+  color: #e5faff;
+  font-family: Arial, sans-serif;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+}
+
+#panel {
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  left: 18px;
+  width: 290px;
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  padding: 20px;
+  background: rgba(5, 15, 29, 0.95);
+  border: 1px solid #17465b;
+  border-radius: 8px;
+  box-shadow: 0 5px 25px #0009;
+}
+
+h1 {
+  font-size: 21px;
+  line-height: 1.2;
+  margin: 0 0 8px;
+  color: #00e5ff;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #91adbd;
+  margin-bottom: 17px;
+}
+
+#total {
+  font-size: 13px;
+  color: #00ffcc;
+  margin-bottom: 17px;
+}
+
+.legend-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #7798aa;
+  margin-bottom: 10px;
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px 5px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #d5e8ef;
+  user-select: none;
+}
+
+.legend-item.off {
+  opacity: 0.3;
+  text-decoration: line-through;
+}
+
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+button {
+  background: #102b40;
+  color: #00e5ff;
+  border: 1px solid #176078;
+  border-radius: 4px;
+  padding: 7px 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #17465b;
+}
+
+#map canvas {
+  outline: none;
+}
+
+.maplibregl-popup-content {
+  background: #102b40;
+  color: #e5faff;
+  border: 1px solid #00dfff;
+  border-radius: 6px;
+  padding: 13px 16px;
+  min-width: 150px;
+}
+
+.maplibregl-popup-close-button {
+  color: white;
+  font-size: 17px;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: #102b40;
+}
+
+.popup-name {
+  font-size: 15px;
+  font-weight: bold;
+  color: #00e5ff;
+  margin-bottom: 5px;
+}
+
+.popup-word {
+  font-size: 12px;
+  color: #a9c8d8;
+}
+
+@media(max-width: 600px) {
+  #panel {
+    top: 10px;
+    left: 10px;
+    width: 235px;
+    padding: 14px;
+    max-height: 65vh;
+  }
+
+  h1 { font-size: 17px; }
+  .legend { gap: 8px 3px; }
+  .legend-item { font-size: 12px; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<div id="panel">
+
+  <h1>THE GEOGRAPHY OF WORDS</h1>
+
+  <div class="subtitle">
+    Mapping Britain's regional street-name vocabulary.
+    From Sussex Twittens to Yorkshire Ginnels.
+  </div>
+
+  <div id="total">Loading locations...</div>
+
+  <div class="legend-title">Street name vocabulary</div>
+
+  <div id="legend" class="legend"></div>
+
+  <div class="controls">
+    <button onclick="showAll()">SHOW ALL</button>
+    <button onclick="hideAll()">HIDE ALL</button>
+  </div>
+
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+<script>
+
+const colours = {
+  Twitten: '#ff3cac',
+  Ginnel:  '#00e5ff',
+  Gennel:  '#ffcc00',
+  Snicket: '#a78bfa',
+  Jitty:   '#00ff99',
+  Gitty:   '#ff7946',
+  Wynd:    '#e879f9',
+  Vennel:  '#facc15',
+  Chare:   '#60a5fa',
+  Loke:    '#fb7185',
+  Ope:     '#4ade80',
+  Drung:   '#f97316',
+  Shut:    '#c084fc',
+  Entry:   '#38bdf8',
+  Pend:    '#f43f5e'
+};
+
+const activeWords = new Set(Object.keys(colours));
+
+const map = new maplibregl.Map({
+  container: 'map',
+  style: 'https://tiles.openfreemap.org/styles/liberty',
+  center: [-2.5, 54.5],
+  zoom: 5.3
+});
+
+map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+const legend = document.getElementById('legend');
+
+// Build interactive legend
+Object.entries(colours).forEach(([word, colour]) => {
+
+  const item = document.createElement('div');
+  item.className = 'legend-item';
+
+  item.innerHTML = `
+    <span class="dot" style="background:${colour};color:${colour}"></span>
+    <span>${word}</span>
+  `;
+
+  item.addEventListener('click', () => {
+    if (activeWords.has(word)) {
+      activeWords.delete(word);
+      item.classList.add('off');
+    } else {
+      activeWords.add(word);
+      item.classList.remove('off');
+    }
+
+    updateLayers();
+  });
+
+  legend.appendChild(item);
+});
+
+function updateLayers() {
+
+  if (!map.getLayer('locations')) return;
+
+  const filters = [
+    'in',
+    ['get', 'cluster_word'],
+    ['literal', [...activeWords]]
+  ];
+
+  map.setFilter('locations', filters);
+}
+
+function showAll() {
+  activeWords.clear();
+  Object.keys(colours).forEach(w => activeWords.add(w));
+
+  document.querySelectorAll('.legend-item').forEach(
+    item => item.classList.remove('off')
+  );
+
+  updateLayers();
+}
+
+function hideAll() {
+  activeWords.clear();
+
+  document.querySelectorAll('.legend-item').forEach(
+    item => item.classList.add('off')
+  );
+
+  updateLayers();
+}
+
+map.on('load', async () => {
+
+  try {
+
+    const response = await fetch('street_word_clusters.geojson');
+
+    if (!response.ok) {
+      throw new Error('Could not load GeoJSON file');
+    }
+
+    const data = await response.json();
+
+    document.getElementById('total').textContent =
+      data.features.length + ' street-name locations';
+
+    map.addSource('streetnames', {
+      type: 'geojson',
+      data: data
+    });
+
+    map.addLayer({
+      id: 'locations',
+      type: 'circle',
+      source: 'streetnames',
+      paint: {
+        'circle-radius': [
+          'interpolate', ['linear'], ['zoom'],
+          4, 4,
+          8, 7,
+          13, 10
+        ],
+        'circle-color': [
+          'match',
+          ['get', 'cluster_word'],
+          ...Object.entries(colours).flat(),
+          '#ffffff'
+        ],
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 1,
+        'circle-opacity': 0.9
+      }
+    });
+
+    // Click a point to reveal its name
+    map.on('click', 'locations', (e) => {
+
+      const p = e.features[0].properties;
+
+      new maplibregl.Popup()
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <div class="popup-name">${p.name}</div>
+          <div class="popup-word">
+            Regional word: ${p.cluster_word}
+          </div>
+        `)
+        .addTo(map);
+
+    });
+
+    map.on('mouseenter', 'locations', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+
+    map.on('mouseleave', 'locations', () => {
+      map.getCanvas().style.cursor = '';
+    });
+
+    // Zoom to the data extent
+    const bounds = new maplibregl.LngLatBounds();
+
+    data.features.forEach(feature => {
+      if (feature.geometry?.type === 'Point') {
+        bounds.extend(feature.geometry.coordinates);
+      }
+    });
+
+    if (!bounds.isEmpty()) {
+      map.fitBounds(bounds, {
+        padding: 70,
+        maxZoom: 9
+      });
+    }
+
+  } catch (error) {
+    console.error(error);
+    document.getElementById('total').textContent =
+      'Error loading GeoJSON. Check the file location.';
+  }
+
+});
+
+</script>
+
+</body>
+</html>
