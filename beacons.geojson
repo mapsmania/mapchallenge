@@ -1,0 +1,405 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bitterne Beacon",
+        "grid_ref": "SU470138",
+        "notes": "WNW of Botley; also described as the unnamed beacon WNW of Botley by Morden, near Beacon Road and Telegraph Road, West End.",
+        "historical_evidence": "Norden 1595 manuscript; Morden 1695",
+        "evidence_type": "mapped beacon symbol",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.339,
+          50.933
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Burghclere Beacon",
+        "grid_ref": "SU458571",
+        "notes": "Beacon Hill, Burghclere; Norden 1607 gives approximate grid reference SU4758.",
+        "historical_evidence": "Norden 1595 manuscript; Norden 1607",
+        "evidence_type": "mapped beacon symbol",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.385,
+          51.325
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Butser Beacon",
+        "grid_ref": "SU712204",
+        "notes": "Butser Hill; north of Coombe on Norden 1595 manuscript.",
+        "historical_evidence": "Norden 1595 manuscript",
+        "evidence_type": "mapped beacon symbol",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.961,
+          50.985
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Crondall Beacons",
+        "grid_ref": "SU825535",
+        "notes": "ENE of Ewshott; Norden 1595 describes two hillocks, each with a post.",
+        "historical_evidence": "Norden 1595 manuscript",
+        "evidence_type": "mapped beacon symbol",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.835,
+          51.242
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Dibden Beacon",
+        "grid_ref": "SU415075",
+        "notes": "West of Hythe; also identified as Hythe Beacon / Beacon Hill near Dibden.",
+        "historical_evidence": "Norden 1595 manuscript; Norden 1607",
+        "evidence_type": "mapped beacon symbol",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.435,
+          50.865
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Exton Beacon (Lomer)",
+        "grid_ref": "SU608205",
+        "notes": "Lomer Ash / Old Winchester Hill; Lomerash labelled on Hollar 1644 and Lomer Beacon on Kitchin 1751.",
+        "historical_evidence": "Norden 1595 manuscript; Hollar 1644",
+        "evidence_type": "mapped beacon symbol",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.135,
+          50.988
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Farleigh Wallop Beacon",
+        "grid_ref": "SU635455",
+        "notes": "NW of Farleigh on Norden 1595 manuscript; SW of village on Norden 1595 printed map.",
+        "historical_evidence": "Norden 1595 manuscript; Norden 1595",
+        "evidence_type": "mapped beacon symbol",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.095,
+          51.215
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Farley Mount Beacon",
+        "grid_ref": "SU424292",
+        "notes": "Farley Chamberlayne; W of Pitt on Norden 1595/1607.",
+        "historical_evidence": "Norden 1595 manuscript; later maps",
+        "evidence_type": "mapped beacon symbol / later place name",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.398,
+          51.055
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Malwood Beacon",
+        "grid_ref": "SU285125",
+        "notes": "SW of Minstead, New Forest; identification on Norden 1595 printed map is tentative ('perhaps').",
+        "historical_evidence": "Norden 1595 manuscript; possibly Norden 1595",
+        "evidence_type": "probable mapped beacon",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.585,
+          50.892
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Popham Beacons",
+        "grid_ref": "SU525439",
+        "notes": "Popham Beacons name associated with this location; source warns this may be distinct from Three Barrows and Barrow Beacons.",
+        "historical_evidence": "Norden 1595 manuscript; later maps",
+        "evidence_type": "mapped beacon symbol / later place name",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.232,
+          51.192
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Portsdown Beacons",
+        "grid_ref": "SU642062",
+        "notes": "Portsdown Hill, north of Cosham; beacon with cresset explicitly described by Collins 1693.",
+        "historical_evidence": "Norden 1595 manuscript; Collins 1693",
+        "evidence_type": "mapped beacon symbol",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.065,
+          50.852
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sarisbury Beacon",
+        "grid_ref": "SU505105",
+        "notes": "East of Swanwick; later place-name evidence includes Bushy Beacon ESE of Sarisbury Green.",
+        "historical_evidence": "Norden 1595 manuscript; OS 1810s",
+        "evidence_type": "mapped beacon symbol / later place name",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.292,
+          50.887
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Selborne Beacon",
+        "grid_ref": "SZ2799",
+        "notes": "Setthorns Enclosure; Morden 1695 gives approximate reference SZ2799. Norden 1607 also labels a Selborne beacon at SU2500, which may represent a different mapped position and needs checking.",
+        "historical_evidence": "Norden 1595 manuscript; Morden 1695",
+        "evidence_type": "mapped beacon symbol; location needs reconciliation",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.645,
+          50.785
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Toothill Beacon",
+        "grid_ref": "SU3818",
+        "notes": "North of Chilworth; labelled Toothill Beacon on Norden 1595 and 1607.",
+        "historical_evidence": "Norden 1595 manuscript; Norden 1607",
+        "evidence_type": "mapped beacon symbol",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.472,
+          50.952
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sway Beacon",
+        "grid_ref": "SZ285985",
+        "notes": "Sway; shown with a tower symbol on Cary's 1789 map.",
+        "historical_evidence": "Cary 1789",
+        "evidence_type": "later beacon / tower symbol",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.615,
+          50.772
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Farlington Beacon",
+        "grid_ref": "SU6504",
+        "notes": "West of Farlington; listed among the other beacons shown on Norden 1607. Coordinate is the approximate centre of the four-figure grid square.",
+        "historical_evidence": "Norden 1607",
+        "evidence_type": "mapped beacon symbol; approximate grid-square position",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.0783029,
+          50.8363891
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bramshott Beacon",
+        "grid_ref": "SU8754",
+        "notes": "SE of Bramshott; listed among the other beacons shown on Norden 1607. Coordinate is the approximate centre of the four-figure grid square.",
+        "historical_evidence": "Norden 1607",
+        "evidence_type": "mapped beacon symbol; approximate grid-square position",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.7467748,
+          51.2829299
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Three Barrows",
+        "grid_ref": "SU507444",
+        "notes": "Norden's '3 Parow beacons' is identified by Old Hampshire Mapped as Three Barrows. Kept separate from Popham Beacons; source also notes a possible Three Barrows location at SU507444.",
+        "historical_evidence": "Norden 1607",
+        "evidence_type": "named beacon group; approximate grid reference",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.2757927,
+          51.1965766
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Barrow Beacons (Beacons Farm)",
+        "grid_ref": "SU528440",
+        "notes": "Morden 1695 suggests the beacon was probably on the hilltop near Beacons Farm, Steventon. Distinct candidate from Popham Beacons.",
+        "historical_evidence": "Morden 1695",
+        "evidence_type": "probable beacon site; approximate grid reference",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.2458002,
+          51.1927903
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Titchfield Beacon",
+        "grid_ref": null,
+        "notes": "West of Titchfield village; identified on Norden 1595 printed map. No grid reference supplied in the source excerpt; geometry intentionally null pending georeferencing.",
+        "historical_evidence": "Norden 1595",
+        "evidence_type": "mapped beacon symbol; coordinates unresolved",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Burley Beacon",
+        "grid_ref": null,
+        "notes": "Beacon near Burley is mentioned on Cary 1789 and labelled on later maps. Could be a surviving place-name rather than evidence of an active beacon at that date; geometry unresolved.",
+        "historical_evidence": "Cary 1789; later maps",
+        "evidence_type": "later beacon name; coordinates unresolved",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Inkpen Beacon",
+        "grid_ref": null,
+        "notes": "Named on Weller's 1870s map. Included as a later place-name candidate, not as a confirmed operational warning beacon; geometry unresolved.",
+        "historical_evidence": "Weller 1870s",
+        "evidence_type": "place name only; coordinates unresolved",
+        "source": "Old Hampshire Mapped – Map Features: beacons",
+        "source_url": "https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm"
+      },
+      "geometry": null
+    }
+  ]
+}
