@@ -1,0 +1,1261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hampshire Fire Beacons</title>
+  <link href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" rel="stylesheet">
+  <style>
+ :root {
+  --cyan: #00e5ff;
+  --ink: #071018;
+  --panel: rgba(5,13,22,.90);
+  --muted: #91a7b5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #map {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--ink);
+  color: #eafaff;
+  font-family: Arial, sans-serif;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+}
+
+/* Main HUD */
+
+.hud {
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  left: 18px;
+  width: min(290px, calc(100vw - 36px));
+  padding: 13px 14px 12px;
+  border: 1px solid rgba(0,229,255,.35);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: 0 8px 30px rgba(0,0,0,.35);
+  backdrop-filter: blur(8px);
+}
+
+h1 {
+  margin: 0 0 7px;
+  color: var(--cyan);
+  font-size: 18px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+/* Statistics */
+
+.stats {
+  color: #d4e1e8;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,.12);
+}
+
+/* Legend */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 11px;
+  font-size: 11px;
+  color: #d4e1e8;
+}
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.dot.known {
+  background: #00e5ff;
+}
+
+.dot.approx {
+  background: #ffb74d;
+}
+
+.dot.unknown {
+  background: #8999a5;
+}
+
+/* Analysis controls */
+
+.analysis-controls {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255,255,255,.12);
+  font-size: 11px;
+  color: #c1d2dc;
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.control-row label {
+  flex: 1;
+  line-height: 1.3;
+}
+
+#beaconHeight,
+#minPeakElevation,
+#maxCandidates {
+  width: 49px;
+  padding: 4px;
+  color: #eafaff;
+  background: #102431;
+  border: 1px solid #456171;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.control-row span {
+  white-space: nowrap;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 11px;
+  cursor: pointer;
+}
+
+/* Buttons */
+
+#runAnalysis,
+#findHilltops,
+#clearHilltops {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid rgba(0,229,255,.4);
+  border-radius: 5px;
+  background: #06445a;
+  color: #eafaff;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#runAnalysis {
+  margin-top: 8px;
+  background: #08758a;
+}
+
+#clearHilltops {
+  margin-top: 7px;
+  background: #263746;
+  color: #eafaff;
+}
+
+#runAnalysis:hover,
+#findHilltops:hover {
+  background: #0b91a8;
+}
+
+#clearHilltops:hover {
+  background: #3b5263;
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: wait;
+}
+
+/* Status message */
+
+#analysisStatus {
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+/* Map popups */
+
+.maplibregl-popup-content {
+  background: #0b1b27;
+  color: #eafaff;
+  border: 1px solid rgba(0,229,255,.35);
+  border-radius: 6px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+}
+
+.maplibregl-popup-content strong {
+  color: var(--cyan);
+}
+
+.maplibregl-popup-close-button {
+  color: #eafaff;
+  font-size: 17px;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: #0b1b27;
+  border-bottom-color: #0b1b27;
+}
+
+/* Mobile layout */
+
+@media (max-width: 600px) {
+  .hud {
+    top: 10px;
+    left: 10px;
+    width: min(290px, calc(100vw - 20px));
+    padding: 11px 12px;
+  }
+
+  h1 {
+    font-size: 16px;
+  }
+
+  .stats {
+    margin-top: 8px;
+    padding-top: 7px;
+  }
+
+  .legend {
+    gap: 7px 10px;
+    font-size: 10px;
+  }
+}
+
+.attribution-note {
+  position: absolute;
+  z-index: 5;
+  bottom: 12px;
+  left: 12px;
+  padding: 6px 9px;
+  background: rgba(5,13,22,.85);
+  border: 1px solid rgba(0,229,255,.2);
+  border-radius: 5px;
+  color: #c1d2dc;
+  font-size: 10px;
+  line-height: 1.4;
+  pointer-events: auto;
+}
+
+.attribution-note a {
+  color: var(--cyan);
+  text-decoration: none;
+}
+
+.attribution-note a:hover {
+  text-decoration: underline;
+}
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <section class="hud">
+    <h1>Hampshire Fire Beacons</h1>
+    <div class="stats" id="stats">Loading beacon locations…</div>
+    <div class="analysis-controls">
+  <div class="control-row">
+    <label for="beaconHeight">Beacon height above ground</label>
+    <input id="beaconHeight" type="number" min="0" max="100" step="1" value="6">
+    <span>metres</span>
+  </div>
+  <label class="check-row">
+    <input id="showBlocked" type="checkbox" checked>
+    Show obstructed routes
+  </label>
+
+ <div class="control-row">
+  <label for="minPeakElevation">Minimum hilltop elevation</label>
+  <input id="minPeakElevation" type="number"
+         min="0" max="1000" step="10" value="100">
+  <span>metres</span>
+</div>
+
+<div class="control-row">
+  <label for="maxCandidates">Maximum new sites</label>
+  <input id="maxCandidates" type="number"
+         min="1" max="100" step="1" value="20">
+</div>
+
+<button id="findHilltops">Find potential beacon sites</button>
+<button id="clearHilltops" style="margin-top:7px;background:#263746;color:#eafaff">
+  Remove potential sites
+</button>
+        
+  <button id="runAnalysis">Calculate lines of sight</button>
+  <div id="analysisStatus">Waiting for terrain data…</div>
+</div>  
+    <div class="legend">
+      <span class="key"><i class="dot known"></i>Mapped location</span>
+      <span class="key"><i class="dot approx"></i>Approximate</span>
+      <span class="key"><i class="dot unknown"></i>Unlocated</span>
+    </div>
+  </section>
+  <div class="attribution-note">
+  Historical source: <a href="https://www.oldhampshiremapped.org.uk/hantscat/html/ftr_bec.htm" target="_blank" rel="noopener">Old Hampshire Mapped</a>
+  · Basemap: <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a>
+</div>  
+    <div id="error"></div>
+
+  <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
+  
+<script>
+const GEOJSON_URL = "https://mapsmania.github.io/mapchallenge/beacons.geojson";
+const STYLE_URL = "https://tiles.openfreemap.org/styles/dark";
+
+// Public AWS Terrarium elevation tiles.
+// No API key required.
+const DEM_URL = "https://elevation-tiles-prod.s3.amazonaws.com/terrarium/{z}/{x}/{y}.png";
+const DEM_ZOOM = 11;
+
+// Sample the terrain every 100 metres.
+const SAMPLE_DISTANCE = 100;
+
+// Effective Earth radius, allowing approximately for atmospheric refraction.
+const EARTH_RADIUS = 6371008.8 * 7 / 6;
+
+const map = new maplibregl.Map({
+  container: "map",
+  style: STYLE_URL,
+  center: [-1.25, 51.02],
+  zoom: 8.1,
+  minZoom: 5,
+  maxZoom: 17,
+  pitch: 0,
+  attributionControl: true
+});
+
+map.addControl(
+  new maplibregl.NavigationControl({ visualizePitch: true }),
+  "top-right"
+);
+map.addControl(
+  new maplibregl.ScaleControl({ maxWidth: 110, unit: "metric" }),
+  "bottom-right"
+);
+
+let beaconData;
+let lineFeatures = [];
+let tileCache = new Map();
+let hypotheticalFeatures = [];   
+
+function showError(message) {
+  const el = document.getElementById("error");
+  el.textContent = message;
+  el.style.display = "block";
+}
+
+function status(message) {
+  document.getElementById("analysisStatus").textContent = message;
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[c]));
+}
+
+function classify(feature) {
+  const p = feature.properties || {};
+  const type = String(p.evidence_type || "").toLowerCase();
+  const note = String(p.notes || "").toLowerCase();
+
+  if (
+    !feature.geometry ||
+    feature.geometry.type !== "Point" ||
+    !Array.isArray(feature.geometry.coordinates) ||
+    feature.geometry.coordinates.length < 2
+  ) return "unknown";
+
+  if (
+    type.includes("approx") ||
+    type.includes("probable") ||
+    note.includes("approximate") ||
+    note.includes("needs reconciliation")
+  ) return "approx";
+
+  return "known";
+}
+
+function popupHTML(feature) {
+  const p = feature.properties || {};
+
+  const rows = [
+    ["Grid reference", p.grid_ref],
+    ["Historical evidence", p.historical_evidence],
+    ["Evidence type", p.evidence_type],
+    ["Notes", p.notes]
+  ].filter(([, value]) => value);
+
+  return `<div class="popup-title">${escapeHTML(p.name || "Unnamed beacon")}</div>` +
+    rows.map(([label, value]) =>
+      `<div class="popup-row"><span class="popup-label">${escapeHTML(label)}:</span> ${escapeHTML(value)}</div>`
+    ).join("");
+}
+
+// --------------------------------------------------
+// TERRAIN ELEVATION
+// --------------------------------------------------
+
+function tileCoordinates(lon, lat, zoom) {
+  const n = Math.pow(2, zoom);
+  const latRad = lat * Math.PI / 180;
+
+  const x = (lon + 180) / 360 * n;
+  const y = (
+    1 - Math.asinh(Math.tan(latRad)) / Math.PI
+  ) / 2 * n;
+
+  return {
+    x: Math.floor(x),
+    y: Math.floor(y),
+    px: Math.floor((x - Math.floor(x)) * 256),
+    py: Math.floor((y - Math.floor(y)) * 256)
+  };
+}
+
+async function loadTerrainTile(x, y) {
+  const n = Math.pow(2, DEM_ZOOM);
+  x = ((x % n) + n) % n;
+  y = Math.max(0, Math.min(n - 1, y));
+
+  const key = `${DEM_ZOOM}/${x}/${y}`;
+
+  if (tileCache.has(key)) return tileCache.get(key);
+
+  const promise = (async () => {
+    const url = DEM_URL
+      .replace("{z}", DEM_ZOOM)
+      .replace("{x}", x)
+      .replace("{y}", y);
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Unable to load elevation tile: ${response.status}`);
+    }
+
+    const bitmap = await createImageBitmap(await response.blob());
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+
+    const context = canvas.getContext("2d", {
+      willReadFrequently: true
+    });
+
+    context.drawImage(bitmap, 0, 0);
+    bitmap.close();
+
+    return context.getImageData(0, 0, 256, 256).data;
+  })();
+
+  tileCache.set(key, promise);
+  return promise;
+}
+
+async function elevationAt(lon, lat) {
+  const tile = tileCoordinates(lon, lat, DEM_ZOOM);
+  const pixels = await loadTerrainTile(tile.x, tile.y);
+
+  const index = (tile.py * 256 + tile.px) * 4;
+
+  const r = pixels[index];
+  const g = pixels[index + 1];
+  const b = pixels[index + 2];
+
+  // Mapzen / AWS Terrarium elevation encoding.
+  return (r * 256 + g + b / 256) - 32768;
+}
+
+// --------------------------------------------------
+// FIND POTENTIAL BEACON SITES ON HIGH GROUND
+// --------------------------------------------------
+
+// Approximate Hampshire search area.
+const SEARCH_BOUNDS = {
+  west: -1.95,
+  east: -0.65,
+  south: 50.65,
+  north: 51.55
+};
+
+const GRID_SIZE = 1000;
+const EXISTING_SITE_CLEARANCE = 1500;
+const CANDIDATE_SEPARATION = 2000;
+
+async function findHilltops() {
+
+  const button = document.getElementById("findHilltops");
+  button.disabled = true;
+  button.textContent = "Scanning Hampshire…";
+
+  try {
+
+    const minElevation = Number(
+      document.getElementById("minPeakElevation").value
+    );
+
+    const maxCandidates = Number(
+      document.getElementById("maxCandidates").value
+    );
+
+    if (
+      !Number.isFinite(minElevation) ||
+      !Number.isFinite(maxCandidates) ||
+      minElevation < 0 ||
+      maxCandidates < 1
+    ) {
+      throw new Error("Please enter valid elevation and candidate values.");
+    }
+
+    // Convert approximate metre spacing into degrees.
+    const centreLat =
+      (SEARCH_BOUNDS.south + SEARCH_BOUNDS.north) / 2;
+
+    const latStep = GRID_SIZE / 111320;
+    const lonStep =
+      GRID_SIZE / (111320 * Math.cos(centreLat * Math.PI / 180));
+
+    const rows = [];
+
+    let rowNumber = 0;
+
+    // Sample the terrain.
+    for (
+      let lat = SEARCH_BOUNDS.south;
+      lat <= SEARCH_BOUNDS.north;
+      lat += latStep
+    ) {
+
+      status(`Scanning elevation data: row ${++rowNumber}`);
+
+      const row = [];
+
+      const locations = [];
+
+      for (
+        let lon = SEARCH_BOUNDS.west;
+        lon <= SEARCH_BOUNDS.east;
+        lon += lonStep
+      ) {
+        locations.push({ lon, lat });
+      }
+
+      const elevations = await Promise.all(
+        locations.map(p => elevationAt(p.lon, p.lat))
+      );
+
+      locations.forEach((p, i) => {
+        row.push({
+          lon: p.lon,
+          lat: p.lat,
+          elevation: elevations[i]
+        });
+      });
+
+      rows.push(row);
+    }
+
+    // Find local maxima in a 3 x 3 neighbourhood.
+    const peaks = [];
+
+    for (let y = 1; y < rows.length - 1; y++) {
+
+      for (let x = 1; x < rows[y].length - 1; x++) {
+
+        const point = rows[y][x];
+
+        if (
+          !Number.isFinite(point.elevation) ||
+          point.elevation < minElevation
+        ) continue;
+
+        let isPeak = true;
+
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+
+            if (dx === 0 && dy === 0) continue;
+
+            const neighbour = rows[y + dy][x + dx];
+
+            if (neighbour.elevation > point.elevation) {
+              isPeak = false;
+            }
+          }
+        }
+
+        if (isPeak) peaks.push(point);
+      }
+    }
+
+    // Highest elevations first.
+    peaks.sort((a, b) => b.elevation - a.elevation);
+
+    const existing = beaconData.features.filter(
+      f => f.properties.map_status !== "unknown"
+    );
+
+    const selected = [];
+
+    for (const peak of peaks) {
+
+      const coordinates = [peak.lon, peak.lat];
+
+      // Avoid duplicating an existing historic beacon.
+      const tooCloseToExisting = existing.some(f =>
+        distanceMetres(
+          coordinates,
+          f.geometry.coordinates
+        ) < EXISTING_SITE_CLEARANCE
+      );
+
+      if (tooCloseToExisting) continue;
+
+      // Avoid clustering hypothetical sites together.
+      const tooCloseToCandidate = selected.some(f =>
+        distanceMetres(
+          coordinates,
+          f.geometry.coordinates
+        ) < CANDIDATE_SEPARATION
+      );
+
+      if (tooCloseToCandidate) continue;
+
+      selected.push({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates
+        },
+        properties: {
+          name: `Possible beacon ${selected.length + 1}`,
+          elevation: Math.round(peak.elevation),
+          map_status: "hypothetical",
+          evidence_type: "Hypothetical hilltop location"
+        }
+      });
+
+      if (selected.length >= maxCandidates) break;
+    }
+
+    hypotheticalFeatures = selected;
+
+    // Create or update the map source.
+    const collection = {
+      type: "FeatureCollection",
+      features: hypotheticalFeatures
+    };
+
+    if (map.getSource("hypothetical-beacons")) {
+
+      map.getSource("hypothetical-beacons").setData(collection);
+
+    } else {
+
+      map.addSource("hypothetical-beacons", {
+        type: "geojson",
+        data: collection
+      });
+
+      map.addLayer({
+        id: "hypothetical-points",
+        type: "circle",
+        source: "hypothetical-beacons",
+        paint: {
+          "circle-radius": 8,
+          "circle-color": "#00e5ff",
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 1.5
+        }
+      });
+
+      map.addLayer({
+        id: "hypothetical-labels",
+        type: "symbol",
+        source: "hypothetical-beacons",
+        minzoom: 8,
+        layout: {
+          "text-field": [
+            "concat",
+            ["get", "name"],
+            " (",
+            ["to-string", ["get", "elevation"]],
+            "m)"
+          ],
+          "text-size": 10,
+          "text-offset": [0, 1.4],
+          "text-anchor": "top"
+        },
+        paint: {
+          "text-color": "#00e5ff",
+          "text-halo-color": "#071018",
+          "text-halo-width": 1.5
+        }
+      });
+
+      map.on("click", "hypothetical-points", e => {
+
+        const f = e.features[0];
+
+        new maplibregl.Popup({ offset: 12 })
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <div class="popup-title">
+              ${escapeHTML(f.properties.name)}
+            </div>
+            <div class="popup-row">
+              Ground elevation: ${f.properties.elevation} metres
+            </div>
+            <div class="popup-row">
+              Hypothetical location – not a documented historic beacon.
+            </div>
+          `)
+          .addTo(map);
+      });
+
+      map.on("mouseenter", "hypothetical-points", () => {
+        map.getCanvas().style.cursor = "pointer";
+      });
+
+      map.on("mouseleave", "hypothetical-points", () => {
+        map.getCanvas().style.cursor = "";
+      });
+    }
+
+    // Remove old line-of-sight results, as the network has changed.
+    if (map.getSource("sight-lines")) {
+      map.getSource("sight-lines").setData({
+        type: "FeatureCollection",
+        features: []
+      });
+    }
+
+    status(
+      `${selected.length} potential hilltop sites found. ` +
+      `Run the line-of-sight analysis again to include them.`
+    );
+
+  } catch (error) {
+
+    console.error(error);
+    status(`Hilltop search failed: ${error.message}`);
+
+  } finally {
+
+    button.disabled = false;
+    button.textContent = "Find potential beacon sites";
+  }
+}    
+
+// --------------------------------------------------
+// DISTANCE AND LINE-OF-SIGHT CALCULATIONS
+// --------------------------------------------------
+
+function distanceMetres(a, b) {
+  const rad = Math.PI / 180;
+  const lat1 = a[1] * rad;
+  const lat2 = b[1] * rad;
+  const dLat = (b[1] - a[1]) * rad;
+  const dLon = (b[0] - a[0]) * rad;
+
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) *
+    Math.sin(dLon / 2) ** 2;
+
+  return 6371008.8 * 2 * Math.atan2(
+    Math.sqrt(h),
+    Math.sqrt(1 - h)
+  );
+}
+
+function interpolatePosition(a, b, t) {
+  return [
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t
+  ];
+}
+
+async function testLineOfSight(beaconA, beaconB, beaconHeight) {
+  const a = beaconA.geometry.coordinates;
+  const b = beaconB.geometry.coordinates;
+
+  const distance = distanceMetres(a, b);
+
+  const groundA = await elevationAt(a[0], a[1]);
+  const groundB = await elevationAt(b[0], b[1]);
+
+  // Height of the fire/beacon above the terrain.
+  const observerA = groundA + beaconHeight;
+  const observerB = groundB + beaconHeight;
+
+  const samples = Math.max(2, Math.ceil(distance / SAMPLE_DISTANCE));
+
+  let visible = true;
+  let worstClearance = Infinity;
+  let obstructionDistance = null;
+
+  for (let i = 1; i < samples; i++) {
+    const t = i / samples;
+    const position = interpolatePosition(a, b, t);
+
+    const terrain = await elevationAt(position[0], position[1]);
+
+    const distanceFromA = distance * t;
+    const distanceFromB = distance * (1 - t);
+
+    // Straight line between the two beacon tops.
+    const lineHeight =
+      observerA + (observerB - observerA) * t;
+
+    // Approximate curvature of the Earth.
+    const curvature =
+      (distanceFromA * distanceFromB) / (2 * EARTH_RADIUS);
+
+    const effectiveLineHeight = lineHeight - curvature;
+
+    const clearance = effectiveLineHeight - terrain;
+
+    worstClearance = Math.min(worstClearance, clearance);
+
+    // A small margin helps avoid classifying tiny DEM variations
+    // as a definitive obstruction.
+    if (clearance < 0) {
+      visible = false;
+
+      if (obstructionDistance === null) {
+        obstructionDistance = distanceFromA;
+      }
+    }
+  }
+
+  return {
+    visible,
+    distance,
+    clearance: worstClearance,
+    obstructionDistance
+  };
+}
+
+// --------------------------------------------------
+// RUN ALL BEACON-TO-BEACON COMPARISONS
+// --------------------------------------------------
+
+async function runAnalysis() {
+  const button = document.getElementById("runAnalysis");
+  const heightInput = document.getElementById("beaconHeight");
+
+  const beaconHeight = Number(heightInput.value);
+
+  if (!Number.isFinite(beaconHeight) || beaconHeight < 0) {
+    status("Please enter a valid beacon height.");
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Calculating…";
+
+  try {
+    const beacons = [
+  ...beaconData.features.filter(
+    f => f.properties.map_status !== "unknown"
+  ),
+  ...hypotheticalFeatures
+];
+
+    const total = beacons.length * (beacons.length - 1) / 2;
+    let completed = 0;
+
+    const results = [];
+
+    for (let i = 0; i < beacons.length; i++) {
+      for (let j = i + 1; j < beacons.length; j++) {
+        const a = beacons[i];
+        const b = beacons[j];
+
+        const result = await testLineOfSight(a, b, beaconHeight);
+
+        results.push({
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: [
+              a.geometry.coordinates,
+              b.geometry.coordinates
+            ]
+          },
+          properties: {
+            name_a: a.properties.name,
+            name_b: b.properties.name,
+            status: result.visible ? "visible" : "blocked",
+            distance_km: (result.distance / 1000).toFixed(1),
+            clearance_m: result.clearance.toFixed(1),
+            obstruction_km: result.obstructionDistance === null
+              ? null
+              : (result.obstructionDistance / 1000).toFixed(1)
+          }
+        });
+
+        completed++;
+
+        status(
+          `Analysing terrain: ${completed} of ${total} beacon pairs`
+        );
+
+        // Give the browser an opportunity to update the progress text.
+        if (completed % 5 === 0) {
+          await new Promise(resolve => requestAnimationFrame(resolve));
+        }
+      }
+    }
+
+    lineFeatures = results;
+
+    const visibleCount = results.filter(
+      f => f.properties.status === "visible"
+    ).length;
+
+    const blockedCount = results.length - visibleCount;
+
+    const collection = {
+      type: "FeatureCollection",
+      features: results
+    };
+
+    if (map.getSource("sight-lines")) {
+      map.getSource("sight-lines").setData(collection);
+    } else {
+      map.addSource("sight-lines", {
+        type: "geojson",
+        data: collection
+      });
+
+      // Visible connections.
+      map.addLayer({
+        id: "visible-lines",
+        type: "line",
+        source: "sight-lines",
+        filter: ["==", ["get", "status"], "visible"],
+        paint: {
+          "line-color": "#00ff99",
+          "line-width": 2.2,
+          "line-opacity": 0.85
+        }
+      }, "beacon-glow");
+
+      // Obstructed connections.
+      map.addLayer({
+        id: "blocked-lines",
+        type: "line",
+        source: "sight-lines",
+        filter: ["==", ["get", "status"], "blocked"],
+        paint: {
+          "line-color": "#ff435e",
+          "line-width": 1.3,
+          "line-opacity": 0.35,
+          "line-dasharray": [2, 2]
+        }
+      }, "beacon-glow");
+
+      map.on("click", "visible-lines", showLinePopup);
+      map.on("click", "blocked-lines", showLinePopup);
+
+      map.on("mouseenter", "visible-lines", () => {
+        map.getCanvas().style.cursor = "pointer";
+      });
+      map.on("mouseleave", "visible-lines", () => {
+        map.getCanvas().style.cursor = "";
+      });
+      map.on("mouseenter", "blocked-lines", () => {
+        map.getCanvas().style.cursor = "pointer";
+      });
+      map.on("mouseleave", "blocked-lines", () => {
+        map.getCanvas().style.cursor = "";
+      });
+    }
+
+    updateLineVisibility();
+
+    status(
+      `${results.length} connections tested · ` +
+      `${visibleCount} visible · ${blockedCount} obstructed`
+    );
+
+  } catch (error) {
+    console.error(error);
+    status(`Analysis failed: ${error.message}`);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Calculate lines of sight";
+  }
+}
+
+function showLinePopup(e) {
+  const feature = e.features && e.features[0];
+  if (!feature) return;
+
+  const p = feature.properties;
+  const visible = p.status === "visible";
+
+  const html = `
+    <div class="popup-title">
+      ${escapeHTML(p.name_a)} ↔ ${escapeHTML(p.name_b)}
+    </div>
+    <div class="popup-row">
+      <strong style="color:${visible ? "#00ff99" : "#ff667b"}">
+        ${visible ? "LINE OF SIGHT" : "TERRAIN OBSTRUCTED"}
+      </strong>
+    </div>
+    <div class="popup-row">Distance: ${p.distance_km} km</div>
+    <div class="popup-row">
+      Minimum clearance: ${p.clearance_m} m
+    </div>
+    ${p.obstruction_km !== null
+      ? `<div class="popup-row">First obstruction: ${p.obstruction_km} km from first beacon</div>`
+      : ""}
+  `;
+
+  new maplibregl.Popup({ closeButton: true })
+    .setLngLat(e.lngLat)
+    .setHTML(html)
+    .addTo(map);
+}
+
+function updateLineVisibility() {
+  if (!map.getLayer("blocked-lines")) return;
+
+  const showBlocked = document.getElementById("showBlocked").checked;
+
+  map.setLayoutProperty(
+    "blocked-lines",
+    "visibility",
+    showBlocked ? "visible" : "none"
+  );
+}
+
+// --------------------------------------------------
+// LOAD THE BEACONS AND BUILD THE MAP
+// --------------------------------------------------
+
+map.on("load", async () => {
+  try {
+    const response = await fetch(GEOJSON_URL);
+
+    if (!response.ok) {
+      throw new Error(`GeoJSON request failed (${response.status})`);
+    }
+
+    beaconData = await response.json();
+
+    if (
+      !beaconData ||
+      beaconData.type !== "FeatureCollection" ||
+      !Array.isArray(beaconData.features)
+    ) {
+      throw new Error("The URL did not return a valid GeoJSON FeatureCollection.");
+    }
+
+    beaconData.features.forEach(feature => {
+      feature.properties = feature.properties || {};
+      feature.properties.map_status = classify(feature);
+    });
+
+    const located = beaconData.features.filter(
+      f => f.properties.map_status !== "unknown"
+    );
+
+    const unlocated = beaconData.features.filter(
+      f => f.properties.map_status === "unknown"
+    );
+
+    document.getElementById("stats").textContent =
+      `${beaconData.features.length} records · ${located.length} mapped · ` +
+      `${unlocated.length} awaiting coordinates`;
+
+    map.addSource("beacons", {
+      type: "geojson",
+      data: beaconData
+    });
+
+    map.addLayer({
+      id: "beacon-glow",
+      type: "circle",
+      source: "beacons",
+      filter: ["!=", ["get", "map_status"], "unknown"],
+      paint: {
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 7, 10, 13, 15, 20],
+        "circle-color": [
+          "match", ["get", "map_status"],
+          "approx", "#ffd166",
+          "#ff7b22"
+        ],
+        "circle-opacity": 0.22,
+        "circle-blur": 1
+      }
+    });
+
+    map.addLayer({
+      id: "beacon-points",
+      type: "circle",
+      source: "beacons",
+      filter: ["!=", ["get", "map_status"], "unknown"],
+      paint: {
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 3.5, 10, 6, 15, 8],
+        "circle-color": [
+          "match", ["get", "map_status"],
+          "approx", "#ffd166",
+          "#ff7b22"
+        ],
+        "circle-stroke-color": "#fff2d8",
+        "circle-stroke-width": 1.2
+      }
+    });
+
+    map.addLayer({
+      id: "beacon-labels",
+      type: "symbol",
+      source: "beacons",
+      filter: [
+        "all",
+        ["!=", ["get", "map_status"], "unknown"],
+        [">=", ["zoom"], 8]
+      ],
+      layout: {
+        "text-field": ["coalesce", ["get", "name"], "Beacon"],
+        "text-font": ["Open Sans Regular"],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 8, 10, 13, 12],
+        "text-offset": [0, 1.15],
+        "text-anchor": "top",
+        "text-allow-overlap": false
+      },
+      paint: {
+        "text-color": "#f4f7fa",
+        "text-halo-color": "#071018",
+        "text-halo-width": 1.5
+      }
+    });
+
+    map.on("click", "beacon-points", e => {
+      const feature = e.features && e.features[0];
+      if (!feature) return;
+
+      new maplibregl.Popup({ offset: 12 })
+        .setLngLat(e.lngLat)
+        .setHTML(popupHTML(feature))
+        .addTo(map);
+    });
+
+    map.on("mouseenter", "beacon-points", () => {
+      map.getCanvas().style.cursor = "pointer";
+    });
+    map.on("mouseleave", "beacon-points", () => {
+      map.getCanvas().style.cursor = "";
+    });
+
+    if (located.length) {
+      const bounds = new maplibregl.LngLatBounds();
+
+      located.forEach(f => bounds.extend(f.geometry.coordinates));
+
+      map.fitBounds(bounds, {
+        padding: { top: 150, right: 65, bottom: 65, left: 65 },
+        maxZoom: 9.5,
+        duration: 900
+      });
+    }
+
+    document.getElementById("runAnalysis").addEventListener(
+      "click",
+      runAnalysis
+    );
+
+    document.getElementById("showBlocked").addEventListener(
+      "change",
+      updateLineVisibility
+    );
+
+    document.getElementById("findHilltops").addEventListener(
+  "click",
+  findHilltops
+);
+
+document.getElementById("clearHilltops").addEventListener(
+  "click",
+  () => {
+
+    hypotheticalFeatures = [];
+
+    if (map.getSource("hypothetical-beacons")) {
+      map.getSource("hypothetical-beacons").setData({
+        type: "FeatureCollection",
+        features: []
+      });
+    }
+
+    if (map.getSource("sight-lines")) {
+      map.getSource("sight-lines").setData({
+        type: "FeatureCollection",
+        features: []
+      });
+    }
+
+    status("Potential beacon sites removed.");
+  }
+);
+
+    status("Beacon locations loaded. Ready to analyse terrain.");
+
+    if (unlocated.length) {
+      console.info(
+        "Beacon records without coordinates:",
+        unlocated.map(f => f.properties.name)
+      );
+    }
+
+  } catch (error) {
+    console.error(error);
+    showError(`Unable to load beacon data: ${error.message}`);
+    document.getElementById("stats").textContent =
+      "Beacon data could not be loaded";
+  }
+});
+
+  </script>
+</body>
+</html>
