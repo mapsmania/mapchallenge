@@ -1,0 +1,700 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mount Fuji - Neon Contours</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #020711;
+    color: #00f0ff;
+    font-family: Arial, sans-serif;
+}
+
+#scene {
+    position: fixed;
+    inset: 0;
+}
+
+canvas {
+    display: block;
+}
+
+#hud {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    z-index: 5;
+    width: 265px;
+    padding: 20px;
+    background: rgba(2, 12, 25, 0.85);
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    border-radius: 5px;
+    box-shadow: 0 0 25px rgba(0, 220, 255, 0.12);
+    backdrop-filter: blur(8px);
+}
+
+h1 {
+    margin: 0 0 5px;
+    font-size: 21px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #00f0ff;
+    text-shadow: 0 0 12px #00cfff;
+}
+
+.subtitle {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #729eaf;
+    margin-bottom: 22px;
+    text-transform: uppercase;
+}
+
+.control-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    color: #a8dce9;
+}
+
+input[type=range] {
+    width: 100%;
+    accent-color: #00f0ff;
+    cursor: pointer;
+}
+
+#info {
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(0,240,255,0.2);
+    font-size: 10px;
+    line-height: 1.8;
+    color: #729eaf;
+}
+
+#status {
+    position: absolute;
+    bottom: 20px;
+    left: 25px;
+    z-index: 5;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #00cfff;
+    text-shadow: 0 0 8px #00cfff;
+}
+
+#instructions {
+    position: absolute;
+    bottom: 20px;
+    right: 25px;
+    z-index: 5;
+    color: #729eaf;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-align: right;
+}
+
+@media (max-width: 600px) {
+    #hud {
+        top: 12px;
+        left: 12px;
+        width: 225px;
+        padding: 14px;
+    }
+
+    h1 {
+        font-size: 17px;
+    }
+
+    #status {
+        left: 12px;
+        bottom: 12px;
+    }
+
+    #instructions {
+        right: 12px;
+        bottom: 12px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="scene"></div>
+
+<div id="hud">
+    <h1>Mount Fuji</h1>
+    <div class="subtitle">Neon contour explorer</div>
+
+    <div class="control-label">
+        <span>VERTICAL EXAGGERATION</span>
+        <span id="exagValue">2.0x</span>
+    </div>
+
+    <input
+        type="range"
+        id="exaggeration"
+        min="0.5"
+        max="5"
+        step="0.1"
+        value="1"
+    >
+
+    <div id="info">
+        LOCATION: JAPAN<br>
+        DATA: GEOJSON CONTOURS<br>
+        RENDERING: THREE.JS + BLOOM
+    </div>
+</div>
+
+<div id="status">LOADING CONTOUR DATA...</div>
+
+<div id="instructions">
+    DRAG TO ROTATE<br>
+    SCROLL TO ZOOM
+</div>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+    }
+}
+</script>
+
+<script type="module">
+
+import * as THREE from 'three';
+
+import { OrbitControls }
+    from 'three/addons/controls/OrbitControls.js';
+
+import { EffectComposer }
+    from 'three/addons/postprocessing/EffectComposer.js';
+
+import { RenderPass }
+    from 'three/addons/postprocessing/RenderPass.js';
+
+import { UnrealBloomPass }
+    from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+const GEOJSON_URL =
+    'https://mapsmania.github.io/mapchallenge/contours.geojson';
+
+const status = document.getElementById('status');
+const container = document.getElementById('scene');
+
+// --------------------------------------------------
+// SCENE
+// --------------------------------------------------
+
+const scene = new THREE.Scene();
+
+scene.background = new THREE.Color(0x020711);
+
+const camera = new THREE.PerspectiveCamera(
+    45,
+    window.innerWidth / window.innerHeight,
+    0.01,
+    1000
+);
+
+const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    powerPreference: 'high-performance'
+});
+
+renderer.setPixelRatio(
+    Math.min(window.devicePixelRatio, 2)
+);
+
+renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+);
+
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.5;
+
+container.appendChild(renderer.domElement);
+
+// --------------------------------------------------
+// BLOOM / GLOW
+// --------------------------------------------------
+
+const composer = new EffectComposer(renderer);
+
+composer.addPass(new RenderPass(scene, camera));
+
+const bloom = new UnrealBloomPass(
+    new THREE.Vector2(
+        window.innerWidth,
+        window.innerHeight
+    ),
+    1.5,
+    0.65,
+    0.08
+);
+
+composer.addPass(bloom);
+
+// --------------------------------------------------
+// CAMERA CONTROLS
+// --------------------------------------------------
+
+const controls = new OrbitControls(camera, renderer.domElement);
+
+controls.enableDamping = true;
+controls.dampingFactor = 0.04;
+
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.4;
+
+controls.enablePan = false;
+controls.minDistance = 0.5;
+controls.maxDistance = 100;
+
+// --------------------------------------------------
+// CONTOUR GROUP
+// --------------------------------------------------
+
+const mountain = new THREE.Group();
+
+scene.add(mountain);
+
+// --------------------------------------------------
+// FIND ELEVATION PROPERTY
+// --------------------------------------------------
+
+function getElevationProperty(features) {
+
+    const priorities = [
+        'elevation',
+        'ele',
+        'altitude',
+        'height',
+        'contour',
+        'level',
+        'value',
+        'z'
+    ];
+
+    const keys = Object.keys(
+        features[0]?.properties || {}
+    );
+
+    for (const preferred of priorities) {
+
+        const match = keys.find(
+            key => key.toLowerCase() === preferred
+        );
+
+        if (match && features.some(f =>
+            Number.isFinite(Number(f.properties?.[match]))
+        )) {
+            return match;
+        }
+    }
+
+    // Fallback: find a numeric property.
+    for (const key of keys) {
+
+        if (features.some(f =>
+            f.properties?.[key] !== null &&
+            f.properties?.[key] !== undefined &&
+            f.properties?.[key] !== '' &&
+            Number.isFinite(Number(f.properties[key]))
+        )) {
+            return key;
+        }
+    }
+
+    return null;
+}
+
+// --------------------------------------------------
+// EXTRACT LINE COORDINATES
+// --------------------------------------------------
+
+function extractLines(geometry) {
+
+    if (!geometry) return [];
+
+    switch (geometry.type) {
+
+        case 'LineString':
+            return [geometry.coordinates];
+
+        case 'MultiLineString':
+            return geometry.coordinates;
+
+        case 'Polygon':
+            return geometry.coordinates;
+
+        case 'MultiPolygon':
+            return geometry.coordinates.flat(1);
+
+        case 'GeometryCollection':
+            return geometry.geometries.flatMap(
+                extractLines
+            );
+
+        default:
+            return [];
+    }
+}
+
+// --------------------------------------------------
+// LOAD GEOJSON
+// --------------------------------------------------
+
+async function loadContours() {
+
+    try {
+
+        const response = await fetch(GEOJSON_URL);
+
+        if (!response.ok) {
+            throw new Error(
+                'Unable to load GeoJSON: ' + response.status
+            );
+        }
+
+        const data = await response.json();
+
+        const features = data.features || [];
+
+        if (!features.length) {
+            throw new Error('No GeoJSON features found.');
+        }
+
+        const elevationKey =
+            getElevationProperty(features);
+
+        if (!elevationKey) {
+            throw new Error(
+                'Could not identify an elevation property. ' +
+                'Check the GeoJSON feature properties.'
+            );
+        }
+
+        // ------------------------------------------
+        // CALCULATE GEOGRAPHIC CENTRE
+        // ------------------------------------------
+
+        let minLon = Infinity;
+        let maxLon = -Infinity;
+        let minLat = Infinity;
+        let maxLat = -Infinity;
+
+        let minElev = Infinity;
+        let maxElev = -Infinity;
+
+        features.forEach(feature => {
+
+            const elevation = Number(
+                feature.properties[elevationKey]
+            );
+
+            if (!Number.isFinite(elevation)) return;
+
+            minElev = Math.min(minElev, elevation);
+            maxElev = Math.max(maxElev, elevation);
+
+            extractLines(feature.geometry).forEach(line => {
+
+                line.forEach(coord => {
+
+                    minLon = Math.min(minLon, coord[0]);
+                    maxLon = Math.max(maxLon, coord[0]);
+
+                    minLat = Math.min(minLat, coord[1]);
+                    maxLat = Math.max(maxLat, coord[1]);
+
+                    // Support elevation stored in coordinates.
+                    if (coord.length > 2) {
+                        minElev = Math.min(minElev, coord[2]);
+                        maxElev = Math.max(maxElev, coord[2]);
+                    }
+
+                });
+
+            });
+
+        });
+
+        if (!Number.isFinite(minElev) ||
+            !Number.isFinite(maxElev)) {
+            throw new Error('Invalid elevation data.');
+        }
+
+        const centreLon = (minLon + maxLon) / 2;
+        const centreLat = (minLat + maxLat) / 2;
+
+        const cosLat = Math.cos(
+            THREE.MathUtils.degToRad(centreLat)
+        );
+
+        // Convert degrees to approximate local metres,
+        // then metres to kilometres.
+        const scaleX = 111.32 * cosLat;
+        const scaleZ = 111.32;
+
+        const horizontalWidth =
+            (maxLon - minLon) * scaleX;
+
+        const horizontalDepth =
+            (maxLat - minLat) * scaleZ;
+
+        const span = Math.max(
+            horizontalWidth,
+            horizontalDepth
+        );
+
+        // ------------------------------------------
+        // DRAW CONTOUR LINES
+        // ------------------------------------------
+
+        const verticalGroup = new THREE.Group();
+
+        mountain.add(verticalGroup);
+
+        let contourCount = 0;
+
+        features.forEach(feature => {
+
+            const rawElevation =
+                Number(feature.properties[elevationKey]);
+
+            if (!Number.isFinite(rawElevation)) return;
+
+            const lines = extractLines(feature.geometry);
+
+            lines.forEach(line => {
+
+                if (line.length < 2) return;
+
+                const positions = [];
+                const colors = [];
+
+                const t = THREE.MathUtils.clamp(
+                    (rawElevation - minElev) /
+                    (maxElev - minElev || 1),
+                    0,
+                    1
+                );
+
+                // Deep cyan at lower elevations,
+                // electric blue at higher elevations.
+                const color = new THREE.Color();
+
+                color.setHSL(
+                    0.51 + t * 0.10,
+                    1.0,
+                    0.48 + t * 0.12
+                );
+
+                line.forEach(coord => {
+
+                    const x =
+                        (coord[0] - centreLon) * scaleX;
+
+                    const z =
+                        -(coord[1] - centreLat) * scaleZ;
+
+                    // Elevation is expressed in kilometres.
+                    const y =
+                        (coord[2] ?? rawElevation) / 1000;
+
+                    positions.push(x, y, z);
+
+                    colors.push(
+                        color.r,
+                        color.g,
+                        color.b
+                    );
+
+                });
+
+                const geometry =
+                    new THREE.BufferGeometry();
+
+                geometry.setAttribute(
+                    'position',
+                    new THREE.Float32BufferAttribute(
+                        positions, 3
+                    )
+                );
+
+                geometry.setAttribute(
+                    'color',
+                    new THREE.Float32BufferAttribute(
+                        colors, 3
+                    )
+                );
+
+                const material =
+                    new THREE.LineBasicMaterial({
+                        vertexColors: true,
+                        transparent: true,
+                        opacity: 0.95,
+                        blending: THREE.AdditiveBlending,
+                        depthWrite: false,
+                        toneMapped: false
+                    });
+
+                const contour = new THREE.Line(
+                    geometry,
+                    material
+                );
+
+                contour.frustumCulled = false;
+
+                verticalGroup.add(contour);
+
+                contourCount++;
+
+            });
+
+        });
+
+        if (!contourCount) {
+            throw new Error('No contour lines were generated.');
+        }
+
+        // ------------------------------------------
+        // VERTICAL EXAGGERATION
+        // ------------------------------------------
+
+        const exaggeration =
+            document.getElementById('exaggeration');
+
+        const exagValue =
+            document.getElementById('exagValue');
+
+        function updateExaggeration() {
+
+            const value = Number(exaggeration.value);
+
+            verticalGroup.scale.y = value;
+
+            exagValue.textContent = value.toFixed(1) + 'x';
+        }
+
+        exaggeration.addEventListener(
+            'input',
+            updateExaggeration
+        );
+
+        updateExaggeration();
+
+        // ------------------------------------------
+        // CAMERA POSITION
+        // ------------------------------------------
+
+        const mountainHeight =
+            (maxElev - minElev) / 1000;
+
+        const targetY = mountainHeight * 0.30;
+
+        controls.target.set(0, targetY, 0);
+
+        camera.position.set(
+    0,
+    targetY + span * 0.8,
+    span * 0.65
+);
+
+        camera.near = 0.01;
+        camera.far = span * 20;
+
+        camera.updateProjectionMatrix();
+
+        controls.update();
+
+        // ------------------------------------------
+        // INFORMATION
+        // ------------------------------------------
+
+        document.getElementById('info').innerHTML =
+            'LOCATION: MOUNT FUJI, JAPAN<br>' +
+            'CONTOURS: ' + contourCount + '<br>' +
+            'ELEVATION: ' +
+            minElev.toLocaleString() + ' – ' +
+            maxElev.toLocaleString() + ' m<br>' +
+            'PROPERTY: ' + elevationKey.toUpperCase();
+
+        status.textContent =
+            'CONTOURS LOADED // ROTATING 360°';
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            'ERROR: ' + error.message;
+
+    }
+
+}
+
+// --------------------------------------------------
+// ANIMATION
+// --------------------------------------------------
+
+function animate() {
+
+    requestAnimationFrame(animate);
+
+    controls.update();
+
+    composer.render();
+
+}
+
+animate();
+
+// --------------------------------------------------
+// RESIZE
+// --------------------------------------------------
+
+window.addEventListener('resize', () => {
+
+    camera.aspect =
+        window.innerWidth / window.innerHeight;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(
+        window.innerWidth,
+        window.innerHeight
+    );
+
+    composer.setSize(
+        window.innerWidth,
+        window.innerHeight
+    );
+
+});
+
+loadContours();
+
+</script>
+
+</body>
+</html>
