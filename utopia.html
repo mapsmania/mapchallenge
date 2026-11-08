@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utopian London</title>
+
+    <link href="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.css" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
+
+<script>
+const imageUrl = 'https://mapsmania.github.io/mapchallenge/square.jpeg';
+
+// Arbitrary image extent
+const imageCoordinates = [
+    [-1.7643, 1],   // Top left
+    [ 1.7643, 1],   // Top right
+    [ 1.7643, -1],  // Bottom right
+    [-1.7643, -1]   // Bottom left
+];
+    
+const map = new maplibregl.Map({
+    container: 'map',
+
+    style: {
+        version: 8,
+        sources: {},
+        layers: [
+            {
+                id: 'background',
+                type: 'background',
+                paint: {
+                    'background-color': '#222222'
+                }
+            }
+        ]
+    },
+
+    center: [0, 0],
+    zoom: 5,
+    minZoom: 0,
+    maxZoom: 18,
+
+    attributionControl: false
+});
+
+map.on('load', function () {
+
+    map.addSource('image-map', {
+        type: 'image',
+        url: imageUrl,
+        coordinates: imageCoordinates
+    });
+
+    map.addLayer({
+        id: 'image-layer',
+        type: 'raster',
+        source: 'image-map',
+        paint: {
+            'raster-fade-duration': 0
+        }
+    });
+
+    // Automatically fit the image to the screen
+   map.fitBounds(
+    [[-1.7643, -1], [1.7643, 1]],
+    { padding: 20, duration: 0 }
+);
+
+    map.addControl(new maplibregl.NavigationControl());
+
+});
+
+</script>
+
+</body>
+</html>
