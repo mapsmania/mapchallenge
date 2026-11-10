@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -73,11 +72,16 @@ h1 { color: white; margin: 0; }
     text-align: right;
 }
 
-#restart {
+.controls {
     position: absolute;
     top: 25px;
     right: 25px;
     z-index: 5;
+    display: flex;
+    gap: 10px;
+}
+
+button, select {
     background: #12091f;
     border: 1px solid #9275b5;
     color: #b9a5c7;
@@ -85,16 +89,19 @@ h1 { color: white; margin: 0; }
     letter-spacing: 2px;
     font-size: 10px;
     cursor: pointer;
+    outline: none;
+    font-family: Arial, sans-serif;
 }
 
-#restart:hover { background: #23123b; }
+button:hover, select:hover { background: #23123b; }
+select option { background: #12091f; color: #b9a5c7; }
 
 @media(max-width:600px) {
     h1 { font-size: 19px; }
     #legend { width: 220px; }
     #hud { top: 18px; left: 16px; }
-    #restart { top: 85px; right: 16px; }
-    #status { right: 16px; bottom: 70px; }
+    .controls { top: 75px; right: 16px; flex-direction: column; width: 160px; }
+    #status { right: 16px; bottom: 85px; }
 }
 </style>
 
@@ -112,11 +119,19 @@ h1 { color: white; margin: 0; }
 <div id="scene"></div>
 
 <div id="hud">
-    <h1>MOUNT FUJI</h1>
-    <div class="subtitle">JAPAN / TOPOGRAPHY</div>
+    <h1 id="mountainTitle">MOUNT FUJI</h1>
+    <div class="subtitle" id="mountainSubtitle">JAPAN / TOPOGRAPHY</div>
 </div>
 
-<button id="restart">REPLAY ANIMATION</button>
+<div class="controls">
+    <select id="locationSelect">
+        <option value="35.3606,138.7274" data-name="MOUNT FUJI" data-sub="JAPAN / TOPOGRAPHY">Mount Fuji, Japan</option>
+        <option value="45.9237,6.8694" data-name="MONT BLANC" data-sub="ALPS / FRANCE-ITALY">Mont Blanc, Alps</option>
+        <option value="46.0207,7.7491" data-name="MATTERHORN" data-sub="ALPS / SWITZERLAND">Matterhorn, Switzerland</option>
+        <option value="37.7459,-119.5332" data-name="HALF DOME" data-sub="YOSEMITE / CALIFORNIA">Half Dome, California</option>
+    </select>
+    <button id="restart">REPLAY</button>
+</div>
 
 <div id="legend">
     <div class="legend-bar"></div>
@@ -136,7 +151,6 @@ import * as THREE from 'three';
 // CONFIGURATION
 // ================================================
 
-// Default location: Mount Fuji summit
 const DEFAULT_CENTER = {
     lat: 35.3606,
     lon: 138.7274
@@ -167,6 +181,7 @@ const LINE_OPACITY = 0.65;
 
 const container = document.getElementById('scene');
 const status = document.getElementById('status');
+const locationSelect = document.getElementById('locationSelect');
 
 let contourObjects = [];
 let startTime = null;
@@ -225,23 +240,15 @@ const colourStops = [
 ];
 
 function getColour(t) {
-
     t = THREE.MathUtils.clamp(t, 0, 1);
-
     for (let i = 0; i < colourStops.length - 1; i++) {
-
         const a = colourStops[i];
         const b = colourStops[i + 1];
-
         if (t >= a.t && t <= b.t) {
-
             const p = (t - a.t) / (b.t - a.t);
-
-            return new THREE.Color(a.c)
-                .lerp(new THREE.Color(b.c), p);
+            return new THREE.Color(a.c).lerp(new THREE.Color(b.c), p);
         }
     }
-
     return new THREE.Color('#a77d35');
 }
 
@@ -250,13 +257,9 @@ function getColour(t) {
 // ================================================
 
 function readHash() {
-
     const hash = location.hash.substring(1);
-
     if (!hash) return null;
-
     const [lat, lng] = hash.split(',').map(Number);
-
     if (
         !Number.isFinite(lat) ||
         !Number.isFinite(lng) ||
@@ -265,8 +268,25 @@ function readHash() {
     ) {
         return null;
     }
-
     return { lat, lng };
+}
+
+function updateDropdownSelection() {
+    for (let option of locationSelect.options) {
+        const [optLat, optLon] = option.value.split(',').map(Number);
+        if (Math.abs(optLat - CENTER.lat) < 0.01 && Math.abs(optLon - CENTER.lon) < 0.01) {
+            locationSelect.value = option.value;
+            updateHudTitles(option);
+            return;
+        }
+    }
+    document.getElementById('mountainTitle').textContent = 'CUSTOM PEAK';
+    document.getElementById('mountainSubtitle').textContent = `${CENTER.lat.toFixed(3)}, ${CENTER.lon.toFixed(3)}`;
+}
+
+function updateHudTitles(option) {
+    document.getElementById('mountainTitle').textContent = option.getAttribute('data-name');
+    document.getElementById('mountainSubtitle').textContent = option.getAttribute('data-sub');
 }
 
 // ================================================
@@ -274,79 +294,56 @@ function readHash() {
 // ================================================
 
 function lonLatToTile(lon, lat, z) {
-
     const n = 2 ** z;
     const latRad = lat * Math.PI / 180;
-
     const x = (lon + 180) / 360 * n;
-
-    const y = (
-        1 - Math.asinh(Math.tan(latRad)) / Math.PI
-    ) / 2 * n;
-
+    const y = (1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2 * n;
     return { x, y };
 }
 
 function tileUrl(z, x, y) {
-
     return `https://tiles.mapterhorn.com/${z}/${x}/${y}.webp`;
 }
 
 function decodeTerrarium(r, g, b) {
-
     return (r * 256 + g + b / 256) - 32768;
 }
 
 async function loadTile(z, x, y) {
-
     const n = 2 ** z;
-
-    // Wrap longitude and protect latitude tile bounds
     x = ((x % n) + n) % n;
     y = THREE.MathUtils.clamp(y, 0, n - 1);
 
     const response = await fetch(tileUrl(z, x, y));
-
     if (!response.ok) {
         throw new Error(`Tile request failed: ${z}/${x}/${y}`);
     }
 
     const blob = await response.blob();
     const bitmap = await createImageBitmap(blob);
-
     const canvas = document.createElement('canvas');
-
     canvas.width = TILE_SIZE;
     canvas.height = TILE_SIZE;
 
-    const ctx = canvas.getContext('2d', {
-        willReadFrequently: true
-    });
-
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(bitmap, 0, 0, TILE_SIZE, TILE_SIZE);
-
     bitmap.close();
 
-    return ctx.getImageData(
-        0, 0, TILE_SIZE, TILE_SIZE
-    ).data;
+    return ctx.getImageData(0, 0, TILE_SIZE, TILE_SIZE).data;
 }
 
 // ================================================
-// ELEVATION SAMPLING
+// ELEVATION SAMPLING & CONTOURS
 // ================================================
 
 function sampleBilinear(data, width, height, x, y) {
-
     x = THREE.MathUtils.clamp(x, 0, width - 1.001);
     y = THREE.MathUtils.clamp(y, 0, height - 1.001);
 
     const x0 = Math.floor(x);
     const y0 = Math.floor(y);
-
     const x1 = x0 + 1;
     const y1 = y0 + 1;
-
     const tx = x - x0;
     const ty = y - y0;
 
@@ -360,48 +357,18 @@ function sampleBilinear(data, width, height, x, y) {
     );
 }
 
-// ================================================
-// MARCHING SQUARES
-// ================================================
-
-// Create contours grouped by elevation.
-//
-// Each elevation level gets its own geometry.
-// This allows the animation to reveal the
-// contours progressively, one level at a time.
-
-function makeContours(
-    heights,
-    size,
-    worldWidth,
-    worldDepth,
-    minH,
-    maxH
-) {
-
+function makeContours(heights, size, worldWidth, worldDepth, minH, maxH) {
     const results = [];
-
     const stepX = worldWidth / (size - 1);
     const stepZ = worldDepth / (size - 1);
+    const firstLevel = Math.ceil(minH / CONTOUR_INTERVAL) * CONTOUR_INTERVAL;
 
-    const firstLevel =
-        Math.ceil(minH / CONTOUR_INTERVAL) * CONTOUR_INTERVAL;
-
-    for (
-        let level = firstLevel;
-        level <= maxH;
-        level += CONTOUR_INTERVAL
-    ) {
-
+    for (let level = firstLevel; level <= maxH; level += CONTOUR_INTERVAL) {
         const positions = [];
-
         for (let j = 0; j < size - 1; j++) {
-
             for (let i = 0; i < size - 1; i++) {
-
                 const h00 = heights[j * size + i];
                 const h10 = heights[j * size + i + 1];
-
                 const h01 = heights[(j + 1) * size + i];
                 const h11 = heights[(j + 1) * size + i + 1];
 
@@ -416,19 +383,11 @@ function makeContours(
                 ];
 
                 const hits = [];
-
                 for (let e = 0; e < 4; e++) {
-
                     const a = p[e];
                     const b = p[(e + 1) % 4];
-
-                    if (
-                        (a.h < level && b.h >= level) ||
-                        (b.h < level && a.h >= level)
-                    ) {
-
+                    if ((a.h < level && b.h >= level) || (b.h < level && a.h >= level)) {
                         const t = (level - a.h) / (b.h - a.h);
-
                         hits.push({
                             x: a.x + (b.x - a.x) * t,
                             z: a.z + (b.z - a.z) * t
@@ -437,29 +396,14 @@ function makeContours(
                 }
 
                 function addPair(a, b) {
-
-                    positions.push(
-                        a.x,
-                        level - minH,
-                        a.z,
-                        b.x,
-                        level - minH,
-                        b.z
-                    );
+                    positions.push(a.x, level - minH, a.z, b.x, level - minH, b.z);
                 }
 
                 if (hits.length === 2) {
-
                     addPair(hits[0], hits[1]);
-
                 } else if (hits.length === 4) {
-
                     const centre = (h00 + h10 + h01 + h11) / 4;
-
-                    const pairs = centre >= level
-                        ? [[0, 1], [2, 3]]
-                        : [[0, 3], [1, 2]];
-
+                    const pairs = centre >= level ? [[0, 1], [2, 3]] : [[0, 3], [1, 2]];
                     for (const [a, b] of pairs) {
                         addPair(hits[a], hits[b]);
                     }
@@ -468,54 +412,32 @@ function makeContours(
         }
 
         if (positions.length) {
-
             const geometry = new THREE.BufferGeometry();
-
-            geometry.setAttribute(
-                'position',
-                new THREE.Float32BufferAttribute(positions, 3)
-            );
-
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
             geometry.setDrawRange(0, 0);
-
-            results.push({
-                geometry,
-                vertexCount: positions.length / 3,
-                elevation: level
-            });
+            results.push({ geometry, vertexCount: positions.length / 3, elevation: level });
         }
     }
-
     return results;
 }
 
-// ================================================
-// CREATE SKETCH-LIKE CONTOUR STROKES
-// ================================================
-
 function addContour(item, colour) {
-
     const strokes = [];
-
     const original = item.geometry.attributes.position;
     const vertexCount = original.count;
-
     const jitter = sceneBoundingSize * 0.00035;
 
     for (let pass = 0; pass < 3; pass++) {
-
         const basePositions = new Float32Array(vertexCount * 3);
         const currentPositions = new Float32Array(vertexCount * 3);
 
         for (let i = 0; i < vertexCount; i++) {
-
             const x = original.getX(i);
             const y = original.getY(i);
             const z = original.getZ(i);
 
             const wave = Math.sin(i * 1.7 + pass * 2.1);
             const wave2 = Math.cos(i * 1.3 + pass * 1.8);
-
             const displacement = jitter * (pass + 1) * 0.4;
 
             const px = x + wave * displacement;
@@ -526,18 +448,12 @@ function addContour(item, colour) {
             basePositions[i * 3 + 2] = pz;
 
             currentPositions[i * 3] = px;
-            currentPositions[i * 3 + 1] =
-                y * INITIAL_VERTICAL_EXAGGERATION;
+            currentPositions[i * 3 + 1] = y * INITIAL_VERTICAL_EXAGGERATION;
             currentPositions[i * 3 + 2] = pz;
         }
 
         const geometry = new THREE.BufferGeometry();
-
-        geometry.setAttribute(
-            'position',
-            new THREE.BufferAttribute(currentPositions, 3)
-        );
-
+        geometry.setAttribute('position', new THREE.BufferAttribute(currentPositions, 3));
         geometry.setDrawRange(0, 0);
 
         const material = new THREE.LineBasicMaterial({
@@ -550,173 +466,92 @@ function addContour(item, colour) {
         });
 
         const line = new THREE.LineSegments(geometry, material);
-
         line.frustumCulled = false;
-
         mountain.add(line);
-
-        strokes.push({
-            line,
-            geometry,
-            basePositions
-        });
+        strokes.push({ line, geometry, basePositions });
     }
 
-    return {
-        strokes,
-        vertexCount,
-        elevation: item.elevation
-    };
+    return { strokes, vertexCount, elevation: item.elevation };
 }
 
-// ================================================
-// CLEAR PREVIOUS MAP
-// ================================================
-
 function clearMountain() {
-
     contourObjects.forEach(item => {
-
         item.strokes.forEach(stroke => {
-
             mountain.remove(stroke.line);
-
             stroke.geometry.dispose();
             stroke.line.material.dispose();
         });
     });
-
     contourObjects = [];
 }
 
 // ================================================
-// LOAD MAPTERHORN ELEVATION DATA
+// BUILD SCENE
 // ================================================
 
 async function build() {
-
     const version = ++buildVersion;
-
     clearMountain();
+    mountain.rotation.set(0, 0, 0);
 
     startTime = null;
     animationFinished = false;
 
     status.textContent = 'FETCHING MAPTERHORN ELEVATION TILES...';
 
-    const centerTile = lonLatToTile(
-        CENTER.lon,
-        CENTER.lat,
-        ZOOM
-    );
-
+    const centerTile = lonLatToTile(CENTER.lon, CENTER.lat, ZOOM);
     const cx = Math.floor(centerTile.x);
     const cy = Math.floor(centerTile.y);
-
     const firstX = cx - TILE_RADIUS;
     const firstY = cy - TILE_RADIUS;
-
     const count = TILE_RADIUS * 2;
     const fullSize = count * TILE_SIZE;
 
     const mosaic = new Float32Array(fullSize * fullSize);
-
-    // Download all elevation tiles
-
     const tasks = [];
 
     for (let ty = 0; ty < count; ty++) {
-
         for (let tx = 0; tx < count; tx++) {
-
             tasks.push((async () => {
-
-                const data = await loadTile(
-                    ZOOM,
-                    firstX + tx,
-                    firstY + ty
-                );
-
+                const data = await loadTile(ZOOM, firstX + tx, firstY + ty);
                 for (let row = 0; row < TILE_SIZE; row++) {
-
-                    const dest =
-                        (ty * TILE_SIZE + row) * fullSize +
-                        tx * TILE_SIZE;
-
+                    const dest = (ty * TILE_SIZE + row) * fullSize + tx * TILE_SIZE;
                     for (let col = 0; col < TILE_SIZE; col++) {
-
                         const k = (row * TILE_SIZE + col) * 4;
-
-                        mosaic[dest + col] = decodeTerrarium(
-                            data[k],
-                            data[k + 1],
-                            data[k + 2]
-                        );
+                        mosaic[dest + col] = decodeTerrarium(data[k], data[k + 1], data[k + 2]);
                     }
                 }
-
             })());
         }
     }
 
     let done = 0;
-
-    await Promise.all(tasks.map(p =>
-        p.then(() => {
-
-            done++;
-
-            if (version === buildVersion) {
-                status.textContent =
-                    `LOADING ELEVATION TILES... ${done}/${tasks.length}`;
-            }
-        })
-    ));
+    await Promise.all(tasks.map(p => p.then(() => {
+        done++;
+        if (version === buildVersion) {
+            status.textContent = `LOADING ELEVATION TILES... ${done}/${tasks.length}`;
+        }
+    })));
 
     if (version !== buildVersion) return;
 
-    // ============================================
-    // RESAMPLE ELEVATION GRID
-    // ============================================
-
-    const centerPx =
-        (centerTile.x - firstX) * TILE_SIZE;
-
-    const centerPy =
-        (centerTile.y - firstY) * TILE_SIZE;
-
     const cosLat = Math.cos(CENTER.lat * Math.PI / 180);
-
-    const metresPerPixel =
-        40075016.685 / (2 ** ZOOM * TILE_SIZE) * cosLat;
-
+    const metresPerPixel = 40075016.685 / (2 ** ZOOM * TILE_SIZE) * cosLat;
     const worldWidth = fullSize * metresPerPixel;
     const worldDepth = worldWidth;
 
     sceneBoundingSize = Math.max(worldWidth, worldDepth);
 
     const heights = new Float32Array(GRID_SIZE * GRID_SIZE);
-
     let minH = Infinity;
     let maxH = -Infinity;
 
     for (let j = 0; j < GRID_SIZE; j++) {
-
         for (let i = 0; i < GRID_SIZE; i++) {
-
             const sx = i / (GRID_SIZE - 1) * (fullSize - 1);
             const sy = j / (GRID_SIZE - 1) * (fullSize - 1);
-
-            const h = sampleBilinear(
-                mosaic,
-                fullSize,
-                fullSize,
-                sx,
-                sy
-            );
-
+            const h = sampleBilinear(mosaic, fullSize, fullSize, sx, sy);
             heights[j * GRID_SIZE + i] = h;
-
             minH = Math.min(minH, h);
             maxH = Math.max(maxH, h);
         }
@@ -726,68 +561,35 @@ async function build() {
 
     minElevVal = minH;
     maxElevVal = maxH;
-
-    mountainCentreHeight =
-        (maxH - minH) * INITIAL_VERTICAL_EXAGGERATION * 0.5;
-
-    // ============================================
-    // GENERATE CONTOURS
-    // ============================================
+    mountainCentreHeight = (maxH - minH) * INITIAL_VERTICAL_EXAGGERATION * 0.5;
 
     status.textContent = 'GENERATING CONTOUR LINES...';
 
-    const generated = makeContours(
-        heights,
-        GRID_SIZE,
-        worldWidth,
-        worldDepth,
-        minH,
-        maxH
-    );
-
+    const generated = makeContours(heights, GRID_SIZE, worldWidth, worldDepth, minH, maxH);
     if (version !== buildVersion) return;
 
     generated.sort((a, b) => a.vertexCount - b.vertexCount);
-
     generated.forEach(item => {
-
-        const t = (item.elevation - minH) /
-                  (maxH - minH || 1);
-
+        const t = (item.elevation - minH) / (maxH - minH || 1);
         const colour = getColour(t);
-
-        contourObjects.push(
-            addContour(item, colour)
-        );
-
+        contourObjects.push(addContour(item, colour));
         item.geometry.dispose();
     });
 
-    // ============================================
-    // CAMERA SETUP
-    // ============================================
-
     const aspect = window.innerWidth / window.innerHeight;
-
     baseViewSize = sceneBoundingSize * 1.05;
 
     camera.left = -baseViewSize * aspect / 2;
     camera.right = baseViewSize * aspect / 2;
     camera.top = baseViewSize / 2;
     camera.bottom = -baseViewSize / 2;
-
     camera.zoom = 0.38;
-
     camera.updateProjectionMatrix();
 
-    document.getElementById('highLabel').textContent =
-        maxH.toLocaleString(undefined, {maximumFractionDigits: 0}) + ' m';
+    document.getElementById('highLabel').textContent = maxH.toLocaleString(undefined, {maximumFractionDigits: 0}) + ' m';
+    document.getElementById('lowLabel').textContent = minH.toLocaleString(undefined, {maximumFractionDigits: 0}) + ' m';
 
-    document.getElementById('lowLabel').textContent =
-        minH.toLocaleString(undefined, {maximumFractionDigits: 0}) + ' m';
-
-    status.textContent =
-        `${contourObjects.length} CONTOUR LEVELS // READY TO ANIMATE`;
+    status.textContent = `${contourObjects.length} CONTOUR LEVELS // READY TO ANIMATE`;
 
     replayAnimation();
 }
@@ -797,55 +599,36 @@ async function build() {
 // ================================================
 
 function replayAnimation() {
-
     startTime = performance.now();
-
     animationFinished = false;
+    mountain.rotation.set(0, 0, 0);
 
     contourObjects.forEach(item => {
-
         item.strokes.forEach(strokeData => {
-
             strokeData.geometry.setDrawRange(0, 0);
-
             const posAttr = strokeData.geometry.attributes.position;
             const posArray = posAttr.array;
             const baseArray = strokeData.basePositions;
 
             for (let i = 0; i < posAttr.count; i++) {
-
-                posArray[i * 3 + 1] =
-                    baseArray[i * 3 + 1] *
-                    INITIAL_VERTICAL_EXAGGERATION;
+                posArray[i * 3 + 1] = baseArray[i * 3 + 1] * INITIAL_VERTICAL_EXAGGERATION;
             }
-
             posAttr.needsUpdate = true;
         });
     });
 
     const aspect = window.innerWidth / window.innerHeight;
-
     camera.left = -baseViewSize * aspect / 2;
     camera.right = baseViewSize * aspect / 2;
     camera.top = baseViewSize / 2;
     camera.bottom = -baseViewSize / 2;
-
     camera.zoom = 0.38;
-
-    camera.position.set(
-        0,
-        sceneBoundingSize * 2,
-        0
-    );
-
+    camera.position.set(0, sceneBoundingSize * 2, 0);
     camera.up.set(0, 0, -1);
-
     camera.lookAt(0, 0, 0);
-
     camera.updateProjectionMatrix();
 
     status.textContent = 'DRAWING CONTOURS...';
-    mountain.rotation.set(0, 0, 0);
 }
 
 // ================================================
@@ -853,222 +636,99 @@ function replayAnimation() {
 // ================================================
 
 function animate(now) {
-
     requestAnimationFrame(animate);
 
     if (startTime !== null && contourObjects.length) {
-
         const elapsed = (now - startTime) / 1000;
 
-        // ----------------------------------------
-        // PHASE 1: PROGRESSIVE CONTOUR DRAWING
-        // ----------------------------------------
-
-        const drawProgress = Math.min(
-            elapsed / DRAW_DURATION,
-            1
-        );
-
-        const drawEased = 1 - Math.pow(1 - drawProgress, 3);
-
+        // Phase 1: Progressive drawing
+        const drawProgress = Math.min(elapsed / DRAW_DURATION, 1);
         const count = contourObjects.length;
 
         contourObjects.forEach((item, index) => {
-
             const start = (index / count) * 0.72;
             const duration = 0.28;
-
-            const lineProgress = THREE.MathUtils.clamp(
-                (drawProgress - start) / duration,
-                0,
-                1
-            );
-
-            const drawCount = Math.floor(
-                item.vertexCount * lineProgress
-            );
+            const lineProgress = THREE.MathUtils.clamp((drawProgress - start) / duration, 0, 1);
+            const drawCount = Math.floor(item.vertexCount * lineProgress);
 
             item.strokes.forEach(strokeData => {
-
                 strokeData.geometry.setDrawRange(0, drawCount);
             });
         });
 
-        // ----------------------------------------
-        // PHASE 2: CAMERA TILT
-        // ----------------------------------------
-
-        const tiltProgress = THREE.MathUtils.clamp(
-            (elapsed - DRAW_DURATION) / TILT_DURATION,
-            0,
-            1
-        );
-
+        // Phase 2: Camera tilt
+        const tiltProgress = THREE.MathUtils.clamp((elapsed - DRAW_DURATION) / TILT_DURATION, 0, 1);
         const tiltEased = 1 - Math.pow(1 - tiltProgress, 3);
-
-        const currentZoom = THREE.MathUtils.lerp(
-            0.38,
-            1.0,
-            drawEased
-        );
+        const currentZoom = THREE.MathUtils.lerp(0.38, 1.0, drawProgress);
 
         const cameraStartHeight = sceneBoundingSize * 2;
-
         const eyeLevelY = mountainCentreHeight * 0.4;
-
         const camDistanceZ = sceneBoundingSize * 1.8;
 
-        const posY = THREE.MathUtils.lerp(
-            cameraStartHeight,
-            eyeLevelY,
-            tiltEased
-        );
-
-        const posZ = THREE.MathUtils.lerp(
-            0,
-            camDistanceZ,
-            tiltEased
-        );
+        const posY = THREE.MathUtils.lerp(cameraStartHeight, eyeLevelY, tiltEased);
+        const posZ = THREE.MathUtils.lerp(0, camDistanceZ, tiltEased);
 
         camera.position.set(0, posY, posZ);
+        camera.up.set(0, tiltEased, THREE.MathUtils.lerp(-1, 0, tiltEased)).normalize();
+        camera.lookAt(0, mountainCentreHeight * 0.65, 0);
 
-        camera.up.set(
-            0,
-            tiltEased,
-            THREE.MathUtils.lerp(-1, 0, tiltEased)
-        ).normalize();
-
-        camera.lookAt(
-            0,
-            mountainCentreHeight * 0.65,
-            0
-        );
-
-        const viewScale = THREE.MathUtils.lerp(
-            1.0,
-            1.8,
-            tiltEased
-        );
-
+        const viewScale = THREE.MathUtils.lerp(1.0, 1.8, tiltEased);
         const aspect = window.innerWidth / window.innerHeight;
 
         camera.left = -baseViewSize * aspect * viewScale / 2;
         camera.right = baseViewSize * aspect * viewScale / 2;
         camera.top = baseViewSize * viewScale / 2;
         camera.bottom = -baseViewSize * viewScale / 2;
-
         camera.zoom = currentZoom;
-
         camera.updateProjectionMatrix();
 
-        // ----------------------------------------
-        // PHASE 3: REDUCE VERTICAL EXAGGERATION
-        // ----------------------------------------
-
-        const unexaggerateProgress = THREE.MathUtils.clamp(
-            (elapsed - DRAW_DURATION - TILT_DURATION) /
-            UNEXAGGERATE_DURATION,
-            0,
-            1
-        );
-
+        // Phase 3: Reduce vertical exaggeration
+        const unexaggerateProgress = THREE.MathUtils.clamp((elapsed - DRAW_DURATION - TILT_DURATION) / UNEXAGGERATE_DURATION, 0, 1);
         if (unexaggerateProgress > 0) {
-
-            const scaleEased =
-                1 - Math.pow(1 - unexaggerateProgress, 3);
-
-            const currentExaggeration = THREE.MathUtils.lerp(
-                INITIAL_VERTICAL_EXAGGERATION,
-                1.0,
-                scaleEased
-            );
+            const scaleEased = 1 - Math.pow(1 - unexaggerateProgress, 3);
+            const currentExaggeration = THREE.MathUtils.lerp(INITIAL_VERTICAL_EXAGGERATION, 1.0, scaleEased);
 
             contourObjects.forEach(item => {
-
                 item.strokes.forEach(strokeData => {
-
                     const posAttr = strokeData.geometry.attributes.position;
                     const posArray = posAttr.array;
                     const baseArray = strokeData.basePositions;
 
                     for (let i = 0; i < posAttr.count; i++) {
-
-                        posArray[i * 3 + 1] =
-                            baseArray[i * 3 + 1] *
-                            currentExaggeration;
+                        posArray[i * 3 + 1] = baseArray[i * 3 + 1] * currentExaggeration;
                     }
-
                     posAttr.needsUpdate = true;
                 });
             });
         }
 
-        // ----------------------------------------
-        // PHASE 4: FINAL 3X ZOOM
-        // ----------------------------------------
-
-        const zoomProgress = THREE.MathUtils.clamp(
-            (
-                elapsed -
-                DRAW_DURATION -
-                TILT_DURATION -
-                UNEXAGGERATE_DURATION
-            ) / ZOOM_DURATION,
-            0,
-            1
-        );
-
+        // Phase 4: Final 3x zoom
+        const zoomProgress = THREE.MathUtils.clamp((elapsed - DRAW_DURATION - TILT_DURATION - UNEXAGGERATE_DURATION) / ZOOM_DURATION, 0, 1);
         const zoomEased = 1 - Math.pow(1 - zoomProgress, 3);
-
-        const targetZoom = THREE.MathUtils.lerp(
-            currentZoom,
-            currentZoom * 3.0,
-            zoomEased
-        );
+        const targetZoom = THREE.MathUtils.lerp(currentZoom, currentZoom * 3.0, zoomEased);
 
         camera.zoom = targetZoom;
-
         camera.updateProjectionMatrix();
 
-        // ----------------------------------------
-// PHASE 5: CONTINUOUS ROTATION
-// ----------------------------------------
-const totalPhaseDuration = DRAW_DURATION + TILT_DURATION + UNEXAGGERATE_DURATION + ZOOM_DURATION; // 14.0 seconds
+        // Phase 5: Continuous rotation
+        const totalPhaseDuration = DRAW_DURATION + TILT_DURATION + UNEXAGGERATE_DURATION + ZOOM_DURATION;
+        if (elapsed >= totalPhaseDuration) {
+            const rotationTime = elapsed - totalPhaseDuration;
+            mountain.rotation.y = rotationTime * 0.25;
+        }
 
-if (elapsed >= totalPhaseDuration) {
-    const rotationTime = elapsed - totalPhaseDuration;
-
-    // Rotate the mountain group around its vertical Y-axis
-    // Adjust 0.25 to increase or decrease rotation speed (radians/sec)
-    mountain.rotation.y = rotationTime * 0.25; 
-}
-
-        // ----------------------------------------
-        // STATUS
-        // ----------------------------------------
-
+        // Status messages
         if (drawProgress < 1) {
-
             status.textContent = 'DRAWING CONTOURS...';
-
         } else if (tiltProgress < 1) {
-
             status.textContent = 'TILTING TO SEA LEVEL VIEW...';
-
         } else if (unexaggerateProgress < 1) {
-
             status.textContent = 'REDUCING VERTICAL EXAGGERATION TO 1:1 SCALE...';
-
         } else if (zoomProgress < 1) {
-
             status.textContent = 'ZOOMING IN (3X MAGNIFICATION)...';
-
         } else if (!animationFinished) {
-
             animationFinished = true;
-
-            status.textContent =
-                'MOUNTAIN // 3X ZOOM 1:1 SCALE COMPLETE';
+            status.textContent = 'PEAK // 3X ZOOM 1:1 SCALE COMPLETE';
         }
     }
 
@@ -1078,64 +738,45 @@ if (elapsed >= totalPhaseDuration) {
 requestAnimationFrame(animate);
 
 // ================================================
-// LOAD LOCATION FROM HASH
+// URL HASH & UI EVENTS
 // ================================================
 
 function loadFromHash() {
-
     const position = readHash();
-
     if (position) {
-
-        CENTER = {
-            lat: position.lat,
-            lon: position.lng
-        };
-
+        CENTER = { lat: position.lat, lon: position.lng };
     } else {
-
         CENTER = { ...DEFAULT_CENTER };
     }
-
+    updateDropdownSelection();
     build().catch(error => {
-
         console.error(error);
-
         status.textContent = 'ERROR: ' + error.message;
     });
 }
 
-// ================================================
-// INTERACTION
-// ================================================
+locationSelect.addEventListener('change', (e) => {
+    const [lat, lon] = e.target.value.split(',').map(Number);
+    location.hash = `${lat},${lon}`;
+});
 
-document.getElementById('restart').addEventListener(
-    'click',
-    replayAnimation
-);
-
+document.getElementById('restart').addEventListener('click', replayAnimation);
 window.addEventListener('hashchange', loadFromHash);
 
 window.addEventListener('resize', () => {
-
     const aspect = window.innerWidth / window.innerHeight;
-
     camera.left = -baseViewSize * aspect / 2;
     camera.right = baseViewSize * aspect / 2;
-
     camera.updateProjectionMatrix();
-
-    renderer.setSize(
-        window.innerWidth,
-        window.innerHeight
-    );
+    renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ================================================
-// START
-// ================================================
-
-loadFromHash();
+// Initial load check - Always force Mount Fuji if no hash is present
+if (!location.hash) {
+    location.hash = `${DEFAULT_CENTER.lat},${DEFAULT_CENTER.lon}`;
+} else {
+    loadFromHash();
+}
 
 </script>
 </body>
