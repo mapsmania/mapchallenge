@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mount Fuji - Contours</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #000000;
+    color: #123b60;
+    font-family: Arial, sans-serif;
+}
+
+#scene {
+    position: fixed;
+    inset: 0;
+}
+
+canvas {
+    display: block;
+}
+
+#hud {
+    position: absolute;
+    top: 24px;
+    left: 25px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+h1 {
+    color: #ffffff;
+    margin: 0;
+}
+
+.subtitle {
+    margin-top: 7px;
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: #9275b5;
+}
+
+#legend {
+    position: absolute;
+    bottom: 25px;
+    left: 25px;
+    z-index: 5;
+    width: 300px;
+}
+
+.legend-bar {
+    height: 13px;
+    border: 1px solid rgba(100, 80, 120, 0.3);
+    background: linear-gradient(
+        to right,
+        #482080,
+        #68419b,
+        #9275b5,
+        #b9a5c7,
+        #d5c18e,
+        #c7a34e,
+        #a77d35
+    );
+}
+
+.legend-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 7px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: #b9a5c7;
+}
+
+#status {
+    position: absolute;
+    bottom: 28px;
+    right: 25px;
+    z-index: 5;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #9275b5;
+    text-align: right;
+}
+
+#restart {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    z-index: 5;
+    background: #12091f;
+    border: 1px solid #9275b5;
+    color: #b9a5c7;
+    padding: 10px 15px;
+    letter-spacing: 2px;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+#restart:hover {
+    background: #23123b;
+}
+
+@media(max-width:600px) {
+    h1 {
+        font-size: 19px;
+    }
+
+    #legend {
+        width: 220px;
+    }
+
+    #hud {
+        top: 18px;
+        left: 16px;
+    }
+
+    #restart {
+        top: 85px;
+        right: 16px;
+    }
+
+    #status {
+        right: 16px;
+        bottom: 70px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="scene"></div>
+
+<div id="hud">
+    <h1>MOUNT FUJI</h1>
+    <div class="subtitle">JAPAN / TOPOGRAPHY</div>
+</div>
+
+<button id="restart">REPLAY ANIMATION</button>
+
+<div id="legend">
+    <div class="legend-bar"></div>
+    <div class="legend-labels">
+        <span id="highLabel">HIGH</span>
+        <span id="lowLabel">LOW</span>
+    </div>
+</div>
+
+<div id="status">LOADING CONTOURS...</div>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+    }
+}
+</script>
+
+<script type="module">
+
+import * as THREE from 'three';
+
+// ================================================
+// TIMING & EXAGGERATION CONFIGURATION
+// ================================================
+
+const GEOJSON_URL =
+    'https://mapsmania.github.io/mapchallenge/contours.geojson';
+
+const DRAW_DURATION = 5.0;          // Phase 1: Progressive line drawing
+const TILT_DURATION = 3.5;          // Phase 2: Camera tilt to sea level
+const UNEXAGGERATE_DURATION = 3.0;  // Phase 3: Flatten exaggeration to 1:1
+const ZOOM_DURATION = 2.5;          // Phase 4: Zoom in 3x on 1:1 mountain profile
+
+const INITIAL_VERTICAL_EXAGGERATION = 2.8;
+const LINE_OPACITY = 0.65;
+
+const container = document.getElementById('scene');
+const status = document.getElementById('status');
+
+let contourObjects = [];
+let startTime = null;
+let animationFinished = false;
+
+let baseViewSize = 20;
+let sceneBoundingSize = 30000;
+let mountainCentreHeight = 0;
+
+let minElevVal = 0;
+let maxElevVal = 0;
+
+// ================================================
+// SCENE & CAMERA SETUP
+// ================================================
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+
+const camera = new THREE.OrthographicCamera(
+    -10, 10, 10, -10, 0.1, 500000
+);
+
+camera.position.set(0, 50000, 0);
+camera.up.set(0, 0, -1);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    powerPreference: 'high-performance'
+});
+
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.NoToneMapping;
+container.appendChild(renderer.domElement);
+
+const mountain = new THREE.Group();
+scene.add(mountain);
+
+// ================================================
+// COLOR MAP
+// ================================================
+
+const colourStops = [
+    { t: 0.00, c: '#482080' },
+    { t: 0.20, c: '#68419b' },
+    { t: 0.40, c: '#9275b5' },
+    { t: 0.58, c: '#b9a5c7' },
+    { t: 0.72, c: '#d5c18e' },
+    { t: 0.86, c: '#c7a34e' },
+    { t: 1.00, c: '#a77d35' }
+];
+
+function getColour(t) {
+    t = THREE.MathUtils.clamp(t, 0, 1);
+    for (let i = 0; i < colourStops.length - 1; i++) {
+        const a = colourStops[i];
+        const b = colourStops[i + 1];
+        if (t >= a.t && t <= b.t) {
+            const p = (t - a.t) / (b.t - a.t);
+            return new THREE.Color(a.c).lerp(new THREE.Color(b.c), p);
+        }
+    }
+    return new THREE.Color('#a77d35');
+}
+
+// ================================================
+// GEOJSON GEOMETRY HELPER
+// ================================================
+
+function extractLines(geometry) {
+    if (!geometry) return [];
+    if (geometry.type === 'LineString') return [geometry.coordinates];
+    if (geometry.type === 'MultiLineString') return geometry.coordinates;
+    if (geometry.type === 'Polygon') return geometry.coordinates;
+    if (geometry.type === 'MultiPolygon') return geometry.coordinates.flat(1);
+    if (geometry.type === 'GeometryCollection') return geometry.geometries.flatMap(extractLines);
+    return [];
+}
+
+function findElevationKey(features) {
+    const preferred = ['elevation', 'ele', 'altitude', 'height', 'contour', 'level', 'value', 'z'];
+    const keys = Object.keys(features[0]?.properties || {});
+    for (const name of preferred) {
+        const found = keys.find(key => key.toLowerCase() === name);
+        if (found && features.some(f => Number.isFinite(Number(f.properties?.[found])))) return found;
+    }
+    return keys.find(key => features.some(f => Number.isFinite(Number(f.properties?.[key]))));
+}
+
+// ================================================
+// LOAD & PARSE MAP DATA
+// ================================================
+
+async function loadMap() {
+    try {
+        const response = await fetch(GEOJSON_URL);
+        if (!response.ok) throw new Error('GeoJSON download failed');
+
+        const data = await response.json();
+        const features = data.features || [];
+        if (!features.length) throw new Error('No contour features found');
+
+        const elevationKey = findElevationKey(features);
+        if (!elevationKey) throw new Error('No elevation property found');
+
+        let minLon = Infinity, maxLon = -Infinity;
+        let minLat = Infinity, maxLat = -Infinity;
+        let minElev = Infinity, maxElev = -Infinity;
+
+        features.forEach(feature => {
+            const elevation = Number(feature.properties[elevationKey]);
+            if (!Number.isFinite(elevation)) return;
+            minElev = Math.min(minElev, elevation);
+            maxElev = Math.max(maxElev, elevation);
+
+            extractLines(feature.geometry).forEach(line => {
+                line.forEach(coord => {
+                    minLon = Math.min(minLon, coord[0]);
+                    maxLon = Math.max(maxLon, coord[0]);
+                    minLat = Math.min(minLat, coord[1]);
+                    maxLat = Math.max(maxLat, coord[1]);
+                });
+            });
+        });
+
+        const centreLon = (minLon + maxLon) / 2;
+        const centreLat = (minLat + maxLat) / 2;
+
+        const metresPerDegreeX = 111320 * Math.cos(centreLat * Math.PI / 180);
+        const metresPerDegreeZ = 111320;
+
+        const width = (maxLon - minLon) * metresPerDegreeX;
+        const depth = (maxLat - minLat) * metresPerDegreeZ;
+        sceneBoundingSize = Math.max(width, depth);
+
+        minElevVal = minElev;
+        maxElevVal = maxElev;
+        mountainCentreHeight = (maxElev - minElev) * INITIAL_VERTICAL_EXAGGERATION * 0.5;
+
+        // Build sketch-like 3D contour lines
+        features.forEach(feature => {
+            const elevation = Number(feature.properties[elevationKey]);
+            if (!Number.isFinite(elevation)) return;
+
+            const lines = extractLines(feature.geometry);
+            const t = (elevation - minElev) / (maxElev - minElev || 1);
+            const colour = getColour(t);
+
+            lines.forEach(line => {
+                if (line.length < 2) return;
+                const positions = [];
+
+                line.forEach(coord => {
+                    const x = (coord[0] - centreLon) * metresPerDegreeX;
+                    const z = -(coord[1] - centreLat) * metresPerDegreeZ;
+                    const y = (elevation - minElev);
+
+                    positions.push(x, y, z);
+                });
+
+                const vertexCount = positions.length / 3;
+                const strokes = [];
+                const jitter = sceneBoundingSize * 0.00035;
+
+                for (let pass = 0; pass < 3; pass++) {
+                    const basePositions = new Float32Array(vertexCount * 3);
+                    const currentPositions = new Float32Array(vertexCount * 3);
+
+                    for (let i = 0; i < vertexCount; i++) {
+                        const x = positions[i * 3];
+                        const baseElevation = positions[i * 3 + 1];
+                        const z = positions[i * 3 + 2];
+
+                        const wave = Math.sin(i * 1.7 + pass * 2.1);
+                        const wave2 = Math.cos(i * 1.3 + pass * 1.8);
+                        const displacement = jitter * (pass + 1) * 0.4;
+
+                        const px = x + wave * displacement;
+                        const pz = z + wave2 * displacement;
+
+                        basePositions[i * 3] = px;
+                        basePositions[i * 3 + 1] = baseElevation;
+                        basePositions[i * 3 + 2] = pz;
+
+                        currentPositions[i * 3] = px;
+                        currentPositions[i * 3 + 1] = baseElevation * INITIAL_VERTICAL_EXAGGERATION;
+                        currentPositions[i * 3 + 2] = pz;
+                    }
+
+                    const geometry = new THREE.BufferGeometry();
+                    geometry.setAttribute('position', new THREE.BufferAttribute(currentPositions, 3));
+                    geometry.setDrawRange(0, 0);
+
+                    const material = new THREE.LineBasicMaterial({
+                        color: colour,
+                        transparent: true,
+                        opacity: LINE_OPACITY / (pass + 1),
+                        blending: THREE.AdditiveBlending,
+                        depthWrite: false,
+                        toneMapped: false
+                    });
+
+                    const contour = new THREE.Line(geometry, material);
+                    contour.frustumCulled = false;
+                    mountain.add(contour);
+
+                    strokes.push({
+                        line: contour,
+                        geometry: geometry,
+                        basePositions: basePositions
+                    });
+                }
+
+                contourObjects.push({
+                    strokes: strokes,
+                    vertexCount: vertexCount,
+                    elevation: elevation
+                });
+            });
+        });
+
+        contourObjects.sort((a, b) => a.vertexCount - b.vertexCount);
+
+        const aspect = window.innerWidth / window.innerHeight;
+        baseViewSize = sceneBoundingSize * 1.05;
+
+        camera.left = -baseViewSize * aspect / 2;
+        camera.right = baseViewSize * aspect / 2;
+        camera.top = baseViewSize / 2;
+        camera.bottom = -baseViewSize / 2;
+        camera.zoom = 0.38;
+        camera.updateProjectionMatrix();
+
+        document.getElementById('highLabel').textContent = maxElev.toLocaleString() + ' m';
+        document.getElementById('lowLabel').textContent = minElev.toLocaleString() + ' m';
+        status.textContent = contourObjects.length + ' CONTOURS // READY TO ANIMATE';
+
+        replayAnimation();
+
+    } catch (error) {
+        console.error(error);
+        status.textContent = 'ERROR: ' + error.message;
+    }
+}
+
+// ================================================
+// REPLAY ANIMATION RESET
+// ================================================
+
+function replayAnimation() {
+    startTime = performance.now();
+    animationFinished = false;
+
+    contourObjects.forEach(item => {
+        item.strokes.forEach(strokeData => {
+            strokeData.geometry.setDrawRange(0, 0);
+            
+            // Reset position Y back to initial exaggerated scale
+            const posAttr = strokeData.geometry.attributes.position;
+            const posArray = posAttr.array;
+            const baseArray = strokeData.basePositions;
+
+            for (let i = 0; i < strokeData.geometry.attributes.position.count; i++) {
+                posArray[i * 3 + 1] = baseArray[i * 3 + 1] * INITIAL_VERTICAL_EXAGGERATION;
+            }
+            posAttr.needsUpdate = true;
+        });
+    });
+
+    const aspect = window.innerWidth / window.innerHeight;
+    camera.left = -baseViewSize * aspect / 2;
+    camera.right = baseViewSize * aspect / 2;
+    camera.top = baseViewSize / 2;
+    camera.bottom = -baseViewSize / 2;
+    camera.zoom = 0.38;
+
+    camera.position.set(0, sceneBoundingSize * 2, 0);
+    camera.up.set(0, 0, -1);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+
+    status.textContent = 'DRAWING MOUNT FUJI...';
+}
+
+// ================================================
+// RENDER LOOP & ANIMATION PHASES
+// ================================================
+
+function animate(now) {
+    requestAnimationFrame(animate);
+
+    if (startTime !== null && contourObjects.length) {
+        const elapsed = (now - startTime) / 1000;
+        
+        // --- Phase 1: Progressive Drawing ---
+        const drawProgress = Math.min(elapsed / DRAW_DURATION, 1.0);
+        const drawEased = 1 - Math.pow(1 - drawProgress, 3);
+
+        const count = contourObjects.length;
+        contourObjects.forEach((item, index) => {
+            const start = (index / count) * 0.72;
+            const duration = 0.28;
+            const lineProgress = THREE.MathUtils.clamp((drawProgress - start) / duration, 0, 1);
+            const drawCount = Math.floor(item.vertexCount * lineProgress);
+            item.strokes.forEach(strokeData => strokeData.geometry.setDrawRange(0, drawCount));
+        });
+
+        // --- Phase 2: Camera Tilt to Sea Level ---
+        const tiltProgress = THREE.MathUtils.clamp(
+            (elapsed - DRAW_DURATION) / TILT_DURATION,
+            0,
+            1.0
+        );
+        const tiltEased = 1 - Math.pow(1 - tiltProgress, 3);
+
+        const currentZoom = THREE.MathUtils.lerp(0.38, 1.0, drawEased);
+
+        const cameraStartHeight = sceneBoundingSize * 2;
+        const eyeLevelY = mountainCentreHeight * 0.4;
+        const camDistanceZ = sceneBoundingSize * 1.8;
+
+        const posX = 0;
+        const posY = THREE.MathUtils.lerp(cameraStartHeight, eyeLevelY, tiltEased);
+        const posZ = THREE.MathUtils.lerp(0, camDistanceZ, tiltEased);
+
+        camera.position.set(posX, posY, posZ);
+
+        camera.up.set(
+            0,
+            THREE.MathUtils.lerp(0, 1, tiltEased),
+            THREE.MathUtils.lerp(-1, 0, tiltEased)
+        ).normalize();
+
+        camera.lookAt(0, mountainCentreHeight * 0.65, 0);
+
+        const viewScale = THREE.MathUtils.lerp(1.0, 1.8, tiltEased);
+        const aspect = window.innerWidth / window.innerHeight;
+
+        camera.left = -baseViewSize * aspect * viewScale / 2;
+        camera.right = baseViewSize * aspect * viewScale / 2;
+        camera.top = (baseViewSize * viewScale) / 2;
+        camera.bottom = (-baseViewSize * viewScale) / 2;
+        camera.zoom = currentZoom;
+
+        camera.updateProjectionMatrix();
+
+        // --- Phase 3: Smooth Reduction of Vertical Exaggeration (2.8x -> 1.0x) ---
+        const unexaggerateProgress = THREE.MathUtils.clamp(
+            (elapsed - (DRAW_DURATION + TILT_DURATION)) / UNEXAGGERATE_DURATION,
+            0,
+            1.0
+        );
+
+        if (unexaggerateProgress > 0) {
+            const scaleEased = 1 - Math.pow(1 - unexaggerateProgress, 3);
+            const currentExaggeration = THREE.MathUtils.lerp(INITIAL_VERTICAL_EXAGGERATION, 1.0, scaleEased);
+
+            contourObjects.forEach(item => {
+                item.strokes.forEach(strokeData => {
+                    const posAttr = strokeData.geometry.attributes.position;
+                    const posArray = posAttr.array;
+                    const baseArray = strokeData.basePositions;
+
+                    for (let i = 0; i < posAttr.count; i++) {
+                        posArray[i * 3 + 1] = baseArray[i * 3 + 1] * currentExaggeration;
+                    }
+                    posAttr.needsUpdate = true;
+                });
+            });
+        }
+
+        // --- Phase 4: Smooth 3x Camera Zoom-In ---
+        const zoomProgress = THREE.MathUtils.clamp(
+            (elapsed - (DRAW_DURATION + TILT_DURATION + UNEXAGGERATE_DURATION)) / ZOOM_DURATION,
+            0,
+            1.0
+        );
+        const zoomEased = 1 - Math.pow(1 - zoomProgress, 3);
+
+        const targetZoom = THREE.MathUtils.lerp(currentZoom, currentZoom * 3.0, zoomEased);
+
+        camera.zoom = targetZoom;
+        camera.updateProjectionMatrix();
+
+        // --- Status Updates ---
+        if (drawProgress < 1.0) {
+            status.textContent = 'DRAWING MOUNT FUJI...';
+        } else if (tiltProgress < 1.0) {
+            status.textContent = 'TILTING TO SEA LEVEL VIEW...';
+        } else if (unexaggerateProgress < 1.0) {
+            status.textContent = 'REDUCING VERTICAL EXAGGERATION TO 1:1 SCALE...';
+        } else if (zoomProgress < 1.0) {
+            status.textContent = 'ZOOMING IN (3X MAGNIFICATION)...';
+        } else if (!animationFinished) {
+            animationFinished = true;
+            status.textContent = 'MOUNT FUJI // 3X ZOOM 1:1 SCALE COMPLETE';
+        }
+    }
+
+    renderer.render(scene, camera);
+}
+
+// Start animation loop
+requestAnimationFrame(animate);
+
+// ================================================
+// INTERACTION & RESIZE
+// ================================================
+
+document.getElementById('restart').addEventListener('click', replayAnimation);
+
+window.addEventListener('resize', () => {
+    const aspect = window.innerWidth / window.innerHeight;
+    camera.left = -baseViewSize * aspect / 2;
+    camera.right = baseViewSize * aspect / 2;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Start application
+loadMap();
+
+</script>
+</body>
+</html>
