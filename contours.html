@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mount Fuji - Mapterhorn Contours</title>
+<title>Mount Fuji - Mapterhorn Contours (Sound Map)</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -96,6 +96,12 @@ button, select {
 button:hover, select:hover { background: #23123b; }
 select option { background: #12091f; color: #b9a5c7; }
 
+#soundToggle.active {
+    background: #482080;
+    color: white;
+    border-color: #b9a5c7;
+}
+
 @media(max-width:600px) {
     h1 { font-size: 19px; }
     #legend { width: 220px; }
@@ -130,6 +136,7 @@ select option { background: #12091f; color: #b9a5c7; }
         <option value="46.0207,7.7491" data-name="MATTERHORN" data-sub="ALPS / SWITZERLAND">Matterhorn, Switzerland</option>
         <option value="37.7459,-119.5332" data-name="HALF DOME" data-sub="YOSEMITE / CALIFORNIA">Half Dome, California</option>
     </select>
+    <button id="soundToggle">SOUND: OFF</button>
     <button id="restart">REPLAY</button>
 </div>
 
@@ -146,9 +153,10 @@ select option { background: #12091f; color: #b9a5c7; }
 <script type="module">
 
 import * as THREE from 'three';
+import { Soundfont } from "https://cdn.jsdelivr.net/npm/smplr@1.2.0/dist/index.mjs";    
 
 // ================================================
-// CONFIGURATION
+// CONFIGURATION & WEB AUDIO (PUDDING-STYLE)
 // ================================================
 
 const DEFAULT_CENTER = {
@@ -175,6 +183,851 @@ const ZOOM_DURATION = 2.5;
 const INITIAL_VERTICAL_EXAGGERATION = 2.8;
 const LINE_OPACITY = 0.65;
 
+// Web Audio setup
+let audioCtx = null;
+let soundEnabled = false;
+
+// ================================================
+// SOUNDFONT INSTRUMENT LIBRARY
+// ================================================
+
+let soundfontInstruments = {};
+let soundfontsReady = false;
+let soundfontsLoading = false;
+let vibesReady = false;
+
+const SOUNDFONT_BASE =
+    "https://gleitz.github.io/midi-js-soundfonts/MusyngKite/";
+
+async function loadSoundfonts() {
+
+    if (soundfontsReady || soundfontsLoading || !audioCtx) return;
+
+    soundfontsLoading = true;
+
+    console.log("Loading mountain music instruments...");
+
+    const instruments = {
+        piano: {
+            file: "acoustic_grand_piano",
+            volume: 78,
+            notes: [60, 62, 64, 67, 69, 72, 74, 76, 79, 81, 84]
+        },
+
+        epiano: {
+            file: "electric_piano_1",
+            volume: 48,
+            notes: [53, 55, 57, 59, 60, 62, 64, 67, 71]
+        },
+
+        bass: {
+            file: "electric_bass_finger",
+            volume: 72,
+            notes: [29, 31, 33, 36]
+        },
+
+        vibes: {
+    file: "vibraphone",
+    volume: 55,
+    notes: [
+        48, 50, 52, 55, 57,
+        60, 62, 64, 67, 69,
+        72, 74, 76, 79, 81,
+        84, 86, 88, 91
+    ]
+}
+    };
+
+    try {
+
+        for (const [name, config] of Object.entries(instruments)) {
+
+            const instrumentUrl =
+                SOUNDFONT_BASE + config.file + "-mp3.js";
+
+            soundfontInstruments[name] = Soundfont(audioCtx, {
+                instrumentUrl,
+                volume: config.volume,
+                notesToLoad: {
+                    notes: config.notes,
+                    fallback: "nearest"
+                }
+            });
+
+        }
+
+        // Wait for the vibraphone first so Phase 1 can use it.
+await soundfontInstruments.vibes.ready;
+
+vibesReady = true;
+
+console.log("Vibraphone ready for Phase 1!");
+
+// Wait for the remaining instruments.
+await Promise.all(
+    Object.values(soundfontInstruments).map(
+        instrument => instrument.ready
+    )
+);
+
+soundfontsReady = true;
+
+console.log("All mountain music instruments loaded!");
+
+        console.log("All mountain music instruments loaded!");
+
+    } catch (error) {
+
+        console.error("Soundfont loading failed:", error);
+
+        soundfontInstruments = {};
+        soundfontsReady = false;
+        vibesReady = false;
+
+    } finally {
+
+        soundfontsLoading = false;
+
+    }
+}
+// Contour-generated Phase 5 music
+let contourTune = [];
+let contourTuneDuration = 0;
+let lastTuneEvent = -1;
+let lastTuneCycle = -1;
+
+// Universal lush ambient chord motif (Hz)
+const ambientMotif = [
+    130.81, 146.83, 164.81, 196.00, 220.00, // C3, D3, E3, G3, A3
+    261.63, 293.66, 329.63, 392.00, 440.00, // C4, D4, E4, G4, A4
+    523.25, 587.33, 659.25, 783.99, 880.00, // C5, D5, E5, G5, A5
+    1046.50, 1174.66, 1318.51, 1567.98      // C6, D6, E6, G6
+];
+
+// Pi digit array for algorithmic data-art mutation
+const piDigits = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7];
+
+function initAudio() {
+
+    if (!audioCtx) {
+        audioCtx = new (
+            window.AudioContext ||
+            window.webkitAudioContext
+        )();
+    }
+
+    if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+    }
+
+    if (!soundfontsReady && !soundfontsLoading) {
+        loadSoundfonts();
+    }
+}
+    
+// Phase 1: Algorithmic Contour Scale Chime
+
+
+function playContourNote(normalizedElevation, index) {
+
+    if (
+        !soundEnabled ||
+        !audioCtx ||
+        !vibesReady ||
+        !soundfontInstruments.vibes
+    ) return;
+
+    const norm = Number.isFinite(normalizedElevation)
+        ? THREE.MathUtils.clamp(normalizedElevation, 0, 1)
+        : 0;
+
+    const safeIndex = Number.isInteger(index) ? index : 0;
+
+    const piMod = piDigits[safeIndex % piDigits.length];
+
+    const motifIndex = Math.floor(
+        (norm * 8 + piMod) % ambientMotif.length
+    );
+
+    const freq = ambientMotif[motifIndex];
+
+    if (!Number.isFinite(freq) || freq <= 0) return;
+
+    const midiNote = Math.round(
+        69 + 12 * Math.log2(freq / 440)
+    );
+
+    const velocity = 45 + norm * 25;
+    const duration = 0.45 + norm * 0.25;
+
+    try {
+        soundfontInstruments.vibes.start({
+            note: midiNote,
+            velocity,
+            time: audioCtx.currentTime,
+            duration
+        });
+    } catch (error) {
+        console.warn("Phase 1 vibraphone note failed:", error);
+    }
+}
+
+// Phase 2: Cinematic Camera Tilt Swoosh
+function playTiltSwoosh() {
+    if (!soundEnabled || !audioCtx) return;
+
+    const now = audioCtx.currentTime;
+
+    const bass = audioCtx.createOscillator();
+    const bassGain = audioCtx.createGain();
+
+    bass.type = 'sine';
+    bass.frequency.setValueAtTime(110, now);
+    bass.frequency.exponentialRampToValueAtTime(45, now + TILT_DURATION);
+
+    bassGain.gain.setValueAtTime(0.0001, now);
+    bassGain.gain.linearRampToValueAtTime(0.035, now + 1.2);
+    bassGain.gain.linearRampToValueAtTime(0.0001, now + TILT_DURATION);
+
+    bass.connect(bassGain);
+    bassGain.connect(audioCtx.destination);
+
+    bass.start(now);
+    bass.stop(now + TILT_DURATION);
+
+    const bufferSize = Math.floor(audioCtx.sampleRate * TILT_DURATION);
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const channel = buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+        channel[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(400, now);
+    filter.frequency.exponentialRampToValueAtTime(1600, now + TILT_DURATION);
+    filter.Q.value = 0.7;
+
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.0001, now);
+    noiseGain.gain.linearRampToValueAtTime(0.018, now + 1.5);
+    noiseGain.gain.linearRampToValueAtTime(0.0001, now + TILT_DURATION);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+
+    noise.start(now);
+    noise.stop(now + TILT_DURATION);
+}
+
+// Phase 3: Unexaggerate Upward Sweep (Reverse Phase 2)
+function playFlattenTick() {
+    if (!soundEnabled || !audioCtx) return;
+
+    const now = audioCtx.currentTime;
+    const duration = UNEXAGGERATE_DURATION;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(55, now);
+    osc.frequency.exponentialRampToValueAtTime(330, now + duration);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(0.03, now + duration * 0.8);
+    gain.gain.linearRampToValueAtTime(0.0001, now + duration);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start(now);
+    osc.stop(now + duration);
+
+    const bufferSize = Math.floor(audioCtx.sampleRate * duration);
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const channel = buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+        channel[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(200, now);
+    filter.frequency.exponentialRampToValueAtTime(1200, now + duration);
+    filter.Q.value = 1.0;
+
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.0001, now);
+    noiseGain.gain.linearRampToValueAtTime(0.015, now + duration * 0.7);
+    noiseGain.gain.linearRampToValueAtTime(0.0001, now + duration);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+
+    noise.start(now);
+    noise.stop(now + duration);
+}
+
+
+// Phase 4: Zoom Shimmer Chime - Sampled Vibraphone
+function playZoomChime() {
+
+    if (
+        !soundEnabled ||
+        !audioCtx ||
+        !vibesReady ||
+        !soundfontInstruments.vibes
+    ) return;
+
+    const now = audioCtx.currentTime;
+
+    const notes = [
+        { note: 72, delay: 0.00, velocity: 55 },
+        { note: 76, delay: 0.22, velocity: 58 },
+        { note: 79, delay: 0.44, velocity: 62 },
+        { note: 84, delay: 0.66, velocity: 66 },
+        { note: 88, delay: 0.90, velocity: 70 }
+    ];
+
+    notes.forEach(note => {
+
+        soundfontInstruments.vibes.start({
+            note: note.note,
+            velocity: note.velocity,
+            time: now + note.delay,
+            duration: 1.8
+        });
+
+    });
+}
+
+
+// ================================================
+// PHASE 5: PROCEDURAL LO-FI MUSIC GENERATOR
+// ================================================
+
+const MUSIC_BPM = 82;
+const BEAT_DURATION = 60 / MUSIC_BPM;
+const EIGHTH_DURATION = BEAT_DURATION / 2;
+const MUSIC_LOOKAHEAD = 0.14;
+
+// C major pentatonic, spread over two octaves
+const MELODY_SCALE = [
+    60, 62, 64, 67, 69,
+    72, 74, 76, 79, 81, 84
+];
+
+// Four-bar chord progression: Cmaj7, Am7, Fmaj7, G6
+const CHORD_PROGRESSION = [
+    { root: 48, notes: [60, 64, 67, 71] },
+    { root: 45, notes: [57, 60, 64, 67] },
+    { root: 41, notes: [53, 57, 60, 64] },
+    { root: 43, notes: [55, 59, 62, 64] }
+];
+
+let musicEvents = [];
+let musicLoopDuration = 0;
+let nextMusicEvent = 0;
+let lastMusicCycle = -1;
+
+function midiToFrequency(midi) {
+    return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+
+// --------------------------------
+// MELODY VOICE
+// --------------------------------
+
+
+// --------------------------------
+// SAMPLED MELODY VOICE
+// --------------------------------
+
+function playMelodyNote(note, startAt) {
+
+    if (!soundEnabled || !soundfontsReady) return;
+
+    const piano = soundfontInstruments.piano;
+    if (!piano) return;
+
+    const velocity = Math.round(
+        58 + note.complexity * 28
+    );
+
+    piano.start({
+        note: note.pitch,
+        velocity,
+        time: startAt,
+        duration: note.duration
+    });
+
+    // Occasional vibraphone embellishment
+    if (note.complexity > 0.78 && note.index % 3 === 0) {
+
+        const vibes = soundfontInstruments.vibes;
+
+        if (vibes) {
+            vibes.start({
+                note: Math.min(note.pitch + 12, 96),
+                velocity: 55,
+                time: startAt + 0.08,
+                duration: 0.4
+            });
+        }
+    }
+}
+
+
+// --------------------------------
+// SAMPLED BASS VOICE
+// --------------------------------
+
+function playMusicBass(midi, startAt) {
+
+    if (!soundEnabled || !soundfontsReady) return;
+
+    const bass = soundfontInstruments.bass;
+    if (!bass) return;
+
+    bass.start({
+        note: midi,
+        velocity: 76,
+        time: startAt,
+        duration: 0.65
+    });
+}
+
+
+// --------------------------------
+// SAMPLED CHORD VOICE
+// --------------------------------
+
+function playMusicChord(notes, startAt) {
+
+    if (!soundEnabled || !soundfontsReady) return;
+
+    const epiano = soundfontInstruments.epiano;
+    if (!epiano) return;
+
+    notes.forEach((midi, index) => {
+
+        epiano.start({
+            note: midi,
+            velocity: 48 + index * 3,
+            time: startAt + index * 0.025,
+            duration: BEAT_DURATION * 3.7
+        });
+
+    });
+}
+
+
+
+
+// ================================================
+// GENERATE A LANDSCAPE-SPECIFIC COMPOSITION
+// ================================================
+
+function createContourTune() {
+
+    musicEvents = [];
+    musicLoopDuration = 0;
+    nextMusicEvent = 0;
+    lastMusicCycle = -1;
+
+    if (!contourObjects.length) return;
+
+    const sortedContours = [...contourObjects].sort(
+        (a, b) => a.elevation - b.elevation
+    );
+
+    // --------------------------------
+    // MEASURE CONTOUR GEOMETRY
+    // --------------------------------
+
+    const measurements = sortedContours.map(item => {
+
+        const positions = item.strokes[0].basePositions;
+
+        let totalLength = 0;
+        let weightedX = 0;
+
+        for (let i = 0; i < positions.length - 5; i += 6) {
+
+            const x1 = positions[i];
+            const z1 = positions[i + 2];
+            const x2 = positions[i + 3];
+            const z2 = positions[i + 5];
+
+            const dx = x2 - x1;
+            const dz = z2 - z1;
+            const length = Math.sqrt(dx * dx + dz * dz);
+
+            totalLength += length;
+            weightedX += ((x1 + x2) / 2) * length;
+        }
+
+        return {
+            elevation: item.elevation,
+            length: totalLength,
+            centreX: totalLength > 0 ? weightedX / totalLength : 0,
+            complexity: item.vertexCount / 2
+        };
+    });
+
+    const maxLength = Math.max(
+        ...measurements.map(m => m.length),
+        1
+    );
+
+    const maxComplexity = Math.max(
+        ...measurements.map(m => m.complexity),
+        1
+    );
+
+    // --------------------------------
+    // CREATE A MUSICAL FINGERPRINT
+    // --------------------------------
+
+    // The fingerprint is derived from the actual landscape.
+    // The same terrain will always generate the same music.
+
+    let fingerprint = 2166136261;
+
+    measurements.forEach(item => {
+
+        const values = [
+            Math.round(item.elevation * 10),
+            Math.round(item.length * 100),
+            Math.round(item.centreX * 100),
+            Math.round(item.complexity * 10)
+        ];
+
+        values.forEach(value => {
+
+            fingerprint ^= value;
+            fingerprint = Math.imul(fingerprint, 16777619);
+
+        });
+    });
+
+    fingerprint >>>= 0;
+
+    // --------------------------------
+    // MUSICAL PERSONALITIES
+    // --------------------------------
+
+    // Each landscape selects one of four musical characters.
+    // All remain compatible with the existing instruments.
+
+    const musicalStyles = [
+
+        {
+            name: "Dreamy Major",
+            scale: [60, 62, 64, 67, 69, 72, 74, 76, 79, 81, 84],
+
+            chords: [
+                { root: 48, notes: [60, 64, 67, 71] },
+                { root: 45, notes: [57, 60, 64, 67] },
+                { root: 41, notes: [53, 57, 60, 64] },
+                { root: 43, notes: [55, 59, 62, 64] }
+            ],
+
+            tempo: 1.00
+        },
+
+        {
+            name: "Gentle Minor",
+            scale: [57, 60, 62, 64, 67, 69, 72, 74, 76, 79, 81],
+
+            chords: [
+                { root: 45, notes: [57, 60, 64, 67] },
+                { root: 41, notes: [53, 57, 60, 64] },
+                { root: 48, notes: [55, 60, 64, 69] },
+                { root: 43, notes: [55, 59, 62, 67] }
+            ],
+
+            tempo: 0.92
+        },
+
+        {
+            name: "Mountain Dorian",
+            scale: [62, 64, 65, 67, 69, 71, 72, 74, 76, 77, 81],
+
+            chords: [
+                { root: 50, notes: [62, 65, 69, 72] },
+                { root: 55, notes: [59, 62, 65, 69] },
+                { root: 48, notes: [60, 64, 67, 71] },
+                { root: 50, notes: [62, 65, 69, 72] }
+            ],
+
+            tempo: 1.08
+        },
+
+        {
+            name: "Open Skies",
+            scale: [55, 57, 59, 62, 64, 67, 69, 71, 74, 76, 79],
+
+            chords: [
+                { root: 43, notes: [55, 59, 62, 66] },
+                { root: 50, notes: [57, 62, 66, 69] },
+                { root: 48, notes: [55, 60, 64, 69] },
+                { root: 45, notes: [57, 62, 64, 69] }
+            ],
+
+            tempo: 1.05
+        }
+
+    ];
+
+    const style = musicalStyles[
+        fingerprint % musicalStyles.length
+    ];
+
+    const MELODY_SCALE = style.scale;
+    const CHORD_PROGRESSION = style.chords;
+
+    // Slightly vary tempo according to the landscape.
+    const tempoVariation =
+        ((fingerprint >>> 8) % 9 - 4) * 0.015;
+
+    const beatDuration =
+        BEAT_DURATION * style.tempo * (1 + tempoVariation);
+
+    const eighthDuration = beatDuration / 2;
+
+    // --------------------------------
+    // DETERMINE COMPOSITION LENGTH
+    // --------------------------------
+
+    const bars = Math.max(
+        4,
+        Math.ceil(measurements.length / 32) * 4
+    );
+
+    const beatsPerBar = 4;
+
+    musicLoopDuration = bars * beatsPerBar * beatDuration;
+
+    // --------------------------------
+    // CHORDS AND BASS
+    // --------------------------------
+
+    for (let bar = 0; bar < bars; bar++) {
+
+        const chord = CHORD_PROGRESSION[bar % 4];
+        const barTime = bar * beatsPerBar * beatDuration;
+
+        musicEvents.push({
+            time: barTime,
+            type: 'chord',
+            notes: chord.notes
+        });
+
+        for (let beat = 0; beat < beatsPerBar; beat++) {
+
+            musicEvents.push({
+                time: barTime + beat * beatDuration,
+                type: 'bass',
+                pitch: chord.root - 12
+            });
+        }
+    }
+
+    // --------------------------------
+    // CONTOUR MELODY
+    // --------------------------------
+
+    measurements.forEach((item, index) => {
+
+        const elevation = THREE.MathUtils.clamp(
+            (item.elevation - minElevVal) /
+            (maxElevVal - minElevVal || 1),
+            0,
+            1
+        );
+
+        const size = Math.sqrt(item.length / maxLength);
+
+        const complexity =
+            Math.log1p(item.complexity) /
+            Math.log1p(maxComplexity);
+
+        // Elevation determines the basic note.
+        let scaleIndex = Math.round(
+            elevation * (MELODY_SCALE.length - 1)
+        );
+
+        // Contour size adds a little melodic variation.
+        if (size > 0.65 && index % 3 === 0) {
+            scaleIndex += 1;
+        }
+
+        if (complexity > 0.75 && index % 4 === 0) {
+            scaleIndex -= 1;
+        }
+
+        scaleIndex = THREE.MathUtils.clamp(
+            scaleIndex,
+            0,
+            MELODY_SCALE.length - 1
+        );
+
+        const pitch = MELODY_SCALE[scaleIndex];
+
+        const piModifier = piDigits[index % piDigits.length];
+
+        const duration = 0.24 + size * 0.35;
+
+        const volume = 0.018 + complexity * 0.012;
+
+        const pan = THREE.MathUtils.clamp(
+            item.centreX / ((sceneBoundingSize || 1) / 2),
+            -0.85,
+            0.85
+        );
+
+        const time = index * eighthDuration;
+
+        if (time >= musicLoopDuration) return;
+
+        const isRest =
+            piModifier === 9 && index % 3 === 0;
+
+        if (!isRest) {
+
+            musicEvents.push({
+                time,
+                type: 'melody',
+                pitch,
+                duration,
+                volume,
+                pan,
+                complexity,
+                index
+            });
+        }
+
+        // Occasional echo notes.
+        if (complexity > 0.85 && index % 5 === 0) {
+
+            musicEvents.push({
+                time: time + eighthDuration * 0.5,
+                type: 'melody',
+                pitch: Math.min(pitch + 7, 84),
+                duration: 0.2,
+                volume: volume * 0.45,
+                pan: -pan,
+                complexity: 0.2,
+                index
+            });
+        }
+    });
+
+    // --------------------------------
+    // SORT MUSICAL EVENTS
+    // --------------------------------
+
+    const priority = {
+        chord: 0,
+        bass: 1,
+        melody: 2
+    };
+
+    musicEvents.sort((a, b) =>
+        a.time - b.time ||
+        priority[a.type] - priority[b.type]
+    );
+
+    console.log(
+        'Generated mountain composition:',
+        style.name,
+        '| Tempo factor:',
+        (style.tempo * (1 + tempoVariation)).toFixed(2),
+        '|',
+        musicEvents.length,
+        'events;',
+        bars,
+        'bars;',
+        musicLoopDuration.toFixed(1),
+        'seconds'
+    );
+}
+
+
+
+// ================================================
+// SCHEDULE MUSIC AGAINST THE AUDIO CLOCK
+// ================================================
+
+function scheduleMusicEvent(event, startAt) {
+    if (event.type === 'chord') {
+        playMusicChord(event.notes, startAt);
+    } else if (event.type === 'bass') {
+        playMusicBass(event.pitch, startAt);
+    } else if (event.type === 'melody') {
+        playMelodyNote(event, startAt);
+    }
+}
+
+
+function updateContourMusic(rotationTime) {
+    if (
+        !soundEnabled ||
+        !audioCtx ||
+        !musicEvents.length ||
+        !musicLoopDuration
+    ) {
+        return;
+    }
+
+    const cycle = Math.floor(rotationTime / musicLoopDuration);
+    const position = rotationTime % musicLoopDuration;
+
+    // Start at the correct place when a new musical cycle begins.
+    // This also handles enabling sound part-way through the animation.
+    if (cycle !== lastMusicCycle) {
+        nextMusicEvent = 0;
+        lastMusicCycle = cycle;
+
+        while (
+            nextMusicEvent < musicEvents.length &&
+            musicEvents[nextMusicEvent].time < position - 0.03
+        ) {
+            nextMusicEvent++;
+        }
+    }
+
+    // Schedule a short distance into the future.
+    // Web Audio handles the actual timing accurately.
+    while (nextMusicEvent < musicEvents.length) {
+        const event = musicEvents[nextMusicEvent];
+
+        if (event.time > position + MUSIC_LOOKAHEAD) {
+            break;
+        }
+
+        const delay = Math.max(0, event.time - position);
+        const startAt = audioCtx.currentTime + delay;
+
+        scheduleMusicEvent(event, startAt);
+
+        nextMusicEvent++;
+    }
+}
+
 // ================================================
 // GLOBAL VARIABLES
 // ================================================
@@ -182,6 +1035,7 @@ const LINE_OPACITY = 0.65;
 const container = document.getElementById('scene');
 const status = document.getElementById('status');
 const locationSelect = document.getElementById('locationSelect');
+const soundToggle = document.getElementById('soundToggle');
 
 let contourObjects = [];
 let startTime = null;
@@ -193,8 +1047,11 @@ let mountainCentreHeight = 0;
 
 let minElevVal = 0;
 let maxElevVal = 0;
-
 let buildVersion = 0;
+
+let tiltSoundTriggered = false;
+let flattenSoundTriggered = false;
+let zoomSoundTriggered = false;
 
 // ================================================
 // THREE.JS SCENE
@@ -471,7 +1328,7 @@ function addContour(item, colour) {
         strokes.push({ line, geometry, basePositions });
     }
 
-    return { strokes, vertexCount, elevation: item.elevation };
+    return { strokes, vertexCount, elevation: item.elevation, soundPlayed: false };
 }
 
 function clearMountain() {
@@ -576,6 +1433,8 @@ async function build() {
         item.geometry.dispose();
     });
 
+    createContourTune();
+
     const aspect = window.innerWidth / window.innerHeight;
     baseViewSize = sceneBoundingSize * 1.05;
 
@@ -603,7 +1462,14 @@ function replayAnimation() {
     animationFinished = false;
     mountain.rotation.set(0, 0, 0);
 
+    tiltSoundTriggered = false;
+    flattenSoundTriggered = false;
+    zoomSoundTriggered = false;
+    nextMusicEvent = 0;
+    lastMusicCycle = -1;
+
     contourObjects.forEach(item => {
+        item.soundPlayed = false;
         item.strokes.forEach(strokeData => {
             strokeData.geometry.setDrawRange(0, 0);
             const posAttr = strokeData.geometry.attributes.position;
@@ -651,6 +1517,12 @@ function animate(now) {
             const lineProgress = THREE.MathUtils.clamp((drawProgress - start) / duration, 0, 1);
             const drawCount = Math.floor(item.vertexCount * lineProgress);
 
+            if (lineProgress > 0 && !item.soundPlayed) {
+                const normElev = (item.elevation - minElevVal) / (maxElevVal - minElevVal || 1);
+                playContourNote(normElev, index);
+                item.soundPlayed = true;
+            }
+
             item.strokes.forEach(strokeData => {
                 strokeData.geometry.setDrawRange(0, drawCount);
             });
@@ -658,6 +1530,11 @@ function animate(now) {
 
         // Phase 2: Camera tilt
         const tiltProgress = THREE.MathUtils.clamp((elapsed - DRAW_DURATION) / TILT_DURATION, 0, 1);
+        if (tiltProgress > 0 && !tiltSoundTriggered) {
+            playTiltSwoosh();
+            tiltSoundTriggered = true;
+        }
+
         const tiltEased = 1 - Math.pow(1 - tiltProgress, 3);
         const currentZoom = THREE.MathUtils.lerp(0.38, 1.0, drawProgress);
 
@@ -684,6 +1561,11 @@ function animate(now) {
 
         // Phase 3: Reduce vertical exaggeration
         const unexaggerateProgress = THREE.MathUtils.clamp((elapsed - DRAW_DURATION - TILT_DURATION) / UNEXAGGERATE_DURATION, 0, 1);
+        if (unexaggerateProgress > 0 && !flattenSoundTriggered) {
+            playFlattenTick();
+            flattenSoundTriggered = true;
+        }
+
         if (unexaggerateProgress > 0) {
             const scaleEased = 1 - Math.pow(1 - unexaggerateProgress, 3);
             const currentExaggeration = THREE.MathUtils.lerp(INITIAL_VERTICAL_EXAGGERATION, 1.0, scaleEased);
@@ -704,17 +1586,24 @@ function animate(now) {
 
         // Phase 4: Final 3x zoom
         const zoomProgress = THREE.MathUtils.clamp((elapsed - DRAW_DURATION - TILT_DURATION - UNEXAGGERATE_DURATION) / ZOOM_DURATION, 0, 1);
+        if (zoomProgress > 0 && !zoomSoundTriggered) {
+            playZoomChime();
+            zoomSoundTriggered = true;
+        }
+
         const zoomEased = 1 - Math.pow(1 - zoomProgress, 3);
         const targetZoom = THREE.MathUtils.lerp(currentZoom, currentZoom * 3.0, zoomEased);
 
         camera.zoom = targetZoom;
         camera.updateProjectionMatrix();
 
-        // Phase 5: Continuous rotation
+        // Phase 5: Continuous rotation & Music Box playback
         const totalPhaseDuration = DRAW_DURATION + TILT_DURATION + UNEXAGGERATE_DURATION + ZOOM_DURATION;
         if (elapsed >= totalPhaseDuration) {
             const rotationTime = elapsed - totalPhaseDuration;
             mountain.rotation.y = rotationTime * 0.25;
+
+            updateContourMusic(rotationTime);
         }
 
         // Status messages
@@ -760,6 +1649,18 @@ locationSelect.addEventListener('change', (e) => {
     location.hash = `${lat},${lon}`;
 });
 
+soundToggle.addEventListener('click', () => {
+    initAudio();
+    soundEnabled = !soundEnabled;
+    if (soundEnabled) {
+        soundToggle.textContent = 'SOUND: ON';
+        soundToggle.classList.add('active');
+    } else {
+        soundToggle.textContent = 'SOUND: OFF';
+        soundToggle.classList.remove('active');
+    }
+});
+
 document.getElementById('restart').addEventListener('click', replayAnimation);
 window.addEventListener('hashchange', loadFromHash);
 
@@ -771,7 +1672,7 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Initial load check - Always force Mount Fuji if no hash is present
+// Initial load check - Always default to Mount Fuji
 if (!location.hash) {
     location.hash = `${DEFAULT_CENTER.lat},${DEFAULT_CENTER.lon}`;
 } else {
