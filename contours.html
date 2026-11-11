@@ -44,6 +44,21 @@ h1 { color: white; margin: 0; }
     width: 300px;
 }
 
+.about-link {
+    display: inline-block;
+    margin-bottom: 8px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #b9a5c7;
+    text-decoration: underline;
+    text-transform: uppercase;
+}
+
+.about-link:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
 .legend-bar {
     height: 13px;
     border: 1px solid rgba(100,80,120,.3);
@@ -81,7 +96,7 @@ h1 { color: white; margin: 0; }
     gap: 10px;
 }
 
-button, select {
+button, select, .btn-link {
     background: #12091f;
     border: 1px solid #9275b5;
     color: #b9a5c7;
@@ -91,9 +106,11 @@ button, select {
     cursor: pointer;
     outline: none;
     font-family: Arial, sans-serif;
+    text-decoration: none;
+    display: inline-block;
 }
 
-button:hover, select:hover { background: #23123b; }
+button:hover, select:hover, .btn-link:hover { background: #23123b; }
 select option { background: #12091f; color: #b9a5c7; }
 
 #soundToggle.active {
@@ -106,7 +123,12 @@ select option { background: #12091f; color: #b9a5c7; }
     h1 { font-size: 19px; }
     #legend { width: 220px; }
     #hud { top: 18px; left: 16px; }
-    .controls { top: 75px; right: 16px; flex-direction: column; width: 160px; }
+    .controls {
+        top: 75px;
+        right: 16px;
+        flex-direction: column;
+        width: 160px;
+    }
     #status { right: 16px; bottom: 85px; }
 }
 </style>
@@ -141,6 +163,7 @@ select option { background: #12091f; color: #b9a5c7; }
 </div>
 
 <div id="legend">
+    <a href="https://googlemapsmania.blogspot.com/2026/11/the-hills-are-alive-with-sound-of-music.html" target="_blank" rel="noopener" class="about-link">ABOUT</a>
     <div class="legend-bar"></div>
     <div class="legend-labels">
         <span id="highLabel">HIGH</span>
