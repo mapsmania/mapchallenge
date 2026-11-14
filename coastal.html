@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Never-Ending Coastline</title>
+<link href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js"></script>
+<style>
+:root{--bg:#080d13;--panel:#101923;--panel2:#142230;--line:#263847;--text:#e8f0f5;--muted:#8fa3b3;--cyan:#36d9e8;--lime:#b6e36a;--orange:#ffb45e;--pink:#ef83aa}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}body{overflow:hidden}.app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 390px}.map-wrap{position:relative;min-width:0;background:#0c1a24}#map{position:absolute;inset:0}.map-tag{position:absolute;z-index:2;left:18px;top:18px;background:#08121de8;border:1px solid #3a5363;border-radius:8px;padding:10px 13px;backdrop-filter:blur(8px)}.eyebrow{font-size:10px;letter-spacing:.18em;color:var(--cyan);font-weight:800}.map-tag strong{display:block;font-size:15px;margin-top:4px}.map-tag small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.map-note{position:absolute;bottom:16px;left:16px;z-index:2;background:#08121de8;border:1px solid #3a5363;border-radius:7px;padding:8px 11px;font-size:11px;color:#b6c7d2;max-width:330px}.legend{position:absolute;right:16px;top:16px;z-index:2;background:#08121de8;border:1px solid #3a5363;border-radius:8px;padding:10px 12px;font-size:11px;display:grid;gap:7px}.legend span{display:flex;align-items:center;gap:8px}.swatch{width:18px;height:3px;border-radius:4px;display:inline-block}
+aside{height:100%;overflow:auto;background:var(--panel);border-left:1px solid var(--line);padding:24px 22px 30px}h1{font-size:29px;line-height:1.03;letter-spacing:-.04em;margin:13px 0 9px}
+
+/* Increased main intro body text size */
+.intro{font-size:14px;line-height:1.6;color:#b1c1cc;margin:0 0 20px}
+.section-label{font-size:10px;letter-spacing:.15em;color:var(--muted);font-weight:800;margin:19px 0 10px}.btn{border:1px solid #3b5362;background:#182733;color:var(--text);border-radius:7px;padding:9px 12px;font-size:11px;font-weight:700;cursor:pointer;flex:1}.btn.primary{background:var(--cyan);color:#061319;border-color:var(--cyan)}
+
+/* Increased general explain text size from 13px to 15px */
+.explain{font-size:15px;line-height:1.6;color:#aebdc8}
+.footnote{font-size:10px;line-height:1.5;color:#788d9c;border-top:1px solid var(--line);padding-top:12px;margin-top:18px}
+@media(max-width:850px){body{overflow:auto}.app{height:auto;min-height:100%;display:flex;flex-direction:column}.map-wrap{height:54vh;min-height:350px}aside{height:auto;overflow:visible;border-left:0;border-top:1px solid var(--line);padding:20px}.map-note{max-width:260px}}
+ 
+/* Scrollytelling layout */
+body{overflow:hidden}.app{grid-template-columns:minmax(0,1fr) minmax(360px,470px)}
+.map-wrap{height:100vh;position:sticky;top:0}
+aside{height:100vh;overflow-y:auto;overscroll-behavior:contain;padding:0 28px 60px;scroll-behavior:smooth}
+.story-intro{min-height:105vh;display:flex;flex-direction:column;justify-content:center;padding:44px 0 34px;opacity:.45;transition:opacity .35s}
+.story-intro.active{opacity:1}
+.story-intro h1{font-size:clamp(34px,4vw,48px)}
+.scroll-cue{margin-top:38px;color:var(--cyan);font-size:10px;font-weight:800;letter-spacing:.16em}.scroll-cue span{display:block;font-size:24px;margin-top:8px}
+.story-step{min-height:105vh;padding:70px 0 60px;border-top:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;opacity:.35;transition:opacity .35s}
+.story-step.unfold-step{border-top:1px dashed #223442}
+.story-step.active{opacity:1}.step-kicker{font-size:10px;letter-spacing:.16em;color:var(--cyan);font-weight:850;margin-bottom:14px}
+.step-kicker.orange{color:var(--orange)}.step-kicker.pink{color:var(--pink)}.step-kicker.lime{color:var(--lime)}
+
+/* Headings remain untouched */
+.story-step h2,.story-ending h2{font-size:clamp(27px,3vw,36px);line-height:1.05;letter-spacing:-.04em;margin:0 0 14px}
+
+/* Increased story-step and story-ending explanation text size from 13px to 15px */
+.story-step .explain,.story-ending .explain{font-size:15px;line-height:1.7;color:#b1c1cc;margin:0 0 12px}
+.metric{margin:16px 0;padding:15px 16px;border:1px solid #32606a;background:#10232c;border-radius:10px;display:grid;gap:5px}
+.metric>span{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.metric strong{font-size:32px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}.metric small{font-size:11px;color:var(--muted)}
+.orange-metric{border-color:#755638;background:#292117}.orange-metric strong{color:var(--orange)}.pink-metric{border-color:#70465a;background:#291b25}.pink-metric strong{color:var(--pink)}
+.paradox-callout{margin:16px 0;padding:14px 16px;border-left:3px solid var(--cyan);background:#0c1721;border-radius:0 8px 8px 0}
+.paradox-callout strong{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan);margin-bottom:6px}
+
+/* Increased paradox callout paragraph text size from 12px to 14px */
+.paradox-callout p{margin:0;font-size:14px;line-height:1.6;color:#9eb3c2}
+.paradox-callout.orange{border-left-color:var(--orange)}.paradox-callout.orange strong{color:var(--orange)}
+.paradox-callout.pink{border-left-color:var(--pink)}.paradox-callout.pink strong{color:var(--pink)}
+.step-transition{margin-top:24px;color:var(--cyan);font-size:12px;font-weight:700;line-height:1.6}.step-transition span{display:block;font-size:22px;margin-top:5px}
+.final-comparison{margin:20px 0;padding:18px;border:1px solid #70465a;background:#291b25;border-radius:10px}
+
+/* Increased final comparison text size */
+.final-comparison p{font-size:14px;line-height:1.6;color:#b1c1cc;margin:4px 0 8px}
+.final-comparison strong{font-size:36px;color:var(--pink);font-variant-numeric:tabular-nums}
+.story-ending{min-height:105vh;padding:70px 0 50px;border-top:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;opacity:.35;transition:opacity .35s}.story-ending.active{opacity:1}.back-to-start{margin-top:24px;flex:0 0 auto}
+@media(max-width:850px){body{overflow:auto}.app{height:auto;min-height:100%;display:block}.map-wrap{height:43vh;min-height:280px;position:sticky;top:0;z-index:5}
+.map-tag{left:10px;top:10px;padding:8px 10px}.map-tag strong{font-size:13px}.legend{right:10px;top:10px;padding:7px 9px;font-size:9px}.map-note{bottom:8px;left:10px;font-size:9px;max-width:220px}
+aside{height:auto;overflow:visible;border:0;padding:0 22px 45px}.story-intro{min-height:65vh;padding:40px 0}.story-step{min-height:95vh;padding:55px 0;opacity:.5}.story-step.active{opacity:1}.story-ending{min-height:85vh}}
+</style>
+</head>
+<body>
+<div class="app">
+ <main class="map-wrap">
+  <div id="map"></div>
+  <div class="map-tag"><div class="eyebrow">30 DAY MAP CHALLENGE · BORGESIAN MAP</div><strong>The Never-Ending Coastline</strong><small>Illustrating the Coastline Paradox across three cartographic scales</small></div>
+  <div class="legend"><span><i class="swatch" style="background:#36d9e8"></i> Level 1 · broad outline</span><span><i class="swatch" style="background:#ffb45e"></i> Level 2 · added detail</span><span><i class="swatch" style="background:#ef83aa"></i> Level 3 · fine detail</span></div>
+  <div class="map-note">Scroll the story to explore the coastline paradox and compare all three straightened traces at the end.</div>
+ </main>
+ <aside id="storyScroll">
+  <header class="story-intro active" data-level="0" data-unfold="0">
+   <div class="section-label">THE COASTLINE PARADOX</div><h1>The Never-<br>Ending Coastline</h1>
+   <p class="intro">How long is a coastline? In cartography and mathematics, this seemingly simple question has no single answer—a phenomenon known as the <strong>coastline paradox</strong>.</p>
+   <p class="intro">Unlike a smooth geometric shape, a natural shoreline is self-similar and irregular at every scale. The smaller the ruler you use to measure it, the longer the coastline becomes. Scroll down to watch this paradox unfold across three resolutions of the same shore.</p>
+   <div class="scroll-cue">SCROLL TO EXPLORE <span>↓</span></div>
+  </header>
+
+  <!-- LEVEL 1: TRACE -->
+  <section class="story-step" data-level="0" data-unfold="0">
+   <div class="step-kicker">LEVEL 1 / COARSE RESOLUTION</div><h2>Measuring with a long ruler</h2>
+   <p class="explain">Imagine walking along the shore with a giant pair of dividers set to wide intervals. You step straight across smaller bays, inlets and rocky headlands, capturing only the coastline's broad silhouette.</p>
+   <div class="metric"><span>Measured coastline</span><strong id="length-0">Loading…</strong><small id="meta-0">—</small></div>
+   <div class="paradox-callout">
+    <strong>Richardson’s Discovery</strong>
+    <p>In the 1950s, English mathematician Lewis Fry Richardson noticed that Spain and Portugal reported wildly different lengths for their shared border—simply because each country mapped it at a different scale.</p>
+   </div>
+   <p class="step-transition">Keep scrolling to straighten this coarse outline horizontally. <span>↓</span></p>
+  </section>
+
+  <!-- LEVEL 1: UNFOLD -->
+  <section class="story-step unfold-step" data-level="0" data-unfold="1">
+   <div class="step-kicker lime">LEVEL 1 / STRAIGHTENED</div><h2>Unfolding the broad outline</h2>
+   <p class="explain">As the bends flatten out into a horizontal line on the map, each segment preserves its exact geodesic length. This gives us our baseline bar—the shortest measurement of the three.</p>
+   <p class="step-transition">Now let's shorten our measuring stick and zoom in closer. <span>↓</span></p>
+  </section>
+
+  <!-- LEVEL 2: TRACE -->
+  <section class="story-step" data-level="1" data-unfold="0">
+   <div class="step-kicker orange">LEVEL 2 / MEDIUM RESOLUTION</div><h2>More bends, more coastline</h2>
+   <p class="explain">When we reduce our cartographic generalization, we trace deeper into coves and hug smaller promontories. Both endpoints remain anchored on the exact same spots on the shore, yet the path between them grows substantially longer.</p>
+   <div class="metric orange-metric"><span>Measured coastline</span><strong id="length-1">—</strong><small id="meta-1">—</small></div>
+   <div class="paradox-callout orange">
+    <strong>Why It Doesn’t Converge</strong>
+    <p>If you measure a smooth circle with smaller and smaller rulers, your total approaches a fixed limit (2πr). A fractal coastline never settles on a limit—each new level of detail uncovers previously hidden perimeter.</p>
+   </div>
+   <p class="step-transition">Scroll down to unfold Level 2 and see how much further it stretches. <span>↓</span></p>
+  </section>
+
+  <!-- LEVEL 2: UNFOLD -->
+  <section class="story-step unfold-step" data-level="1" data-unfold="1">
+   <div class="step-kicker lime">LEVEL 2 / STRAIGHTENED</div><h2>Stretching further east</h2>
+   <p class="explain">Straightened horizontally, Level 2 extends noticeably further across the map than Level 1. That extra distance was always physically present in the landscape; our coarser map simply stepped right over it.</p>
+   <p class="step-transition">Let's take this to our highest cartographic resolution. <span>↓</span></p>
+  </section>
+
+  <!-- LEVEL 3: TRACE -->
+  <section class="story-step" data-level="2" data-unfold="0">
+   <div class="step-kicker pink">LEVEL 3 / FINE RESOLUTION</div><h2>Keep looking closer</h2>
+   <p class="explain">Now we follow the full, unsimplified trace. Every tiny indentation and coastal twist captured in our source dataset is included, producing our longest measurement yet.</p>
+   <div class="metric pink-metric"><span>Measured coastline</span><strong id="length-2">—</strong><small id="meta-2">—</small></div>
+   <div class="paradox-callout pink">
+    <strong>Mandelbrot & Fractal Dimension</strong>
+    <p>In 1967, Benoit Mandelbrot used this exact problem to introduce fractal geometry. Because rugged coastlines have a fractal dimension greater than 1 (around 1.25 for Britain), their measured length obeys a power law that grows without bound as scale shrinks.</p>
+   </div>
+   <p class="step-transition">Scroll down to unfold Level 3 and compare all three lines together. <span>↓</span></p>
+  </section>
+
+  <!-- LEVEL 3: UNFOLD -->
+  <section class="story-step unfold-step" data-level="2" data-unfold="1">
+   <div class="step-kicker lime">LEVEL 3 / STRAIGHTENED</div><h2>The longest line yet</h2>
+   <p class="explain">Even this is not the final answer. If we surveyed individual boulders, pebbles, or grains of sand, the line would keep stretching further and further to the right.</p>
+   <div class="final-comparison"><div class="section-label">THE SCALE EFFECT</div><p>Simply by increasing map resolution between the exact same two endpoints, the measured coastline grows by:</p><strong id="increase">—</strong></div>
+   <p class="step-transition">Scroll down to compare all three straightened lengths side by side. <span>↓</span></p>
+  </section>
+
+  <!-- ENDING: SIDE-BY-SIDE COMPARISON -->
+  <section class="story-ending" data-level="2" data-unfold="1" data-compare="1">
+   <div class="step-kicker lime">SIDE-BY-SIDE COMPARISON</div><h2>Three rulers, three different lengths.</h2>
+   <p class="explain">On the map, all three resolutions are now straightened side by side from the exact same starting point. Even though they represent the <strong>same stretch of coast</strong>, every increase in cartographic detail adds measurable distance.</p>
+   <p class="explain">In pure mathematics, an idealized fractal coastline has an infinite perimeter enclosing a finite area. In real-world cartography, every published coastline figure is only meaningful when paired with the scale and resolution at which it was measured.</p>
+   <div class="footnote"><strong>Data note:</strong> All three coastline traces are generated from inner.geojson. The two coarser traces are Douglas–Peucker simplifications of the detailed line, targeting lengths approximately 1 km and 2 km shorter than the full trace. Lengths are geodesic estimates calculated from the supplied coordinates. The Google satellite tile URL is an unofficial endpoint, so check its terms and reliability before publishing.</div>
+   <button class="btn primary back-to-start" id="backToStart">Back to the beginning ↑</button>
+  </section>
+ </aside>
+</div>
+<script>
+// ==================================================
+// THE NEVER-ENDING COASTLINE
+// Real GeoJSON traces + horizontal geodesic unfolding
+// ==================================================
+
+const INNER_TRACE_URL = 'https://mapsmania.github.io/mapchallenge/inner.geojson';
+const TARGET_STEP_METRES = 1000;
+const BASE_MAP_ZOOM = 11.2;
+const ZOOM_PER_LEVEL = 0.7;
+
+const TRACE_STYLES = [
+    { name: 'Level 1 · broad outline', color: '#36d9e8' },
+    { name: 'Level 2 · medium detail', color: '#ffb45e' },
+    { name: 'Level 3 · fine detail', color: '#ef83aa' }
+];
+
+const EARTH_RADIUS = 6371008.8;
+const rad = degrees => degrees * Math.PI / 180;
+const deg = radians => radians * 180 / Math.PI;
+
+function haversine(a, b) {
+    const p1 = rad(a[1]), p2 = rad(b[1]);
+    const dp = rad(b[1] - a[1]);
+    const dl = rad(b[0] - a[0]);
+    const h = Math.sin(dp / 2) ** 2 +
+        Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+    return 2 * EARTH_RADIUS * Math.asin(Math.sqrt(h));
+}
+
+function initialBearing(a, b) {
+    const p1 = rad(a[1]), p2 = rad(b[1]), dl = rad(b[0] - a[0]);
+    return Math.atan2(
+        Math.sin(dl) * Math.cos(p2),
+        Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl)
+    );
+}
+
+// Compute a destination point given start [lon, lat], bearing (radians), and distance (metres)
+function destinationPoint(start, bearing, distance) {
+    const ad = distance / EARTH_RADIUS;
+    const p1 = rad(start[1]);
+    const l1 = rad(start[0]);
+
+    const p2 = Math.asin(
+        Math.sin(p1) * Math.cos(ad) +
+        Math.cos(p1) * Math.sin(ad) * Math.cos(bearing)
+    );
+    const l2 = l1 + Math.atan2(
+        Math.sin(bearing) * Math.sin(ad) * Math.cos(p1),
+        Math.cos(ad) - Math.sin(p1) * Math.sin(p2)
+    );
+
+    return [deg(l2), deg(p2)];
+}
+
+function lineLength(coords) {
+    let total = 0;
+    for (let i = 1; i < coords.length; i++) {
+        total += haversine(coords[i - 1], coords[i]);
+    }
+    return total;
+}
+
+function extractLongestLine(input) {
+    const candidates = [];
+
+    function visitGeometry(geometry) {
+        if (!geometry) return;
+        const c = geometry.coordinates;
+        switch (geometry.type) {
+            case 'LineString':
+                candidates.push(c);
+                break;
+            case 'MultiLineString':
+                c.forEach(line => candidates.push(line));
+                break;
+            case 'Polygon':
+                if (c[0]) candidates.push(c[0]);
+                break;
+            case 'MultiPolygon':
+                c.forEach(poly => { if (poly[0]) candidates.push(poly[0]); });
+                break;
+            case 'GeometryCollection':
+                (geometry.geometries || []).forEach(visitGeometry);
+                break;
+        }
+    }
+
+    if (input.type === 'FeatureCollection') {
+        (input.features || []).forEach(feature => visitGeometry(feature.geometry));
+    } else if (input.type === 'Feature') {
+        visitGeometry(input.geometry);
+    } else {
+        visitGeometry(input);
+    }
+
+    const valid = candidates
+        .map(line => line.map(c => [Number(c[0]), Number(c[1])]))
+        .filter(line => line.length >= 2 && line.every(c =>
+            Number.isFinite(c[0]) && Number.isFinite(c[1])
+        ));
+
+    if (!valid.length) {
+        throw new Error('No usable LineString was found in the GeoJSON.');
+    }
+
+    valid.sort((a, b) => lineLength(b) - lineLength(a));
+    return valid[0];
+}
+
+function simplifyLine(coords, toleranceMetres) {
+    if (coords.length <= 2 || toleranceMetres <= 0) return coords.map(c => c.slice());
+
+    const meanLat = coords.reduce((sum, c) => sum + c[1], 0) / coords.length;
+    const metresPerLon = 111320 * Math.cos(rad(meanLat));
+    const metresPerLat = 110574;
+
+    const xy = coords.map(c => [c[0] * metresPerLon, c[1] * metresPerLat]);
+
+    function sqSegmentDistance(p, a, b) {
+        let x = a[0], y = a[1];
+        let dx = b[0] - x, dy = b[1] - y;
+        if (dx !== 0 || dy !== 0) {
+            const t = Math.max(0, Math.min(1,
+                ((p[0] - x) * dx + (p[1] - y) * dy) / (dx * dx + dy * dy)
+            ));
+            x += dx * t;
+            y += dy * t;
+        }
+        dx = p[0] - x;
+        dy = p[1] - y;
+        return dx * dx + dy * dy;
+    }
+
+    const keep = new Uint8Array(coords.length);
+    keep[0] = 1;
+    keep[coords.length - 1] = 1;
+
+    function simplifySection(first, last) {
+        let maxSq = toleranceMetres * toleranceMetres;
+        let index = -1;
+        for (let i = first + 1; i < last; i++) {
+            const d = sqSegmentDistance(xy[i], xy[first], xy[last]);
+            if (d > maxSq) {
+                maxSq = d;
+                index = i;
+            }
+        }
+        if (index !== -1) {
+            keep[index] = 1;
+            simplifySection(first, index);
+            simplifySection(index, last);
+        }
+    }
+
+    simplifySection(0, coords.length - 1);
+    return coords.filter((_, i) => keep[i]);
+}
+
+function createTraceAtLength(inner, targetLength) {
+    const fullLength = lineLength(inner);
+    if (targetLength <= 0 || targetLength >= fullLength) return null;
+
+    let low = 0;
+    let high = 1;
+    let candidate = simplifyLine(inner, high);
+
+    while (lineLength(candidate) > targetLength && high < 10000000) {
+        high *= 2;
+        candidate = simplifyLine(inner, high);
+    }
+
+    let best = candidate;
+    let bestDifference = Math.abs(lineLength(candidate) - targetLength);
+
+    for (let i = 0; i < 52; i++) {
+        const tolerance = (low + high) / 2;
+        const test = simplifyLine(inner, tolerance);
+        const testLength = lineLength(test);
+        const difference = Math.abs(testLength - targetLength);
+        if (difference < bestDifference) {
+            best = test;
+            bestDifference = difference;
+        }
+        if (testLength > targetLength) low = tolerance;
+        else high = tolerance;
+    }
+
+    return best.length >= 2 ? best : null;
+}
+
+function createThreeResolutions(inner) {
+    const fullLength = lineLength(inner);
+    if (fullLength <= TARGET_STEP_METRES * 2 + 1) {
+        throw new Error(
+            `The detailed inner trace is ${fmt(fullLength)} long. It needs to be more than 2 km long to create two shorter traces with roughly 1 km between each.`
+        );
+    }
+
+    const level1 = createTraceAtLength(inner, fullLength - TARGET_STEP_METRES * 2);
+    const level2 = createTraceAtLength(inner, fullLength - TARGET_STEP_METRES);
+
+    if (!level1 || !level2 || lineLength(level1) >= lineLength(level2) ||
+        lineLength(level2) >= fullLength) {
+        throw new Error('Could not create three distinct resolutions from inner.geojson.');
+    }
+
+    return [level1, level2, inner];
+}
+
+function fmt(metres) {
+    return metres >= 1000
+        ? (metres / 1000).toFixed(3) + ' km'
+        : metres.toFixed(1) + ' m';
+}
+
+// Compute interpolated GeoJSON coordinates on the map as a trace unfolds horizontally (0 -> 1)
+// Optional verticalOffsetMetres stacks parallel comparison bars cleanly at the end
+function getUnfoldedCoords(coords, progress, verticalOffsetMetres = 0) {
+    if (progress <= 0 && verticalOffsetMetres === 0) return coords;
+
+    let start = coords[0].slice();
+    if (verticalOffsetMetres !== 0 && progress > 0) {
+        // Offset due South (bearing = Math.PI) proportional to progress
+        start = destinationPoint(start, Math.PI, verticalOffsetMetres * progress);
+    }
+
+    // Horizontal left-to-right bearing (Due East = PI / 2)
+    const targetBearing = Math.PI / 2;
+
+    const result = [start.slice()];
+    let current = start.slice();
+
+    for (let i = 1; i < coords.length; i++) {
+        const segLen = haversine(coords[i - 1], coords[i]);
+        const segBearing = initialBearing(coords[i - 1], coords[i]);
+        const diff = Math.atan2(
+            Math.sin(targetBearing - segBearing),
+            Math.cos(targetBearing - segBearing)
+        );
+        const interpolatedBearing = segBearing + diff * progress;
+        current = destinationPoint(current, interpolatedBearing, segLen);
+        result.push(current);
+    }
+
+    return result;
+}
+
+// Find the exact midpoint coordinate along a polyline for placing the length label
+function getMidpointOnLine(coords) {
+    const total = lineLength(coords);
+    const half = total / 2;
+    let accumulated = 0;
+
+    for (let i = 1; i < coords.length; i++) {
+        const seg = haversine(coords[i - 1], coords[i]);
+        if (accumulated + seg >= half) {
+            const ratio = seg === 0 ? 0 : (half - accumulated) / seg;
+            return [
+                coords[i - 1][0] + (coords[i][0] - coords[i - 1][0]) * ratio,
+                coords[i - 1][1] + (coords[i][1] - coords[i - 1][1]) * ratio
+            ];
+        }
+        accumulated += seg;
+    }
+    return coords[Math.floor(coords.length / 2)];
+}
+
+let traces = [];
+let lengths = [];
+let selected = 0;
+let compareMode = false;
+let activeSlideIndex = -1;
+let unfoldedProgress = 0;
+let animationFrame = null;
+
+const map = new maplibregl.Map({
+    container: 'map',
+    style: {
+        version: 8,
+        sources: {
+            satellite: {
+                type: 'raster',
+                tiles: [
+                    'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
+                ],
+                tileSize: 256,
+                attribution: '© Google'
+            }
+        },
+        layers: [{
+            id: 'satellite',
+            type: 'raster',
+            source: 'satellite'
+        }]
+    },
+    center: [-5.2016727, 49.974533],  
+    zoom: BASE_MAP_ZOOM,
+    maxZoom: 20
+});
+
+map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+
+map.on('error', event => {
+    console.error('MapLibre error:', event.error || event);
+});
+
+map.on('load', async () => {
+    try {
+        const response = await fetch(INNER_TRACE_URL);
+        if (!response.ok) throw new Error(`inner.geojson returned HTTP ${response.status}`);
+        const innerGeoJSON = await response.json();
+        const inner = extractLongestLine(innerGeoJSON);
+        const generated = createThreeResolutions(inner);
+
+        traces = generated.map((coords, i) => ({ ...TRACE_STYLES[i], coords }));
+        lengths = traces.map(trace => lineLength(trace.coords));
+
+        addTraceLayers();
+        renderStages();
+        updateIncrease();
+        updateSelectedTrace(0);
+        setupScrollTriggers();
+    } catch (error) {
+        console.error(error);
+        document.querySelector('.story-intro .intro').textContent =
+            'The coastline data could not be loaded: ' + error.message;
+    }
+});
+
+function addTraceLayers() {
+    traces.forEach((trace, i) => {
+        map.addSource('trace-' + i, {
+            type: 'geojson',
+            data: {
+                type: 'Feature',
+                properties: {},
+                geometry: { type: 'LineString', coordinates: trace.coords }
+            }
+        });
+
+        map.addLayer({
+            id: 'trace-' + i,
+            type: 'line',
+            source: 'trace-' + i,
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: {
+                'line-color': trace.color,
+                'line-width': i === 0 ? 4 : 3,
+                'line-opacity': i === 0 ? 1 : 0.15
+            }
+        });
+    });
+
+    const endpoints = [traces[0].coords[0], traces[0].coords.at(-1)];
+    map.addSource('endpoints', {
+        type: 'geojson',
+        data: {
+            type: 'FeatureCollection',
+            features: endpoints.map((coordinate, i) => ({
+                type: 'Feature',
+                properties: { label: i === 0 ? 'A' : 'B' },
+                geometry: { type: 'Point', coordinates: coordinate }
+            }))
+        }
+    });
+
+    map.addLayer({
+        id: 'endpoint-circles',
+        type: 'circle',
+        source: 'endpoints',
+        paint: {
+            'circle-radius': 5,
+            'circle-color': '#fff',
+            'circle-stroke-color': '#07131b',
+            'circle-stroke-width': 2
+        }
+    });
+
+    map.addLayer({
+        id: 'endpoint-labels',
+        type: 'symbol',
+        source: 'endpoints',
+        layout: {
+            'text-field': ['get', 'label'],
+            'text-offset': [0, 1.3],
+            'text-size': 12
+        },
+        paint: {
+            'text-color': '#fff',
+            'text-halo-color': '#07131b',
+            'text-halo-width': 1.5
+        }
+    });
+
+    // Prominent length callouts positioned directly above the polylines
+    const initialMid = getMidpointOnLine(traces[0].coords);
+    map.addSource('length-callout', {
+        type: 'geojson',
+        data: {
+            type: 'FeatureCollection',
+            features: [{
+                type: 'Feature',
+                properties: {
+                    label: fmt(lengths[0]),
+                    color: traces[0].color,
+                    size: 24
+                },
+                geometry: { type: 'Point', coordinates: initialMid }
+            }]
+        }
+    });
+
+    map.addLayer({
+        id: 'unfolded-length-label',
+        type: 'symbol',
+        source: 'length-callout',
+        layout: {
+            'text-field': ['get', 'label'],
+            'text-size': ['get', 'size'],
+            'text-offset': [0, -0.6],
+            'text-anchor': 'bottom',
+            'text-allow-overlap': true,
+            'text-ignore-placement': true
+        },
+        paint: {
+            'text-color': ['get', 'color'],
+            'text-halo-color': '#07131b',
+            'text-halo-width': 2.5
+        }
+    });
+}
+
+function renderStages() {
+    traces.forEach((trace, i) => {
+        const length = document.getElementById('length-' + i);
+        const meta = document.getElementById('meta-' + i);
+        if (length) length.textContent = fmt(lengths[i]);
+        if (meta) {
+            const difference = i === 0 ? 'Starting measurement' :
+                '+' + fmt(lengths[i] - lengths[0]) + ' compared with level 1';
+            meta.textContent = `${trace.coords.length.toLocaleString()} vertices · ${difference}`;
+        }
+    });
+}
+
+function updateIncrease() {
+    const increase = (lengths[lengths.length - 1] / lengths[0] - 1) * 100;
+    document.getElementById('increase').textContent = '+' + increase.toFixed(1) + '%';
+}
+
+function updateMapGeometry(progress) {
+    if (!traces.length) return;
+    unfoldedProgress = progress;
+
+    // Vertical spacing (in metres) when stacking all 3 straightened lines for side-by-side comparison
+    const stackSpacingMetres = Math.max(450, lengths[2] * 0.085);
+
+    const activeCoordsList = [];
+    const calloutFeatures = [];
+    const endpointFeatures = [];
+
+    traces.forEach((trace, i) => {
+        const isActive = compareMode || i === selected;
+        const offset = compareMode ? i * stackSpacingMetres : 0;
+        const coords = isActive ? getUnfoldedCoords(trace.coords, progress, offset) : trace.coords;
+
+        if (isActive) activeCoordsList.push(coords);
+
+        const src = map.getSource('trace-' + i);
+        if (src) {
+            src.setData({
+                type: 'Feature',
+                properties: {},
+                geometry: { type: 'LineString', coordinates: coords }
+            });
+        }
+
+        if (compareMode) {
+            const mid = getMidpointOnLine(coords);
+            calloutFeatures.push({
+                type: 'Feature',
+                properties: {
+                    label: `Level ${i + 1}: ${fmt(lengths[i])}`,
+                    color: trace.color,
+                    size: 16
+                },
+                geometry: { type: 'Point', coordinates: mid }
+            });
+            endpointFeatures.push(
+                {
+                    type: 'Feature',
+                    properties: { label: 'A' },
+                    geometry: { type: 'Point', coordinates: coords[0] }
+                },
+                {
+                    type: 'Feature',
+                    properties: { label: 'B' },
+                    geometry: { type: 'Point', coordinates: coords.at(-1) }
+                }
+            );
+        } else if (i === selected) {
+            const mid = getMidpointOnLine(coords);
+            calloutFeatures.push({
+                type: 'Feature',
+                properties: {
+                    label: fmt(lengths[i]),
+                    color: trace.color,
+                    size: 24
+                },
+                geometry: { type: 'Point', coordinates: mid }
+            });
+            endpointFeatures.push(
+                {
+                    type: 'Feature',
+                    properties: { label: 'A' },
+                    geometry: { type: 'Point', coordinates: coords[0] }
+                },
+                {
+                    type: 'Feature',
+                    properties: { label: 'B' },
+                    geometry: { type: 'Point', coordinates: coords.at(-1) }
+                }
+            );
+        }
+    });
+
+    const epSrc = map.getSource('endpoints');
+    if (epSrc) {
+        epSrc.setData({
+            type: 'FeatureCollection',
+            features: endpointFeatures
+        });
+    }
+
+    const calloutSrc = map.getSource('length-callout');
+    if (calloutSrc) {
+        calloutSrc.setData({
+            type: 'FeatureCollection',
+            features: calloutFeatures
+        });
+    }
+}
+
+function updateSelectedTrace(progress = 0) {
+    traces.forEach((trace, i) => {
+        const highlighted = compareMode || i === selected;
+        map.setPaintProperty('trace-' + i, 'line-opacity', highlighted ? 1 : 0.12);
+        map.setPaintProperty('trace-' + i, 'line-width', compareMode ? 4.5 : (i === selected ? 5 : 2));
+    });
+    updateMapGeometry(progress);
+}
+
+function animateMapUnfold(targetProgress) {
+    if (!traces.length) return;
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+
+    const startProgress = unfoldedProgress;
+    if (Math.abs(targetProgress - startProgress) < 0.001) {
+        updateMapGeometry(targetProgress);
+        return;
+    }
+
+    const start = performance.now();
+    const duration = 1300;
+
+    function tick(now) {
+        const raw = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - raw, 3);
+        const current = startProgress + (targetProgress - startProgress) * eased;
+        updateMapGeometry(current);
+
+        if (raw < 1) {
+            animationFrame = requestAnimationFrame(tick);
+        } else {
+            animationFrame = null;
+        }
+    }
+
+    animationFrame = requestAnimationFrame(tick);
+}
+
+function frameCoords(coordsList, maxZoom) {
+    const flat = coordsList.flat();
+    const bounds = flat.reduce(
+        (b, c) => b.extend(c),
+        new maplibregl.LngLatBounds(flat[0], flat[0])
+    );
+    map.fitBounds(bounds, {
+        padding: { top: 110, bottom: 80, left: 70, right: 70 },
+        maxZoom,
+        duration: 1100
+    });
+}
+
+function activateSlide(slides, index) {
+    if (index === activeSlideIndex || !slides[index]) return;
+    activeSlideIndex = index;
+
+    slides.forEach((el, i) => el.classList.toggle('active', i === index));
+
+    const slide = slides[index];
+    const level = Number(slide.dataset.level);
+    const shouldUnfold = Number(slide.dataset.unfold) === 1;
+    const isCompare = Number(slide.dataset.compare) === 1;
+
+    const levelChanged = selected !== level;
+    const compareChanged = compareMode !== isCompare;
+    selected = level;
+    compareMode = isCompare;
+
+    if (isCompare) {
+        // Side-by-side comparison of all 3 straightened lines at the end
+        updateSelectedTrace(unfoldedProgress);
+        animateMapUnfold(1);
+
+        const stackSpacingMetres = Math.max(450, lengths[2] * 0.085);
+        const allStraight = traces.map((t, i) =>
+            getUnfoldedCoords(t.coords, 1, i * stackSpacingMetres)
+        );
+        frameCoords(allStraight, BASE_MAP_ZOOM + 0.6);
+        return;
+    }
+
+    if (levelChanged || compareChanged) {
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+        animationFrame = null;
+        unfoldedProgress = 0;
+        updateSelectedTrace(0);
+    } else {
+        updateSelectedTrace(unfoldedProgress);
+    }
+
+    if (shouldUnfold) {
+        animateMapUnfold(1);
+        const straightCoords = getUnfoldedCoords(traces[selected].coords, 1);
+        frameCoords([straightCoords], BASE_MAP_ZOOM + (selected * ZOOM_PER_LEVEL));
+    } else {
+        animateMapUnfold(0);
+        frameCoords([traces[selected].coords], BASE_MAP_ZOOM + (selected * ZOOM_PER_LEVEL) + 0.5);
+    }
+}
+
+function setupScrollTriggers() {
+    const aside = document.getElementById('storyScroll');
+    const slides = Array.from(document.querySelectorAll('.story-intro, .story-step, .story-ending'));
+
+    function evaluateScroll() {
+        const mobile = window.matchMedia('(max-width: 850px)').matches;
+        const triggerLine = mobile
+            ? window.innerHeight * 0.55
+            : aside.getBoundingClientRect().top + aside.clientHeight * 0.5;
+
+        let chosenIndex = 0;
+        for (let i = 0; i < slides.length; i++) {
+            const rect = slides[i].getBoundingClientRect();
+            if (rect.top <= triggerLine) {
+                chosenIndex = i;
+            } else {
+                break;
+            }
+        }
+        activateSlide(slides, chosenIndex);
+    }
+
+    aside.addEventListener('scroll', evaluateScroll, { passive: true });
+    window.addEventListener('scroll', evaluateScroll, { passive: true });
+    window.addEventListener('resize', evaluateScroll, { passive: true });
+    evaluateScroll();
+}
+
+document.getElementById('backToStart').addEventListener('click', () => {
+    document.querySelector('.story-intro').scrollIntoView({ behavior: 'smooth' });
+});
+</script>
+</body>
+</html>
