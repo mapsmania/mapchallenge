@@ -89,7 +89,7 @@
       lat: 46.350,
       lon: 10.045
     };
-    const ZOOM = 14;
+    const ZOOM = 13;
 
     const statusEl = document.getElementById('status');
     const telemetryEl = document.getElementById('telemetry');
@@ -337,10 +337,10 @@
       return h0 * (1 - fy) + h1 * fy;
     }
 
-    // --- Build 3D Terrain Mesh ---
+    // --- Build 3D Terrain Mesh (Higher density so tracks stay above ground) ---
     function buildTerrainMesh() {
-    const segX = 520;
-const segZ = 640;
+      const segX = 520;
+      const segZ = 640;
       const sw = lonLatToLocal(BOUNDS.west, BOUNDS.south);
       const ne = lonLatToLocal(BOUNDS.east, BOUNDS.north);
 
@@ -383,6 +383,171 @@ const segZ = 640;
       });
 
       scene.add(new THREE.Mesh(geo, mat));
+    }
+
+    // --- Instanced Alpine Forest (Spruces & Golden Larches below treeline) ---
+    const forestGroup = new THREE.Group();
+    scene.add(forestGroup);
+
+    function populateAlpineTrees(curve) {
+      forestGroup.clear();
+      if (!curve) return;
+
+      const sw = lonLatToLocal(BOUNDS.west, BOUNDS.south);
+      const ne = lonLatToLocal(BOUNDS.east, BOUNDS.north);
+
+      // Build a fast 2D spatial hash of track points so trees keep clear of the rails
+      const CELL_SIZE = 20;
+      const CLEARANCE_SQ = 11.5 * 11.5; // 11.5 m minimum distance from track centreline
+      const trackGrid = new Map();
+
+      const routeSamples = Math.max(800, Math.ceil(curve.getLength() / 4));
+      const sampledPts = curve.getSpacedPoints(routeSamples);
+
+      for (const pt of sampledPts) {
+        const gx = Math.floor(pt.x / CELL_SIZE);
+        const gz = Math.floor(pt.z / CELL_SIZE);
+        const key = `${gx},${gz}`;
+        if (!trackGrid.has(key)) trackGrid.set(key, []);
+        trackGrid.get(key).push(pt);
+      }
+
+      function isNearTrack(x, z) {
+        const gx = Math.floor(x / CELL_SIZE);
+        const gz = Math.floor(z / CELL_SIZE);
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dz = -1; dz <= 1; dz++) {
+            const list = trackGrid.get(`${gx + dx},${gz + dz}`);
+            if (!list) continue;
+            for (const pt of list) {
+              const d2 = (pt.x - x) ** 2 + (pt.z - z) ** 2;
+              if (d2 < CLEARANCE_SQ) return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      // Deterministic pseudo-random generator for reproducible forest layout
+      let seed = 46350;
+      function rand() {
+        seed = (seed * 1664525 + 1013904223) % 4294967296;
+        return seed / 4294967296;
+      }
+
+      const TARGET_TREES = 6500;
+      const MAX_ATTEMPTS = 42000;
+      const placements = [];
+
+      for (let attempt = 0; attempt < MAX_ATTEMPTS && placements.length < TARGET_TREES; attempt++) {
+        const x = sw.x + rand() * (ne.x - sw.x);
+        const z = ne.z + rand() * (sw.z - ne.z);
+        const [lon, lat] = localToLonLat(x, z);
+        const elev = getElevationAtLonLat(lon, lat);
+
+        // Alpine treeline around 2,050m; denser forest lower down in Val Poschiavo
+        if (elev > 2050) continue;
+        const densityProb = elev < 1650 ? 0.92 : Math.max(0.08, (2050 - elev) / 420);
+        if (rand() > densityProb) continue;
+
+        // Avoid steep cliff walls by checking local terrain slope
+        const hRight = getElevationAtLonLat(lon + 0.00012, lat);
+        const hUp = getElevationAtLonLat(lon, lat + 0.00009);
+        const slope = Math.hypot((hRight - elev) / 9.2, (hUp - elev) / 10.0);
+        if (slope > 0.72) continue;
+
+        if (isNearTrack(x, z)) continue;
+
+        // Stunted krummholz near treeline, taller spruces lower down
+        const treelineFactor = THREE.MathUtils.clamp((2120 - elev) / 700, 0.45, 1.15);
+        const scale = (0.7 + rand() * 0.75) * treelineFactor;
+        const rotY = rand() * Math.PI * 2;
+        const isLarch = elev > 1550 && rand() < 0.24; // Occasional golden Alpine larches higher up
+
+        placements.push({ x, y: elev, z, scale, rotY, isLarch });
+      }
+
+      // Build a multi-tiered conifer crown geometry (3 stacked cones merged manually)
+      function createConiferCrownGeometry() {
+        const tiers = [
+          { radius: 2.6, height: 5.2, yOffset: 3.6, radialSegs: 7 },
+          { radius: 2.0, height: 4.6, yOffset: 6.2, radialSegs: 7 },
+          { radius: 1.35, height: 4.0, yOffset: 8.6, radialSegs: 7 }
+        ];
+
+        const positions = [];
+        const normals = [];
+        const indices = [];
+        let vertexOffset = 0;
+
+        for (const t of tiers) {
+          const cone = new THREE.ConeGeometry(t.radius, t.height, t.radialSegs, 1, false);
+          cone.translate(0, t.yOffset, 0);
+          const pos = cone.attributes.position;
+          const norm = cone.attributes.normal;
+          const idx = cone.index;
+
+          for (let i = 0; i < pos.count; i++) {
+            positions.push(pos.getX(i), pos.getY(i), pos.getZ(i));
+            normals.push(norm.getX(i), norm.getY(i), norm.getZ(i));
+          }
+          for (let i = 0; i < idx.count; i++) {
+            indices.push(idx.getX(i) + vertexOffset);
+          }
+          vertexOffset += pos.count;
+          cone.dispose();
+        }
+
+        const merged = new THREE.BufferGeometry();
+        merged.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        merged.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        merged.setIndex(indices);
+        return merged;
+      }
+
+      const crownGeo = createConiferCrownGeometry();
+      const crownMat = new THREE.MeshStandardMaterial({
+        roughness: 0.9,
+        metalness: 0.0,
+        flatShading: true
+      });
+
+      const trunkGeo = new THREE.CylinderGeometry(0.22, 0.36, 2.2, 6);
+      trunkGeo.translate(0, 1.0, 0);
+      const trunkMat = new THREE.MeshStandardMaterial({
+        color: 0x4a3525,
+        roughness: 0.95
+      });
+
+      const crownMesh = new THREE.InstancedMesh(crownGeo, crownMat, placements.length);
+      const trunkMesh = new THREE.InstancedMesh(trunkGeo, trunkMat, placements.length);
+
+      const dummy = new THREE.Object3D();
+      const treeColor = new THREE.Color();
+      const sprucePalette = [0x1f4529, 0x265331, 0x2d6038, 0x1b3b24];
+      const larchPalette = [0xb47b2b, 0xc68b33, 0x9c6b25];
+
+      for (let i = 0; i < placements.length; i++) {
+        const p = placements[i];
+        dummy.position.set(p.x, p.y - 0.15, p.z);
+        dummy.rotation.set(0, p.rotY, 0);
+        dummy.scale.set(p.scale, p.scale, p.scale);
+        dummy.updateMatrix();
+
+        crownMesh.setMatrixAt(i, dummy.matrix);
+        trunkMesh.setMatrixAt(i, dummy.matrix);
+
+        const palette = p.isLarch ? larchPalette : sprucePalette;
+        treeColor.setHex(palette[i % palette.length]);
+        crownMesh.setColorAt(i, treeColor);
+      }
+
+      crownMesh.instanceMatrix.needsUpdate = true;
+      trunkMesh.instanceMatrix.needsUpdate = true;
+      if (crownMesh.instanceColor) crownMesh.instanceColor.needsUpdate = true;
+
+      forestGroup.add(trunkMesh);
+      forestGroup.add(crownMesh);
     }
 
     // --- Stitch All GeoJSON Rail Segments into One Full Route ---
@@ -450,7 +615,6 @@ const segZ = 640;
           }
         }
 
-        // Do not invent long straight links between unrelated tracks.
         if (bestIdx < 0 || bestDist > MAX_JOIN_GAP_METRES) break;
 
         const seg = remaining.splice(bestIdx, 1)[0];
@@ -468,8 +632,6 @@ const segZ = 640;
       };
     }
 
-    // Insert intermediate points along each OSM segment. Closely spaced
-    // control points help the smoothed curve stay close to the source track.
     function densifyTrackPoints(points, maxSpacing = 8) {
       const dense = [];
       for (let i = 0; i < points.length - 1; i++) {
@@ -496,15 +658,12 @@ const segZ = 640;
         return;
       }
 
-      // 3. Slightly more clearance so ballast doesn't clip coarse triangles
-const rawPoints = coords.map(([lon, lat]) => {
-  const { x, z } = lonLatToLocal(lon, lat);
-  const y = getElevationAtLonLat(lon, lat);
-  return new THREE.Vector3(x, y + 0.85, z);
-});
+      const rawPoints = coords.map(([lon, lat]) => {
+        const { x, z } = lonLatToLocal(lon, lat);
+        const y = getElevationAtLonLat(lon, lat);
+        return new THREE.Vector3(x, y + 0.85, z);
+      });
 
-      // Densify before applying a centripetal spline. This curve type is
-      // less prone to loops and overshoot than a uniform Catmull-Rom curve.
       const densePoints = densifyTrackPoints(rawPoints, 8);
       trainCurve = new THREE.CatmullRomCurve3(
         densePoints,
@@ -519,9 +678,6 @@ const rawPoints = coords.map(([lon, lat]) => {
       routeCoordsLonLat = sampled.map((pt) => localToLonLat(pt.x, pt.z));
       syncMinimapRoute();
 
-      // --- Build a visible railway: ballast, sleepers and two steel rails ---
-      // The route curve is the rail centreline. Its height comes from the DEM,
-      // so this first pass follows the terrain (bridges need a later height fix).
       const routeLength = trainCurve.getLength();
       const sampleSpacing = 1.5;
       const sampleCount = Math.max(100, Math.min(12000, Math.ceil(routeLength / sampleSpacing)));
@@ -536,7 +692,6 @@ const rawPoints = coords.map(([lon, lat]) => {
       const sleeperScale = new THREE.Vector3(1, 1, 1);
       const instanceMatrix = new THREE.Matrix4();
 
-      // A continuous, low ballast bed made from short overlapping sections.
       const ballastGeometry = new THREE.BoxGeometry(3.0, 0.24, sampleSpacing + 0.12);
       const ballastMaterial = new THREE.MeshStandardMaterial({
         color: 0x77736b, roughness: 1.0, metalness: 0.0
@@ -544,7 +699,6 @@ const rawPoints = coords.map(([lon, lat]) => {
       const ballast = new THREE.InstancedMesh(ballastGeometry, ballastMaterial, sampleCount + 1);
       ballast.frustumCulled = false;
 
-      // Concrete/wooden sleepers, spaced at realistic intervals.
       const sleeperGeometry = new THREE.BoxGeometry(2.55, 0.16, 0.24);
       const sleeperMaterial = new THREE.MeshStandardMaterial({
         color: 0x514b43, roughness: 0.96, metalness: 0.02
@@ -586,7 +740,6 @@ const rawPoints = coords.map(([lon, lat]) => {
       sleepers.instanceMatrix.needsUpdate = true;
       trackGroup.add(sleepers);
 
-      // Offset a pair of smooth curves from the centreline to form the rails.
       function makeRailCurve(side) {
         const railPoints = [];
         const railSamples = Math.max(200, Math.min(12000, Math.ceil(routeLength / 1.0)));
@@ -613,6 +766,8 @@ const rawPoints = coords.map(([lon, lat]) => {
         );
         trackGroup.add(new THREE.Mesh(railGeometry, railMaterial));
       }
+
+      populateAlpineTrees(trainCurve);
 
       progress = 0;
       suspensionDistance = 0;
@@ -680,8 +835,6 @@ const rawPoints = coords.map(([lon, lat]) => {
       const dt = Math.min(clock.getDelta(), 0.05);
 
       if (trainCurve && !paused) {
-        // Ease towards the selected target speed for gradual acceleration
-        // and braking when the slider is changed.
         const targetSpeedKmh = parseFloat(speedSlider.value);
         currentSpeedKmh = THREE.MathUtils.damp(
           currentSpeedKmh,
@@ -704,8 +857,6 @@ const rawPoints = coords.map(([lon, lat]) => {
         const lookT = wrapProgress(progress + lastLookAhead * direction);
         const lookPt = trainCurve.getPointAt(lookT);
 
-        // Estimate the change in heading over a short section of track.
-        // A restrained, eased roll gives the camera a sense of banking.
         const tangentBefore = trainCurve
           .getTangentAt(wrapProgress(progress - 0.004 * direction))
           .multiplyScalar(direction)
@@ -727,8 +878,6 @@ const rawPoints = coords.map(([lon, lat]) => {
         );
         cameraBank = THREE.MathUtils.damp(cameraBank, targetBank, 3.0, dt);
 
-        // Subtle vertical movement, measured by distance travelled rather
-        // than elapsed time, to suggest the train's suspension.
         const suspension =
           Math.sin(suspensionDistance * 0.75) * 0.035 +
           Math.sin(suspensionDistance * 1.9) * 0.012;
