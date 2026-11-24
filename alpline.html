@@ -565,12 +565,58 @@
     const buildingGroup = new THREE.Group();
     scene.add(buildingGroup);
 
+    // Warm plaster, pale ochre, muted sage, stone and traditional dark timber.
     const buildingMaterials = [
-      new THREE.MeshStandardMaterial({ color: 0xd8c9ad, roughness: 0.94 }),
-      new THREE.MeshStandardMaterial({ color: 0xb9b5aa, roughness: 0.94 }),
-      new THREE.MeshStandardMaterial({ color: 0x9faaa8, roughness: 0.94 }),
-      new THREE.MeshStandardMaterial({ color: 0xc6a58b, roughness: 0.94 })
+      new THREE.MeshStandardMaterial({ color: 0xe6d8c1, roughness: 0.96 }),
+      new THREE.MeshStandardMaterial({ color: 0xd9c39b, roughness: 0.96 }),
+      new THREE.MeshStandardMaterial({ color: 0xc8b28e, roughness: 0.96 }),
+      new THREE.MeshStandardMaterial({ color: 0xb8bba8, roughness: 0.96 }),
+      new THREE.MeshStandardMaterial({ color: 0x9e9b8d, roughness: 0.96 }),
+      new THREE.MeshStandardMaterial({ color: 0x654b38, roughness: 0.96 })
     ];
+
+    // Dark slate, weathered brown, charcoal and traditional tile red roofs.
+    const roofMaterials = [
+      new THREE.MeshStandardMaterial({ color: 0x343a40, roughness: 0.9, side: THREE.DoubleSide }),
+      new THREE.MeshStandardMaterial({ color: 0x51483f, roughness: 0.94, side: THREE.DoubleSide }),
+      new THREE.MeshStandardMaterial({ color: 0x45413d, roughness: 0.92, side: THREE.DoubleSide }),
+      new THREE.MeshStandardMaterial({ color: 0x795044, roughness: 0.92, side: THREE.DoubleSide })
+    ];
+
+    function stableBuildingHash(value) {
+      const str = String(value);
+      let hash = 2166136261;
+      for (let i = 0; i < str.length; i++) {
+        hash ^= str.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0;
+    }
+
+    function chooseBuildingMaterials(properties, outer) {
+      const kind = String(properties.building || '').toLowerCase();
+      const material = String(properties['building:material'] || '').toLowerCase();
+      const roofMaterial = String(properties['roof:material'] || '').toLowerCase();
+      const seedValue = properties['@id'] || properties.id || `${outer[0][0].toFixed(6)},${outer[0][1].toFixed(6)}`;
+      const hash = stableBuildingHash(seedValue);
+
+      let wallIndex;
+      if (['barn', 'farm_auxiliary', 'stable', 'cowshed'].includes(kind) || material.includes('wood')) {
+        wallIndex = 5; // dark timber agricultural buildings
+      } else if (kind === 'church' || kind === 'chapel' || material.includes('stone')) {
+        wallIndex = 4;
+      } else if (kind === 'industrial' || kind === 'warehouse' || kind === 'commercial') {
+        wallIndex = 2;
+      } else {
+        wallIndex = hash % 4; // restrained variations of Alpine plaster colours
+      }
+
+      let roofIndex = hash % roofMaterials.length;
+      if (roofMaterial.includes('tile')) roofIndex = 3;
+      else if (roofMaterial.includes('wood')) roofIndex = 1;
+      else if (roofMaterial.includes('slate') || roofMaterial.includes('metal')) roofIndex = 0;
+      return { wallIndex, roofIndex };
+    }
 
     function parseBuildingHeight(properties = {}) {
       const parseMetres = value => {
@@ -588,7 +634,75 @@
       return 7.2;
     }
 
-    function makeBuildingGeometry(rings, height) {
+    function makeBuildingRoofGeometry(outer, baseY, wallHeight, properties = {}) {
+      const roofShape = String(properties['roof:shape'] || '').toLowerCase();
+      if (roofShape === 'flat' || roofShape === 'pyramidal' || outer.length < 4) return null;
+
+      const points = outer.slice(0, -1).map(c => {
+        const p = lonLatToLocal(c[0], c[1]);
+        return { x: p.x, z: p.z };
+      });
+      if (points.length < 4) return null;
+
+      // Principal-axis orientation gives the roof ridge the same direction as
+      // the long axis of the footprint, even when the building is rotated.
+      let cx = 0, cz = 0;
+      for (const p of points) { cx += p.x; cz += p.z; }
+      cx /= points.length; cz /= points.length;
+      let xx = 0, zz = 0, xz = 0;
+      for (const p of points) {
+        const dx = p.x - cx, dz = p.z - cz;
+        xx += dx * dx; zz += dz * dz; xz += dx * dz;
+      }
+      const angle = 0.5 * Math.atan2(2 * xz, xx - zz);
+      const ux = Math.cos(angle), uz = Math.sin(angle);
+      const vx = -uz, vz = ux;
+      let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
+      for (const p of points) {
+        const dx = p.x - cx, dz = p.z - cz;
+        const u = dx * ux + dz * uz;
+        const v = dx * vx + dz * vz;
+        uMin = Math.min(uMin, u); uMax = Math.max(uMax, u);
+        vMin = Math.min(vMin, v); vMax = Math.max(vMax, v);
+      }
+      const length = uMax - uMin;
+      const width = vMax - vMin;
+      if (width < 2.8 || length < 3.2 || width > 65 || length > 100) return null;
+
+      const overhang = Math.min(0.65, Math.max(0.22, width * 0.035));
+      uMin -= overhang; uMax += overhang;
+      vMin -= overhang; vMax += overhang;
+      const vMid = (vMin + vMax) / 2;
+      const eaveY = baseY + wallHeight;
+      const pitchFactor = String(properties.building || '').toLowerCase() === 'industrial' ? 0.12 : 0.34;
+      const rise = THREE.MathUtils.clamp(width * pitchFactor, 1.0, 4.8);
+      const ridgeY = eaveY + rise;
+
+      const world = (u, v, y) => [cx + ux * u + vx * v, y, cz + uz * u + vz * v];
+      const positions = [];
+      const tri = (a, b, c) => positions.push(...a, ...b, ...c);
+      const quad = (a, b, c, d) => { tri(a, b, c); tri(a, c, d); };
+
+      const e1 = world(uMin, vMin, eaveY);
+      const e2 = world(uMax, vMin, eaveY);
+      const r1 = world(uMin, vMid, ridgeY);
+      const r2 = world(uMax, vMid, ridgeY);
+      const f1 = world(uMin, vMax, eaveY);
+      const f2 = world(uMax, vMax, eaveY);
+
+      // Two sloping roof planes plus the triangular gable end faces.
+      quad(e1, e2, r2, r1);
+      quad(r1, r2, f2, f1);
+      tri(e1, r1, f1);
+      tri(e2, f2, r2);
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geometry.computeVertexNormals();
+      return geometry;
+    }
+
+    function makeBuildingGeometry(rings, height, properties = {}) {
       if (!rings || !rings.length || rings[0].length < 4) return null;
       const toShapePoint = coord => {
         const local = lonLatToLocal(coord[0], coord[1]);
@@ -618,15 +732,13 @@
         shape.holes.push(hole);
       }
 
-      const geometry = new THREE.ExtrudeGeometry(shape, {
+      const wallGeometry = new THREE.ExtrudeGeometry(shape, {
         depth: height,
         bevelEnabled: false,
         curveSegments: 1
       });
-      // Extrude along world-up after converting the footprint's XY plane to XZ.
-      geometry.rotateX(-Math.PI / 2);
+      wallGeometry.rotateX(-Math.PI / 2);
 
-      // Use the footprint's mean coordinate to sample the terrain height.
       let lonSum = 0, latSum = 0, count = outer.length - 1;
       for (let i = 0; i < count; i++) {
         lonSum += outer[i][0];
@@ -634,10 +746,12 @@
       }
       const lon = lonSum / count;
       const lat = latSum / count;
-      const baseHeight = getElevationAtLonLat(lon, lat);
-      geometry.translate(0, baseHeight + 0.12, 0);
-      geometry.computeVertexNormals();
-      return geometry;
+      const baseHeight = getElevationAtLonLat(lon, lat) + 0.12;
+      wallGeometry.translate(0, baseHeight, 0);
+      wallGeometry.computeVertexNormals();
+
+      const roofGeometry = makeBuildingRoofGeometry(outer, baseHeight, height, properties);
+      return { wallGeometry, roofGeometry, baseHeight };
     }
 
     async function loadBuildingsFromUrl() {
@@ -646,8 +760,9 @@
       if (!response.ok) throw new Error(`HTTP ${response.status} fetching building footprints`);
       const geojson = await response.json();
       const features = geojson.type === 'FeatureCollection' ? geojson.features : [geojson];
-      let added = 0;
-      const geometriesByMaterial = [[], [], [], []];
+      let added = 0, roofCount = 0;
+      const wallsByMaterial = buildingMaterials.map(() => []);
+      const roofsByMaterial = roofMaterials.map(() => []);
       const MAX_BUILDINGS = 12000;
 
       for (const feature of features) {
@@ -655,11 +770,6 @@
         if (!feature.geometry) continue;
         const props = feature.properties || {};
         const height = parseBuildingHeight(props);
-        const kind = String(props.building || '').toLowerCase();
-        const materialIndex = kind.includes('industrial') || kind === 'warehouse' ? 1
-          : kind === 'barn' || kind === 'farm_auxiliary' ? 3
-          : kind === 'church' || kind === 'chapel' ? 2
-          : 0;
         const polygons = feature.geometry.type === 'Polygon'
           ? [feature.geometry.coordinates]
           : feature.geometry.type === 'MultiPolygon'
@@ -670,27 +780,39 @@
           if (added >= MAX_BUILDINGS) break;
           const outer = rings && rings[0];
           if (!outer || outer.length < 4) continue;
-          // Ignore footprints outside the DEM / terrain mesh bounds.
           const xs = outer.map(c => c[0]);
           const ys = outer.map(c => c[1]);
           const lon = xs.reduce((a, b) => a + b, 0) / xs.length;
           const lat = ys.reduce((a, b) => a + b, 0) / ys.length;
           if (lon < BOUNDS.west || lon > BOUNDS.east || lat < BOUNDS.south || lat > BOUNDS.north) continue;
-          const geometry = makeBuildingGeometry(rings, height);
-          if (geometry) {
-            geometriesByMaterial[materialIndex].push(geometry);
-            added++;
+
+          const made = makeBuildingGeometry(rings, height, props);
+          if (!made) continue;
+          const palette = chooseBuildingMaterials(props, outer);
+          wallsByMaterial[palette.wallIndex].push(made.wallGeometry);
+          if (made.roofGeometry) {
+            roofsByMaterial[palette.roofIndex].push(made.roofGeometry);
+            roofCount++;
           }
+          added++;
         }
       }
-      // Merge footprints by material to keep draw calls low, even in villages.
-      for (let i = 0; i < geometriesByMaterial.length; i++) {
-        if (!geometriesByMaterial[i].length) continue;
-        const merged = mergeGeometries(geometriesByMaterial[i], false);
-        for (const geometry of geometriesByMaterial[i]) geometry.dispose();
+
+      // Merge by material to keep the village scene light on draw calls.
+      for (let i = 0; i < wallsByMaterial.length; i++) {
+        if (!wallsByMaterial[i].length) continue;
+        const merged = mergeGeometries(wallsByMaterial[i], false);
+        for (const geometry of wallsByMaterial[i]) geometry.dispose();
         if (merged) buildingGroup.add(new THREE.Mesh(merged, buildingMaterials[i]));
       }
-      statusEl.textContent += ` · ${added.toLocaleString()} buildings added`;
+      for (let i = 0; i < roofsByMaterial.length; i++) {
+        if (!roofsByMaterial[i].length) continue;
+        const merged = mergeGeometries(roofsByMaterial[i], false);
+        for (const geometry of roofsByMaterial[i]) geometry.dispose();
+        if (merged) buildingGroup.add(new THREE.Mesh(merged, roofMaterials[i]));
+      }
+
+      statusEl.textContent += ` · ${added.toLocaleString()} buildings · ${roofCount.toLocaleString()} pitched roofs`;
       return added;
     }
 
