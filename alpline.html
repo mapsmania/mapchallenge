@@ -53,7 +53,8 @@
     </div>
     <div class="slider-row">
       <span>Speed</span>
-      <input type="range" id="speedSlider" min="0.002" max="0.04" step="0.001" value="0.012" />
+      <input type="range" id="speedSlider" min="5" max="120" step="1" value="60" />
+      <span id="speedValue">60 km/h</span>
     </div>
     <div id="telemetry">Progress: 0% · Elev: — m</div>
   </div>
@@ -88,7 +89,7 @@
       lat: 46.350,
       lon: 10.045
     };
-    const ZOOM = 13;
+    const ZOOM = 14;
 
     const statusEl = document.getElementById('status');
     const telemetryEl = document.getElementById('telemetry');
@@ -338,8 +339,8 @@
 
     // --- Build 3D Terrain Mesh ---
     function buildTerrainMesh() {
-      const segX = 220;
-      const segZ = 280;
+    const segX = 520;
+const segZ = 640;
       const sw = lonLatToLocal(BOUNDS.west, BOUNDS.south);
       const ne = lonLatToLocal(BOUNDS.east, BOUNDS.north);
 
@@ -407,11 +408,12 @@
           }
         }
       }
-      if (!remaining.length) return { coords: [], segmentCount: 0 };
+
+      if (!remaining.length) {
+        return { coords: [], segmentCount: 0, joinedCount: 0, disconnectedCount: 0 };
+      }
 
       const totalSegments = remaining.length;
-
-      // Start from the northernmost/highest-elevation end or longest segment
       remaining.sort((a, b) => {
         const maxLatA = Math.max(a[0][1], a[a.length - 1][1]);
         const maxLatB = Math.max(b[0][1], b[b.length - 1][1]);
@@ -419,40 +421,37 @@
       });
 
       let chain = remaining.shift();
-      // Orient starting segment so it generally flows southward down the valley (or reverse later)
-      if (chain[0][1] < chain[chain.length - 1][1]) {
-        chain.reverse();
-      }
+      if (chain[0][1] < chain[chain.length - 1][1]) chain.reverse();
 
-      // First attach tightly connected pieces (within 120m), then bridge any remaining switches/gaps
+      const MAX_JOIN_GAP_METRES = 120;
+
       while (remaining.length) {
         let bestIdx = -1;
         let bestMode = null;
         let bestDist = Infinity;
-
         const head = chain[0];
         const tail = chain[chain.length - 1];
 
         for (let i = 0; i < remaining.length; i++) {
           const seg = remaining[i];
-          const sHead = seg[0];
-          const sTail = seg[seg.length - 1];
-
           const candidates = [
-            { d: distMeters(tail, sHead), mode: 'append' },
-            { d: distMeters(tail, sTail), mode: 'appendRev' },
-            { d: distMeters(head, sTail), mode: 'prepend' },
-            { d: distMeters(head, sHead), mode: 'prependRev' }
+            { d: distMeters(tail, seg[0]), mode: 'append' },
+            { d: distMeters(tail, seg[seg.length - 1]), mode: 'appendRev' },
+            { d: distMeters(head, seg[seg.length - 1]), mode: 'prepend' },
+            { d: distMeters(head, seg[0]), mode: 'prependRev' }
           ];
 
-          for (const c of candidates) {
-            if (c.d < bestDist) {
-              bestDist = c.d;
+          for (const candidate of candidates) {
+            if (candidate.d < bestDist) {
+              bestDist = candidate.d;
               bestIdx = i;
-              bestMode = c.mode;
+              bestMode = candidate.mode;
             }
           }
         }
+
+        // Do not invent long straight links between unrelated tracks.
+        if (bestIdx < 0 || bestDist > MAX_JOIN_GAP_METRES) break;
 
         const seg = remaining.splice(bestIdx, 1)[0];
         if (bestMode === 'append') chain = chain.concat(seg.slice(1));
@@ -461,53 +460,173 @@
         else if (bestMode === 'prependRev') chain = seg.reverse().slice(0, -1).concat(chain);
       }
 
-      return { coords: chain, segmentCount: totalSegments };
+      return {
+        coords: chain,
+        segmentCount: totalSegments,
+        joinedCount: totalSegments - remaining.length,
+        disconnectedCount: remaining.length
+      };
+    }
+
+    // Insert intermediate points along each OSM segment. Closely spaced
+    // control points help the smoothed curve stay close to the source track.
+    function densifyTrackPoints(points, maxSpacing = 8) {
+      const dense = [];
+      for (let i = 0; i < points.length - 1; i++) {
+        const a = points[i];
+        const b = points[i + 1];
+        const distance = a.distanceTo(b);
+        const steps = Math.max(1, Math.ceil(distance / maxSpacing));
+
+        for (let step = 0; step < steps; step++) {
+          dense.push(a.clone().lerp(b, step / steps));
+        }
+      }
+      dense.push(points[points.length - 1].clone());
+      return dense;
     }
 
     function buildTrackFromGeoJSON(geojson) {
       trackGroup.clear();
       const features = geojson.type === 'FeatureCollection' ? geojson.features : [geojson];
-      const { coords, segmentCount } = stitchLineStrings(features);
+      const { coords, segmentCount, joinedCount, disconnectedCount } = stitchLineStrings(features);
 
       if (coords.length < 4) {
-        statusEl.textContent = 'Could not find enough track points in alprail.geojson.';
+        statusEl.textContent = 'Could not find enough connected railway track points.';
         return;
       }
 
-      const rawPoints = coords.map(([lon, lat]) => {
-        const { x, z } = lonLatToLocal(lon, lat);
-        const y = getElevationAtLonLat(lon, lat);
-        return new THREE.Vector3(x, y, z);
-      });
+      // 3. Slightly more clearance so ballast doesn't clip coarse triangles
+const rawPoints = coords.map(([lon, lat]) => {
+  const { x, z } = lonLatToLocal(lon, lat);
+  const y = getElevationAtLonLat(lon, lat);
+  return new THREE.Vector3(x, y + 0.85, z);
+});
 
-      const smoothedPoints = rawPoints.map((pt, i) => {
-        let sumY = 0;
-        let count = 0;
-        for (let k = -2; k <= 2; k++) {
-          const idx = THREE.MathUtils.clamp(i + k, 0, rawPoints.length - 1);
-          sumY += rawPoints[idx].y;
-          count++;
-        }
-        return new THREE.Vector3(pt.x, sumY / count + 0.6, pt.z);
-      });
+      // Densify before applying a centripetal spline. This curve type is
+      // less prone to loops and overshoot than a uniform Catmull-Rom curve.
+      const densePoints = densifyTrackPoints(rawPoints, 8);
+      trainCurve = new THREE.CatmullRomCurve3(
+        densePoints,
+        false,
+        'centripetal',
+        0.5
+      );
 
-      trainCurve = new THREE.CatmullRomCurve3(smoothedPoints, false, 'catmullrom', 0.25);
-      const lengthKm = (trainCurve.getLength() / 1000).toFixed(1);
-
-      const sampled = trainCurve.getSpacedPoints(400);
+      const routeLengthMetres = trainCurve.getLength();
+      const lengthKm = (routeLengthMetres / 1000).toFixed(1);
+      const sampled = trainCurve.getSpacedPoints(600);
       routeCoordsLonLat = sampled.map((pt) => localToLonLat(pt.x, pt.z));
       syncMinimapRoute();
 
-      const tubeGeo = new THREE.TubeGeometry(trainCurve, Math.min(smoothedPoints.length * 3, 3500), 1.4, 6, false);
-      const tubeMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.6 });
-      trackGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
+      // --- Build a visible railway: ballast, sleepers and two steel rails ---
+      // The route curve is the rail centreline. Its height comes from the DEM,
+      // so this first pass follows the terrain (bridges need a later height fix).
+      const routeLength = trainCurve.getLength();
+      const sampleSpacing = 1.5;
+      const sampleCount = Math.max(100, Math.min(12000, Math.ceil(routeLength / sampleSpacing)));
+      const sleeperSpacing = 0.65;
+      const sleeperCount = Math.max(2, Math.floor(routeLength / sleeperSpacing));
+      const railGauge = 1.435;
+      const railOffset = railGauge / 2;
+
+      const up = new THREE.Vector3(0, 1, 0);
+      const basisMatrix = new THREE.Matrix4();
+      const sleeperQuaternion = new THREE.Quaternion();
+      const sleeperScale = new THREE.Vector3(1, 1, 1);
+      const instanceMatrix = new THREE.Matrix4();
+
+      // A continuous, low ballast bed made from short overlapping sections.
+      const ballastGeometry = new THREE.BoxGeometry(3.0, 0.24, sampleSpacing + 0.12);
+      const ballastMaterial = new THREE.MeshStandardMaterial({
+        color: 0x77736b, roughness: 1.0, metalness: 0.0
+      });
+      const ballast = new THREE.InstancedMesh(ballastGeometry, ballastMaterial, sampleCount + 1);
+      ballast.frustumCulled = false;
+
+      // Concrete/wooden sleepers, spaced at realistic intervals.
+      const sleeperGeometry = new THREE.BoxGeometry(2.55, 0.16, 0.24);
+      const sleeperMaterial = new THREE.MeshStandardMaterial({
+        color: 0x514b43, roughness: 0.96, metalness: 0.02
+      });
+      const sleepers = new THREE.InstancedMesh(sleeperGeometry, sleeperMaterial, sleeperCount + 1);
+      sleepers.frustumCulled = false;
+
+      function routeFrame(t) {
+        const point = trainCurve.getPointAt(THREE.MathUtils.clamp(t, 0, 1));
+        const tangent = trainCurve.getTangentAt(THREE.MathUtils.clamp(t, 0, 1)).normalize();
+        let lateral = new THREE.Vector3().crossVectors(up, tangent).normalize();
+        if (lateral.lengthSq() < 0.0001) lateral.set(1, 0, 0);
+        const vertical = new THREE.Vector3().crossVectors(tangent, lateral).normalize();
+        return { point, tangent, lateral, vertical };
+      }
+
+      for (let i = 0; i <= sampleCount; i++) {
+        const t = i / sampleCount;
+        const { point, tangent, lateral, vertical } = routeFrame(t);
+        basisMatrix.makeBasis(lateral, vertical, tangent);
+        sleeperQuaternion.setFromRotationMatrix(basisMatrix);
+
+        const ballastPosition = point.clone().addScaledVector(vertical, -0.22);
+        instanceMatrix.compose(ballastPosition, sleeperQuaternion, sleeperScale);
+        ballast.setMatrixAt(i, instanceMatrix);
+      }
+      ballast.instanceMatrix.needsUpdate = true;
+      trackGroup.add(ballast);
+
+      for (let i = 0; i <= sleeperCount; i++) {
+        const t = i / sleeperCount;
+        const { point, tangent, lateral, vertical } = routeFrame(t);
+        basisMatrix.makeBasis(lateral, vertical, tangent);
+        sleeperQuaternion.setFromRotationMatrix(basisMatrix);
+        const sleeperPosition = point.clone().addScaledVector(vertical, -0.10);
+        instanceMatrix.compose(sleeperPosition, sleeperQuaternion, sleeperScale);
+        sleepers.setMatrixAt(i, instanceMatrix);
+      }
+      sleepers.instanceMatrix.needsUpdate = true;
+      trackGroup.add(sleepers);
+
+      // Offset a pair of smooth curves from the centreline to form the rails.
+      function makeRailCurve(side) {
+        const railPoints = [];
+        const railSamples = Math.max(200, Math.min(12000, Math.ceil(routeLength / 1.0)));
+        for (let i = 0; i <= railSamples; i++) {
+          const { point, lateral, vertical } = routeFrame(i / railSamples);
+          point.addScaledVector(lateral, side * railOffset);
+          point.addScaledVector(vertical, 0.055);
+          railPoints.push(point);
+        }
+        return new THREE.CatmullRomCurve3(railPoints, false, 'centripetal', 0.5);
+      }
+
+      const railMaterial = new THREE.MeshStandardMaterial({
+        color: 0x9da6ad, roughness: 0.32, metalness: 0.82
+      });
+      for (const side of [-1, 1]) {
+        const railCurve = makeRailCurve(side);
+        const railGeometry = new THREE.TubeGeometry(
+          railCurve,
+          Math.max(200, Math.min(16000, Math.ceil(routeLength * 2))),
+          0.055,
+          8,
+          false
+        );
+        trackGroup.add(new THREE.Mesh(railGeometry, railMaterial));
+      }
 
       progress = 0;
-      statusEl.textContent = `Stitched ${segmentCount} segments (${lengthKm} km). Riding the full route!`;
+      suspensionDistance = 0;
+      cameraBank = 0;
+
+      let message = `Connected ${joinedCount}/${segmentCount} track sections · ${lengthKm} km`;
+      if (disconnectedCount > 0) {
+        message += ` · ignored ${disconnectedCount} disconnected sections`;
+      }
+      statusEl.textContent = message;
     }
 
     async function loadGeoJSONFromUrl() {
-      statusEl.textContent = 'Fetching alprail.geojson...';
+      statusEl.textContent = 'Fetching Bernina railway data...';
       const res = await fetch(GEOJSON_URL);
       if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${GEOJSON_URL}`);
       const data = await res.json();
@@ -518,12 +637,25 @@
     let paused = false;
     let direction = 1;
     let progress = 0;
+    let currentSpeedKmh = 30;
+    let cameraBank = 0;
+    let suspensionDistance = 0;
+    const speedSlider = document.getElementById('speedSlider');
+    const speedValueEl = document.getElementById('speedValue');
+
+    function updateSpeedLabel() {
+      speedValueEl.textContent = `${speedSlider.value} km/h`;
+    }
+    speedSlider.addEventListener('input', updateSpeedLabel);
+    updateSpeedLabel();
 
     document.getElementById('togglePauseBtn').addEventListener('click', (e) => {
       paused = !paused;
       controls.enabled = paused;
       if (paused && trainCurve) {
-        const ahead = trainCurve.getPointAt(Math.min(progress + 0.01, 1));
+        const ahead = trainCurve.getPointAt(
+          THREE.MathUtils.clamp(progress + 0.01 * direction, 0, 1)
+        );
         controls.target.copy(ahead);
       }
       e.target.textContent = paused ? 'Resume Ride' : 'Pause';
@@ -536,26 +668,87 @@
     // --- Animation Loop ---
     const clock = new THREE.Clock();
     const EYE_HEIGHT = 2.6;
+    const lastLookAhead = 0.006;
     let lastMinimapUpdate = 0;
+
+    function wrapProgress(value) {
+      return ((value % 1) + 1) % 1;
+    }
 
     function animate(now = 0) {
       requestAnimationFrame(animate);
       const dt = Math.min(clock.getDelta(), 0.05);
 
       if (trainCurve && !paused) {
-        const speed = parseFloat(document.getElementById('speedSlider').value);
-        progress += dt * speed * direction;
-        if (progress > 1) progress = 0;
-        if (progress < 0) progress = 1;
+        // Ease towards the selected target speed for gradual acceleration
+        // and braking when the slider is changed.
+        const targetSpeedKmh = parseFloat(speedSlider.value);
+        currentSpeedKmh = THREE.MathUtils.damp(
+          currentSpeedKmh,
+          targetSpeedKmh,
+          1.8,
+          dt
+        );
+
+        const speedMetresPerSecond = currentSpeedKmh / 3.6;
+        const routeLength = trainCurve.getLength();
+
+        if (routeLength > 0) {
+          progress = wrapProgress(
+            progress + (speedMetresPerSecond * dt / routeLength) * direction
+          );
+          suspensionDistance += speedMetresPerSecond * dt;
+        }
 
         const pos = trainCurve.getPointAt(progress);
-        const lookT = THREE.MathUtils.clamp(progress + 0.008 * direction, 0, 1);
+        const lookT = wrapProgress(progress + lastLookAhead * direction);
         const lookPt = trainCurve.getPointAt(lookT);
 
-        camera.position.set(pos.x, pos.y + EYE_HEIGHT, pos.z);
-        camera.lookAt(lookPt.x, lookPt.y + EYE_HEIGHT * 0.9, lookPt.z);
+        // Estimate the change in heading over a short section of track.
+        // A restrained, eased roll gives the camera a sense of banking.
+        const tangentBefore = trainCurve
+          .getTangentAt(wrapProgress(progress - 0.004 * direction))
+          .multiplyScalar(direction)
+          .normalize();
+        const tangentAfter = trainCurve
+          .getTangentAt(wrapProgress(progress + 0.004 * direction))
+          .multiplyScalar(direction)
+          .normalize();
 
-        telemetryEl.textContent = `Progress: ${(progress * 100).toFixed(1)}% · Elev: ${Math.round(pos.y)} m`;
+        const crossY =
+          tangentBefore.z * tangentAfter.x -
+          tangentBefore.x * tangentAfter.z;
+        const dot = THREE.MathUtils.clamp(tangentBefore.dot(tangentAfter), -1, 1);
+        const headingChange = Math.atan2(crossY, dot);
+        const targetBank = THREE.MathUtils.clamp(
+          -headingChange * 5.5,
+          -0.14,
+          0.14
+        );
+        cameraBank = THREE.MathUtils.damp(cameraBank, targetBank, 3.0, dt);
+
+        // Subtle vertical movement, measured by distance travelled rather
+        // than elapsed time, to suggest the train's suspension.
+        const suspension =
+          Math.sin(suspensionDistance * 0.75) * 0.035 +
+          Math.sin(suspensionDistance * 1.9) * 0.012;
+
+        camera.position.set(
+          pos.x,
+          pos.y + EYE_HEIGHT + suspension,
+          pos.z
+        );
+        camera.lookAt(
+          lookPt.x,
+          lookPt.y + EYE_HEIGHT * 0.9,
+          lookPt.z
+        );
+        camera.rotateZ(cameraBank);
+
+        telemetryEl.textContent =
+          `Progress: ${(progress * 100).toFixed(1)}% · ` +
+          `Elev: ${Math.round(pos.y)} m · ` +
+          `Speed: ${currentSpeedKmh.toFixed(0)} km/h`;
 
         if (now - lastMinimapUpdate > 80) {
           lastMinimapUpdate = now;
