@@ -45,7 +45,7 @@
 </head>
 <body>
   <div id="hud">
-    <h1>Bernina Switchbacks 3D</h1>
+    <h1>Bernina Line: Poschiavo to Cavaglia</h1>
     <div id="status">Loading Mapterhorn elevation tiles...</div>
     <div class="controls">
       <button id="togglePauseBtn" class="secondary">Pause</button>
@@ -77,8 +77,10 @@
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
     const GEOJSON_URL = 'https://mapsmania.github.io/mapchallenge/alpy.geojson';
+    const BUILDINGS_URL = 'https://mapsmania.github.io/mapchallenge/alpbuildings.geojson';
     const BOUNDS = {
       south: 46.315,
       west: 10.010,
@@ -555,6 +557,143 @@
     const trackGroup = new THREE.Group();
     scene.add(trackGroup);
 
+    // Simple station platforms, buildings and floating nameboards
+    const stationGroup = new THREE.Group();
+    scene.add(stationGroup);
+
+    // --- OpenStreetMap building footprints ---
+    const buildingGroup = new THREE.Group();
+    scene.add(buildingGroup);
+
+    const buildingMaterials = [
+      new THREE.MeshStandardMaterial({ color: 0xd8c9ad, roughness: 0.94 }),
+      new THREE.MeshStandardMaterial({ color: 0xb9b5aa, roughness: 0.94 }),
+      new THREE.MeshStandardMaterial({ color: 0x9faaa8, roughness: 0.94 }),
+      new THREE.MeshStandardMaterial({ color: 0xc6a58b, roughness: 0.94 })
+    ];
+
+    function parseBuildingHeight(properties = {}) {
+      const parseMetres = value => {
+        if (value === undefined || value === null) return NaN;
+        const match = String(value).replace(',', '.').match(/[0-9]+(?:\.[0-9]+)?/);
+        return match ? Number(match[0]) : NaN;
+      };
+      const explicit = parseMetres(properties.height || properties['building:height']);
+      if (Number.isFinite(explicit) && explicit > 1) return THREE.MathUtils.clamp(explicit, 2.5, 35);
+      const levels = parseMetres(properties['building:levels']);
+      if (Number.isFinite(levels) && levels > 0) return THREE.MathUtils.clamp(levels * 3.1, 2.5, 35);
+      const kind = String(properties.building || '').toLowerCase();
+      if (['garage', 'shed', 'hut', 'cabin'].includes(kind)) return 3.5;
+      if (kind === 'church' || kind === 'chapel') return 12;
+      return 7.2;
+    }
+
+    function makeBuildingGeometry(rings, height) {
+      if (!rings || !rings.length || rings[0].length < 4) return null;
+      const toShapePoint = coord => {
+        const local = lonLatToLocal(coord[0], coord[1]);
+        return new THREE.Vector2(local.x, -local.z);
+      };
+      const outer = rings[0];
+      const shape = new THREE.Shape();
+      const first = toShapePoint(outer[0]);
+      shape.moveTo(first.x, first.y);
+      for (let i = 1; i < outer.length - 1; i++) {
+        const pt = toShapePoint(outer[i]);
+        shape.lineTo(pt.x, pt.y);
+      }
+      shape.closePath();
+
+      // Preserve courtyards and other holes in the footprint.
+      for (let r = 1; r < rings.length; r++) {
+        if (rings[r].length < 4) continue;
+        const hole = new THREE.Path();
+        const h0 = toShapePoint(rings[r][0]);
+        hole.moveTo(h0.x, h0.y);
+        for (let i = 1; i < rings[r].length - 1; i++) {
+          const pt = toShapePoint(rings[r][i]);
+          hole.lineTo(pt.x, pt.y);
+        }
+        hole.closePath();
+        shape.holes.push(hole);
+      }
+
+      const geometry = new THREE.ExtrudeGeometry(shape, {
+        depth: height,
+        bevelEnabled: false,
+        curveSegments: 1
+      });
+      // Extrude along world-up after converting the footprint's XY plane to XZ.
+      geometry.rotateX(-Math.PI / 2);
+
+      // Use the footprint's mean coordinate to sample the terrain height.
+      let lonSum = 0, latSum = 0, count = outer.length - 1;
+      for (let i = 0; i < count; i++) {
+        lonSum += outer[i][0];
+        latSum += outer[i][1];
+      }
+      const lon = lonSum / count;
+      const lat = latSum / count;
+      const baseHeight = getElevationAtLonLat(lon, lat);
+      geometry.translate(0, baseHeight + 0.12, 0);
+      geometry.computeVertexNormals();
+      return geometry;
+    }
+
+    async function loadBuildingsFromUrl() {
+      statusEl.textContent = 'Loading Alpine building footprints...';
+      const response = await fetch(BUILDINGS_URL);
+      if (!response.ok) throw new Error(`HTTP ${response.status} fetching building footprints`);
+      const geojson = await response.json();
+      const features = geojson.type === 'FeatureCollection' ? geojson.features : [geojson];
+      let added = 0;
+      const geometriesByMaterial = [[], [], [], []];
+      const MAX_BUILDINGS = 12000;
+
+      for (const feature of features) {
+        if (added >= MAX_BUILDINGS) break;
+        if (!feature.geometry) continue;
+        const props = feature.properties || {};
+        const height = parseBuildingHeight(props);
+        const kind = String(props.building || '').toLowerCase();
+        const materialIndex = kind.includes('industrial') || kind === 'warehouse' ? 1
+          : kind === 'barn' || kind === 'farm_auxiliary' ? 3
+          : kind === 'church' || kind === 'chapel' ? 2
+          : 0;
+        const polygons = feature.geometry.type === 'Polygon'
+          ? [feature.geometry.coordinates]
+          : feature.geometry.type === 'MultiPolygon'
+            ? feature.geometry.coordinates
+            : [];
+
+        for (const rings of polygons) {
+          if (added >= MAX_BUILDINGS) break;
+          const outer = rings && rings[0];
+          if (!outer || outer.length < 4) continue;
+          // Ignore footprints outside the DEM / terrain mesh bounds.
+          const xs = outer.map(c => c[0]);
+          const ys = outer.map(c => c[1]);
+          const lon = xs.reduce((a, b) => a + b, 0) / xs.length;
+          const lat = ys.reduce((a, b) => a + b, 0) / ys.length;
+          if (lon < BOUNDS.west || lon > BOUNDS.east || lat < BOUNDS.south || lat > BOUNDS.north) continue;
+          const geometry = makeBuildingGeometry(rings, height);
+          if (geometry) {
+            geometriesByMaterial[materialIndex].push(geometry);
+            added++;
+          }
+        }
+      }
+      // Merge footprints by material to keep draw calls low, even in villages.
+      for (let i = 0; i < geometriesByMaterial.length; i++) {
+        if (!geometriesByMaterial[i].length) continue;
+        const merged = mergeGeometries(geometriesByMaterial[i], false);
+        for (const geometry of geometriesByMaterial[i]) geometry.dispose();
+        if (merged) buildingGroup.add(new THREE.Mesh(merged, buildingMaterials[i]));
+      }
+      statusEl.textContent += ` · ${added.toLocaleString()} buildings added`;
+      return added;
+    }
+
     function distMeters(a, b) {
       const dx = (a[0] - b[0]) * METERS_PER_DEG_LON;
       const dy = (a[1] - b[1]) * METERS_PER_DEG_LAT;
@@ -653,6 +792,10 @@
       const features = geojson.type === 'FeatureCollection' ? geojson.features : [geojson];
       const { coords, segmentCount, joinedCount, disconnectedCount } = stitchLineStrings(features);
 
+      // The stitched route is assembled from its northern end. Reverse it so
+      // the simulation begins at Poschiavo and travels north towards Cavaglia.
+      coords.reverse();
+
       if (coords.length < 4) {
         statusEl.textContent = 'Could not find enough connected railway track points.';
         return;
@@ -714,6 +857,81 @@
         const vertical = new THREE.Vector3().crossVectors(tangent, lateral).normalize();
         return { point, tangent, lateral, vertical };
       }
+
+      function addStation(name, lon, lat) {
+        // Snap each station to the nearest point on the railway geometry.
+        const target = lonLatToLocal(lon, lat);
+        let bestT = 0;
+        let bestDistanceSq = Infinity;
+        const checks = Math.max(1200, Math.ceil(routeLength / 3));
+        for (let i = 0; i <= checks; i++) {
+          const t = i / checks;
+          const p = trainCurve.getPointAt(t);
+          const d2 = (p.x - target.x) ** 2 + (p.z - target.z) ** 2;
+          if (d2 < bestDistanceSq) {
+            bestDistanceSq = d2;
+            bestT = t;
+          }
+        }
+
+        const { point, tangent, lateral, vertical } = routeFrame(bestT);
+        const orientation = new THREE.Matrix4().makeBasis(lateral, vertical, tangent);
+        const rotation = new THREE.Quaternion().setFromRotationMatrix(orientation);
+        const station = new THREE.Group();
+        station.position.copy(point);
+        station.quaternion.copy(rotation);
+
+        const platformMat = new THREE.MeshStandardMaterial({ color: 0xaaa9a2, roughness: 0.95 });
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0xd8d0bd, roughness: 0.9 });
+        const roofMat = new THREE.MeshStandardMaterial({ color: 0x554b43, roughness: 0.85 });
+        const platform = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.32, 42), platformMat);
+        platform.position.set(4.2, -0.12, 0);
+        station.add(platform);
+
+        // A compact Alpine station building beside the platform.
+        const building = new THREE.Mesh(new THREE.BoxGeometry(8.5, 4.0, 10), wallMat);
+        building.position.set(11.5, 2.0, -3);
+        station.add(building);
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(9.2, 0.65, 10.8), roofMat);
+        roof.position.set(11.5, 4.25, -3);
+        station.add(roof);
+
+        // Platform edge stripe.
+        const edge = new THREE.Mesh(
+          new THREE.BoxGeometry(0.12, 0.035, 41),
+          new THREE.MeshStandardMaterial({ color: 0xe8dfbd, roughness: 0.8 })
+        );
+        edge.position.set(1.75, 0.06, 0);
+        station.add(edge);
+
+        // Canvas-backed station nameboard, readable from the driver's view.
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#17212b';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#f8fafc';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 58px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(name, 256, 66);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        const sign = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, depthTest: false }));
+        sign.position.set(11.5, 7.2, -3);
+        sign.scale.set(19, 4.75, 1);
+        station.add(sign);
+
+        stationGroup.add(station);
+      }
+
+      stationGroup.clear();
+      addStation('POSCHIAVO', 10.0545, 46.32465);
+      addStation('CAVAGLIA', 10.046274, 46.3642466);
 
       for (let i = 0; i <= sampleCount; i++) {
         const t = i / sampleCount;
@@ -781,7 +999,7 @@
     }
 
     async function loadGeoJSONFromUrl() {
-      statusEl.textContent = 'Fetching Bernina railway data...';
+      statusEl.textContent = 'Fetching Bernina railway data from Poschiavo...';
       const res = await fetch(GEOJSON_URL);
       if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${GEOJSON_URL}`);
       const data = await res.json();
@@ -922,6 +1140,12 @@
       await loadMapterhornDEM();
       buildTerrainMesh();
       await loadGeoJSONFromUrl();
+      try {
+        await loadBuildingsFromUrl();
+      } catch (buildingError) {
+        console.warn('Building footprints could not be loaded:', buildingError);
+        statusEl.textContent += ' · buildings unavailable';
+      }
     } catch (err) {
       statusEl.textContent = 'Startup error: ' + err.message;
       console.error(err);
