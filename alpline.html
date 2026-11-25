@@ -87,6 +87,11 @@
       transform-origin: top right;
     }
 
+    #weatherSelect option {
+  background: #161d26;
+  color: #f8fafc;
+}    
+
     /* Subtle windshield wiper parked at bottom center-right */
     #wiper-blade {
       position: absolute;
@@ -447,6 +452,7 @@
   <!-- Cab Windshield & Overhead Cowling -->
   <div id="cab-frame">
     <div id="cab-roof">
+      
       <div class="cab-badge">
         <span class="rhb-pill">RhB</span>
         <span>Bernina Express · Poschiavo — Cavaglia</span>
@@ -522,23 +528,28 @@
     </div>
 
     <!-- Right Console: Prominent Reverse, Sound On/Off, Pause -->
-    <div class="desk-panel">
-      <div class="panel-label">
-        <span>Reverser &amp; Cab Systems</span>
-        <span>1000V DC</span>
-      </div>
-      <div class="right-controls">
-        <button id="reverseBtn" title="Reverse train direction">
-          <span id="reverseText">⇄ Reverse (FWD)</span>
-          <span class="dir-lamp" id="reverseLamp"></span>
-        </button>
-        <div class="secondary-row">
-          <button id="soundBtn" class="cab-btn active">🔊 Sound: ON</button>
-          <button id="togglePauseBtn" class="cab-btn">⏸ Pause</button>
-        </div>
-      </div>
+    <!-- Right Console: Prominent Reverse, Sound On/Off, Pause, Weather -->
+<div class="desk-panel">
+  <div class="panel-label">
+    <span>Reverser &amp; Cab Systems</span>
+    <span>1000V DC</span>
+  </div>
+  <div class="right-controls">
+    <button id="reverseBtn" title="Reverse train direction">
+      <span id="reverseText">⇄ Reverse (FWD)</span>
+      <span class="dir-lamp" id="reverseLamp"></span>
+    </button>
+    <div class="secondary-row" style="grid-template-columns: 1fr 1fr 1fr;">
+      <button id="soundBtn" class="cab-btn active">🔊 Sound: ON</button>
+      <button id="togglePauseBtn" class="cab-btn">⏸ Pause</button>
+      <select id="weatherSelect" class="cab-btn" style="text-align:center;">
+        <option value="clear">☀️ Clear</option>
+        <option value="rain">🌧️ Rain</option>
+        <option value="snow">❄️ Snow</option>
+      </select>
     </div>
   </div>
+</div>
 
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
   <script type="importmap">
@@ -551,6 +562,7 @@
   </script>
 
   <script type="module">
+    import { WeatherEffects } from 'https://mapsmania.github.io/mapchallenge/weather-effects.js';  
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -606,6 +618,12 @@
     const SHADOW_MAP_SIZE = 2048;
 
     const sun = new THREE.DirectionalLight(0xfffbeb, 2.0);
+    const weather = new WeatherEffects(scene, camera, { sunLight: sun });
+
+    document.getElementById('weatherSelect').addEventListener('change', (e) => {
+  weather.setWeather(e.target.value, 0.75);
+});  
+
     sun.position.copy(SUN_OFFSET);
     sun.castShadow = true;
     sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
@@ -2137,6 +2155,7 @@
       railAudio.update(currentSpeedKmh, paused, suspensionDistance);
       updateSunShadowFocus();
       renderer.render(scene, camera);
+      weather.update(dt, { speedKmh: currentSpeedKmh, direction });  
     }
 
     window.addEventListener('resize', () => {
