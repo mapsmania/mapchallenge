@@ -194,4 +194,119 @@ export class WeatherEffects {
   /**
    * Call once per frame inside animate(now).
    * @param {number} dt Delta time in seconds
-   * @param {Object} [motion
+   * @param {Object} [motion]
+   * @param {number} [motion.speedKmh=0] Current train speed in km/h
+   * @param {number} [motion.direction=1] 1 for forward, -1 for reverse
+   */
+  update(dt, { speedKmh = 0, direction = 1 } = {}) {
+    if (this.mode === 'clear') return;
+
+    const clampedDt = Math.min(dt, 0.05);
+    this.elapsed += clampedDt;
+
+    this.camera.getWorldDirection(this._tmpForward);
+    this._tmpForward.y = 0;
+    if (this._tmpForward.lengthSq() < 1e-6) this._tmpForward.set(0, 0, -1);
+    this._tmpForward.normalize();
+
+    this._tmpRight.crossVectors(this._tmpForward, this._tmpUp).normalize();
+
+    const trainSpeedMps = (Math.max(0, speedKmh) / 3.6) * direction;
+    const halfX = this.boxWidth * 0.5;
+    const halfY = this.boxHeight * 0.5;
+    const halfZ = this.boxDepth * 0.5;
+
+    if (this.mode === 'rain') {
+      const { count, positions, seeds, geometry, material } = this._rain;
+      const activeCount = Math.max(100, Math.floor(count * this.intensity));
+      geometry.setDrawRange(0, activeCount);
+      material.opacity = THREE.MathUtils.clamp(0.25 + this.intensity * 0.45, 0.2, 0.72);
+      material.size = 1.15 + this.intensity * 0.45;
+
+      const baseFallSpeed = 24 + this.intensity * 10;
+
+      for (let i = 0; i < activeCount; i++) {
+        const i3 = i * 3;
+        const speedScale = seeds[i3 + 1];
+
+        let x = positions[i3];
+        let y = positions[i3 + 1];
+        let z = positions[i3 + 2];
+
+        // Relative velocity: rain falls fast + wind + apparent motion opposite to train travel
+        const vx = this.wind.x * speedScale - this._tmpForward.x * trainSpeedMps * 0.45;
+        const vy = -baseFallSpeed * speedScale;
+        const vz = this.wind.z * speedScale - this._tmpForward.z * trainSpeedMps * 0.45;
+
+        x = this._wrapCoord(x + vx * clampedDt, halfX);
+        y = this._wrapCoord(y + vy * clampedDt, halfY);
+        z = this._wrapCoord(z + vz * clampedDt, halfZ);
+
+        positions[i3] = x;
+        positions[i3 + 1] = y;
+        positions[i3 + 2] = z;
+      }
+
+      geometry.attributes.position.needsUpdate = true;
+      this._rain.points.position.copy(this.camera.position);
+    } else if (this.mode === 'snow') {
+      const { count, positions, seeds, geometry, material } = this._snow;
+      const activeCount = Math.max(100, Math.floor(count * this.intensity));
+      geometry.setDrawRange(0, activeCount);
+      material.opacity = THREE.MathUtils.clamp(0.45 + this.intensity * 0.45, 0.35, 0.92);
+      material.size = 0.52 + this.intensity * 0.28;
+
+      const baseFallSpeed = 2.6 + this.intensity * 1.4;
+
+      for (let i = 0; i < activeCount; i++) {
+        const i3 = i * 3;
+        const phase = seeds[i3];
+        const speedScale = seeds[i3 + 1];
+
+        const sway = Math.sin(this.elapsed * 1.4 + phase) * 1.35;
+        const flutter = Math.cos(this.elapsed * 1.1 + phase * 1.7) * 0.75;
+
+        let x = positions[i3];
+        let y = positions[i3 + 1];
+        let z = positions[i3 + 2];
+
+        const vx =
+          this._tmpRight.x * sway +
+          this.wind.x * 0.55 * speedScale -
+          this._tmpForward.x * trainSpeedMps * 0.35;
+        const vy = -baseFallSpeed * speedScale;
+        const vz =
+          this._tmpRight.z * sway +
+          flutter +
+          this.wind.z * 0.55 * speedScale -
+          this._tmpForward.z * trainSpeedMps * 0.35;
+
+        x = this._wrapCoord(x + vx * clampedDt, halfX);
+        y = this._wrapCoord(y + vy * clampedDt, halfY);
+        z = this._wrapCoord(z + vz * clampedDt, halfZ);
+
+        positions[i3] = x;
+        positions[i3 + 1] = y;
+        positions[i3 + 2] = z;
+      }
+
+      geometry.attributes.position.needsUpdate = true;
+      this._snow.points.position.copy(this.camera.position);
+    }
+  }
+
+  dispose() {
+    this.scene.remove(this._rain.points);
+    this.scene.remove(this._snow.points);
+
+    this._rain.geometry.dispose();
+    this._rain.material.dispose();
+    this._rain.texture.dispose();
+
+    this._snow.geometry.dispose();
+    this._snow.material.dispose();
+    this._snow.texture.dispose();
+
+    this._applyAtmosphere();
+  }
+}
