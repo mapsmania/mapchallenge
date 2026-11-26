@@ -565,7 +565,8 @@
     import { WeatherEffects } from 'https://mapsmania.github.io/mapchallenge/weather-effects.js';  
     import { UfoFlybyEvent } from 'https://mapsmania.github.io/mapchallenge/ufo-flyby.js';
     import { RollingBoulderEvent } from 'https://mapsmania.github.io/mapchallenge/rolling-boulder.js';  
-    import { BirdStrikeEvent } from 'https://mapsmania.github.io/mapchallenge/bird-strike.js';  
+    import { BirdStrikeEvent } from 'https://mapsmania.github.io/mapchallenge/bird-strike.js'; 
+    import { LowCloudBankEvent } from 'https://mapsmania.github.io/mapchallenge/low-cloud-bank.js';  
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -606,7 +607,37 @@
   { id: 'boulder-2', at: 0.18, create: () => new RollingBoulderEvent({ radius: 4.2, duration: 12, side: -1 }) },
   { id: 'boulder-3', at: 0.28, create: () => new RollingBoulderEvent({ radius: 4.8, duration: 12, side: 1 }) },
   { id: 'ufo-2', at: 0.33, create: () => new UfoFlybyEvent({ duration: 11, scale: 1.15, side: -1 }) },      
-  { id: 'ufo-3', at: 0.60, create: () => new UfoFlybyEvent({ duration: 10, scale: 1.0, side: 1 }) }
+  { id: 'ufo-3', at: 0.60, create: () => new UfoFlybyEvent({ duration: 10, scale: 1.0, side: 1 }) },
+  {
+  id: 'cloud-1',
+  at: 0.104,
+  create: () =>
+    new LowCloudBankEvent({
+      duration: 14,
+      puffCount: 148,
+      bankWidth: 230,
+      bankDepth: 100,
+      heightOffset: 14,
+      driftSpeed: 7.5,
+      side: 1,
+      maxOpacity: 0.44
+    })
+},
+{
+  id: 'cloud-2',
+  at: 0.72,
+  create: () =>
+    new LowCloudBankEvent({
+      duration: 15,
+      puffCount: 52,
+      bankWidth: 250,
+      bankDepth: 110,
+      heightOffset: 18,
+      driftSpeed: 6.5,
+      side: -1,
+      maxOpacity: 0.36
+    })
+}      
 ];
       
 const firedEventIds = new Set();
