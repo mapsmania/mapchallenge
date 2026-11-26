@@ -563,6 +563,9 @@
 
   <script type="module">
     import { WeatherEffects } from 'https://mapsmania.github.io/mapchallenge/weather-effects.js';  
+    import { UfoFlybyEvent } from 'https://mapsmania.github.io/mapchallenge/ufo-flyby.js';
+    import { RollingBoulderEvent } from 'https://mapsmania.github.io/mapchallenge/rolling-boulder.js';  
+    import { BirdStrikeEvent } from 'https://mapsmania.github.io/mapchallenge/bird-strike.js';  
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -592,6 +595,23 @@
     const speedBarEl = document.getElementById('speedBar');
     const altBarEl = document.getElementById('altBar');
     const routeBarEl = document.getElementById('routeBar');
+
+    let activeEvent = null;
+
+    const ROUTE_EVENTS = [
+  { id: 'ufo-1', at: 0.05, create: () => new UfoFlybyEvent({ duration: 11, scale: 1.15, side: 1 }) },
+  { id: 'boulder-1', at: 0.07, create: () => new RollingBoulderEvent({ radius: 4.2, duration: 12, side: -1 }) }, 
+  { id: 'birds-1', at: 0.09, create: () => new BirdStrikeEvent({ duration: 10, count: 22, side: -1, spread: 8})},   
+  { id: 'birds-2', at: 0.102, create: () => new BirdStrikeEvent({ duration: 10, count: 22, side: -1, spread: 8})},            
+  { id: 'boulder-2', at: 0.18, create: () => new RollingBoulderEvent({ radius: 4.2, duration: 12, side: -1 }) },
+  { id: 'boulder-3', at: 0.28, create: () => new RollingBoulderEvent({ radius: 4.8, duration: 12, side: 1 }) },
+  { id: 'ufo-2', at: 0.33, create: () => new UfoFlybyEvent({ duration: 11, scale: 1.15, side: -1 }) },      
+  { id: 'ufo-3', at: 0.60, create: () => new UfoFlybyEvent({ duration: 10, scale: 1.0, side: 1 }) }
+];
+      
+const firedEventIds = new Set();
+      
+    let ufoTriggeredThisPass = false;  
 
     // --- Three.js Setup ---
     const scene = new THREE.Scene();
@@ -671,6 +691,11 @@
         ORIGIN.lat - z / METERS_PER_DEG_LAT
       ];
     }
+
+    const getGroundHeight = (x, z) => {
+      const [lon, lat] = localToLonLat(x, z);
+      return getElevationAtLonLat(lon, lat);
+    };
 
     function lonToTileX(lon, z) {
       return Math.floor(((lon + 180) / 360) * Math.pow(2, z));
@@ -2152,10 +2177,47 @@
         controls.update();
       }
 
+      if (progress < 0.02) {
+        firedEventIds.clear();
+      }
+
+      for (const item of ROUTE_EVENTS) {
+        if (!firedEventIds.has(item.id) && Math.abs(progress - item.at) < 0.015) {
+          firedEventIds.add(item.id);
+          if (activeEvent) {
+            activeEvent.dispose();
+            activeEvent = null;
+          }
+          activeEvent = item.create();
+          activeEvent.start({
+  scene,
+  camera,
+  getGroundHeight,
+  progress,
+  speedKmh: currentSpeedKmh,
+  direction
+});
+          break;
+        }
+      }
+
+      if (activeEvent && !paused) {
+        const stillRunning = activeEvent.update(dt, {
+          scene,
+          camera,
+          progress,
+          speedKmh: currentSpeedKmh,
+          direction
+        });
+        if (!stillRunning) {
+          activeEvent = null;
+        }
+      }
+
       railAudio.update(currentSpeedKmh, paused, suspensionDistance);
       updateSunShadowFocus();
       renderer.render(scene, camera);
-      weather.update(dt, { speedKmh: currentSpeedKmh, direction });  
+      weather.update(dt, { speedKmh: currentSpeedKmh, direction });
     }
 
     window.addEventListener('resize', () => {
@@ -2179,6 +2241,21 @@
       statusEl.textContent = 'Startup error: ' + err.message;
       console.error(err);
     }
+
+    window.triggerUfo = (side) => {
+      if (activeEvent) {
+        activeEvent.dispose();
+      }
+      activeEvent = new UfoFlybyEvent({ duration: 11, scale: 1.15, side });
+      activeEvent.start({ scene, camera });
+    };
+
+      window.triggerBoulder = (side = -1) => {
+  if (activeEvent) activeEvent.dispose();
+  activeEvent = new RollingBoulderEvent({ radius: 4.5, duration: 12, side });
+  activeEvent.start({ scene, camera, getGroundHeight });
+};
+      
     animate();
   </script>
 </body>
