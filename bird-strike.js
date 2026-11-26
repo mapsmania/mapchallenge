@@ -21,66 +21,70 @@ export class BirdStrikeEvent {
     this.birds = [];
     this.group = null;
 
-    this.bodyGeometry = new THREE.SphereGeometry(1, 7, 5);
+    this.tailGeometry = new THREE.ConeGeometry(0.09, 0.22, 4);
+    this.bodyGeometry = new THREE.SphereGeometry(1, 8, 6);
     this.wingGeometry = this.createWingGeometry();
     this.bodyMaterial = new THREE.MeshStandardMaterial({
       color: 0x292d2b,
-      roughness: 1,
+      roughness: 0.9,
       side: THREE.DoubleSide
     });
     this.wingMaterial = new THREE.MeshStandardMaterial({
-      color: 0x202523,
-      roughness: 1,
+      color: 0x1e2321,
+      roughness: 0.85,
       side: THREE.DoubleSide
     });
   }
 
   createWingGeometry() {
-    // A simple tapered wing silhouette. The second wing uses a mirrored copy.
+    // Wing spans outward along -X from shoulder (0, 0, 0) to tip (-0.82, 0, 0),
+    // with chord along Z so rotating around Z flaps the wingtip up and down.
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute([
-      0, 0, 0,
-      -0.78, 0.08, 0,
-      -0.57, -0.16, 0,
-      -0.36, -0.10, 0,
-      -0.18, -0.20, 0
+      0.0, 0.0, -0.11,   // 0: inner leading edge
+      0.0, 0.0,  0.14,   // 1: inner trailing edge
+     -0.42, 0.02, -0.14,  // 2: mid leading edge
+     -0.42, 0.0,   0.16,  // 3: mid trailing edge
+     -0.82, 0.03, -0.04,  // 4: outer wingtip
+     -0.74, 0.01,  0.07   // 5: outer trailing tip
     ], 3));
-    geometry.setIndex([0, 1, 2, 0, 2, 3, 0, 3, 4]);
+    geometry.setIndex([
+      0, 2, 3, 0, 3, 1,
+      2, 4, 5, 2, 5, 3
+    ]);
     geometry.computeVertexNormals();
     return geometry;
   }
 
-  makeBird(phase, scale) {
+  makeBird(phase, flapSpeed, baseScale) {
     const bird = new THREE.Group();
 
+    // Body aligned along -Z (forward in Three.js)
     const body = new THREE.Mesh(this.bodyGeometry, this.bodyMaterial);
-    body.scale.set(0.13 * scale, 0.34 * scale, 0.12 * scale);
+    body.scale.set(0.12, 0.12, 0.34);
     bird.add(body);
 
+    // Left wing extends along -X; positive Z rotation lifts the -X tip upward (+Y)
     const leftPivot = new THREE.Group();
-    leftPivot.position.set(-0.075 * scale, 0.04 * scale, 0);
-
+    leftPivot.position.set(-0.08, 0.03, -0.02);
     const leftWing = new THREE.Mesh(this.wingGeometry, this.wingMaterial);
-    leftWing.scale.set(scale, scale, scale);
     leftPivot.add(leftWing);
     bird.add(leftPivot);
 
+    // Right wing mirrored along +X; negative Z rotation lifts the +X tip upward (+Y)
     const rightPivot = new THREE.Group();
-    rightPivot.position.set(0.075 * scale, 0.04 * scale, 0);
-
+    rightPivot.position.set(0.08, 0.03, -0.02);
     const rightWing = new THREE.Mesh(this.wingGeometry, this.wingMaterial);
-    rightWing.scale.set(-scale, scale, scale);
+    rightWing.scale.x = -1;
     rightPivot.add(rightWing);
     bird.add(rightPivot);
 
-    // A small tail helps the silhouette read as a bird from the cab.
-    const tail = new THREE.Mesh(
-      new THREE.ConeGeometry(0.09 * scale, 0.22 * scale, 4),
-      this.wingMaterial
-    );
+    const tail = new THREE.Mesh(this.tailGeometry, this.wingMaterial);
     tail.rotation.x = Math.PI / 2;
-    tail.position.y = -0.27 * scale;
+    tail.position.z = 0.26;
     bird.add(tail);
+
+    bird.scale.setScalar(baseScale);
 
     bird.traverse(object => {
       if (object.isMesh) {
@@ -89,7 +93,7 @@ export class BirdStrikeEvent {
       }
     });
 
-    return { bird, leftPivot, rightPivot, phase };
+    return { bird, leftPivot, rightPivot, phase, flapSpeed, baseScale };
   }
 
   start({ scene, camera, getGroundHeight }) {
@@ -103,50 +107,55 @@ export class BirdStrikeEvent {
     const forward = new THREE.Vector3();
     camera.getWorldDirection(forward);
     forward.y = 0;
+    if (forward.lengthSq() < 1e-6) forward.set(0, 0, -1);
     forward.normalize();
 
-    // Horizontal vector pointing to the chosen side of the train.
-    const right = new THREE.Vector3(forward.z, 0, -forward.x)
+    const right = new THREE.Vector3(-forward.z, 0, forward.x)
       .normalize()
       .multiplyScalar(this.side);
 
-    // Birds burst out from just ahead of the cab and beside the track.
     const origin = camera.position.clone()
-      .addScaledVector(forward, 22)
-      .addScaledVector(right, 9);
+      .addScaledVector(forward, 24)
+      .addScaledVector(right, 10);
 
-    const groundY = getGroundHeight(origin.x, origin.z);
-    origin.y = Math.max(groundY + 1.4, camera.position.y - 1.0);
+    const groundY = typeof getGroundHeight === 'function'
+      ? getGroundHeight(origin.x, origin.z)
+      : camera.position.y - 4;
+    origin.y = Math.max(groundY + 1.6, camera.position.y - 0.8);
 
     for (let i = 0; i < this.count; i++) {
-      const phase = i * 1.73;
+      const phase = i * 1.73 + Math.random() * 1.4;
+      const flapSpeed = 11.5 + (i % 5) * 1.6 + Math.random() * 1.5;
+      const baseScale = 0.75 + ((i * 7) % 6) * 0.1;
 
-      const spreadX =
-        (Math.sin(i * 12.37) * 0.5 +
-         Math.cos(i * 3.1) * 0.5) * this.spread;
+      const item = this.makeBird(phase, flapSpeed, baseScale);
 
-      const spreadZ =
-        (Math.cos(i * 8.17) * 0.5 +
-         Math.sin(i * 5.4) * 0.5) * this.spread * 0.55;
-
-      const scale = 0.72 + ((i * 7) % 6) * 0.09;
-      const item = this.makeBird(phase, scale);
+      const spreadRight =
+        (Math.sin(i * 12.37) * 0.5 + Math.cos(i * 3.1) * 0.5) * this.spread;
+      const spreadForward =
+        (Math.cos(i * 8.17) * 0.5 + Math.sin(i * 5.4) * 0.5) * this.spread * 0.6;
+      const spreadY = ((i % 5) - 2) * 0.65;
 
       item.bird.position.copy(origin)
-        .addScaledVector(right, spreadX)
-        .addScaledVector(forward, spreadZ);
+        .addScaledVector(right, spreadRight)
+        .addScaledVector(forward, spreadForward);
+      item.bird.position.y += spreadY;
 
-      // Each bird fans out in a slightly different direction and climbs.
-      const outward = 1.8 + (i % 5) * 0.55;
+      // Distinct initial velocities so each bird takes its own line
+      const outwardSpeed = 1.6 + (i % 5) * 0.75 + Math.random() * 0.8;
+      const forwardSpeed = 2.5 + (i % 4) * 1.1 + Math.random() * 1.2;
+      const climbSpeed = 1.4 + (i % 6) * 0.45;
 
-      item.velocity = right.clone().multiplyScalar(outward)
-        .addScaledVector(forward, 3.0 + (i % 4) * 0.8);
+      item.velocity = right.clone().multiplyScalar(outwardSpeed)
+        .addScaledVector(forward, forwardSpeed);
+      item.velocity.y = climbSpeed;
 
-      item.velocity.y = 2.0 + (i % 6) * 0.42;
+      // Individual steering/flutter parameters
+      item.turnRate = ((i % 2 === 0 ? 1 : -1) * (0.35 + (i % 4) * 0.18));
+      item.liftAmp = 0.6 + (i % 3) * 0.35;
+      item.liftFreq = 2.0 + (i % 4) * 0.45;
 
-      item.bird.rotation.y = Math.atan2(-forward.x, -forward.z);
-      item.leftPivot.rotation.x = 0.2;
-      item.rightPivot.rotation.x = -0.2;
+      item.bird.lookAt(item.bird.position.clone().add(item.velocity));
 
       this.group.add(item.bird);
       this.birds.push(item);
@@ -158,24 +167,40 @@ export class BirdStrikeEvent {
   update(dt) {
     if (!this.started || this.finished) return false;
 
-    this.elapsed += dt;
+    const stepDt = Math.min(dt, 0.05);
+    this.elapsed += stepDt;
 
     const t = Math.min(this.elapsed / this.duration, 1);
     const fade = t > 0.72 ? 1 - (t - 0.72) / 0.28 : 1;
 
+    const upAxis = new THREE.Vector3(0, 1, 0);
+    const lookTarget = new THREE.Vector3();
+
     for (const item of this.birds) {
-      item.bird.position.addScaledVector(item.velocity, dt);
+      // Gently curve each bird's horizontal velocity independently
+      item.velocity.applyAxisAngle(upAxis, item.turnRate * stepDt);
 
-      // A little lift and drift makes the flock scatter rather than move as a block.
-      item.bird.position.y +=
-        Math.sin(this.elapsed * 2.2 + item.phase) * dt * 0.45;
+      // Individual wave/climb oscillation
+      const waveY =
+        Math.cos(this.elapsed * item.liftFreq + item.phase) * item.liftAmp;
 
-      const flap = Math.sin(this.elapsed * 15 + item.phase) * 0.85;
+      item.bird.position.x += item.velocity.x * stepDt;
+      item.bird.position.z += item.velocity.z * stepDt;
+      item.bird.position.y += (item.velocity.y + waveY) * stepDt;
 
-      item.leftPivot.rotation.x = flap;
-      item.rightPivot.rotation.x = -flap;
+      // Face along current movement direction
+      lookTarget.copy(item.bird.position).add(item.velocity);
+      item.bird.lookAt(lookTarget);
 
-      item.bird.scale.setScalar(Math.max(0.001, fade));
+      // Wing flap: broad upstroke, slightly snappier downstroke
+      const cycle = this.elapsed * item.flapSpeed + item.phase;
+      const flapAngle = Math.sin(cycle) * 0.68 + Math.sin(cycle * 2) * 0.1;
+
+      item.leftPivot.rotation.z = flapAngle;
+      item.rightPivot.rotation.z = -flapAngle;
+
+      // Preserve per-bird scale while fading out at the end
+      item.bird.scale.setScalar(Math.max(0.001, item.baseScale * fade));
     }
 
     if (this.elapsed >= this.duration) {
@@ -200,6 +225,7 @@ export class BirdStrikeEvent {
 
     this.bodyGeometry.dispose();
     this.wingGeometry.dispose();
+    this.tailGeometry.dispose();
     this.bodyMaterial.dispose();
     this.wingMaterial.dispose();
   }
