@@ -22,6 +22,31 @@
       pointer-events: none;
     }
 
+    /* Light at the end of the tunnel (projected from exit portal) */
+    #tunnel-exit-light {
+      position: fixed;
+      left: 50%;
+      top: 42%;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0.2);
+      opacity: 0;
+      z-index: 7;
+      pointer-events: none;
+      background: radial-gradient(
+        circle,
+        rgba(255, 253, 240, 1) 0%,
+        rgba(224, 242, 254, 0.88) 32%,
+        rgba(158, 197, 230, 0.35) 62%,
+        rgba(158, 197, 230, 0) 100%
+      );
+      box-shadow:
+        0 0 45px rgba(255, 252, 232, 0.85),
+        0 0 110px rgba(186, 230, 253, 0.55);
+      will-change: left, top, transform, opacity;
+    }
+
     /* Top cab roof overhang & sun visor */
     #cab-roof {
       position: absolute;
@@ -35,6 +60,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 20px;
       padding: 0 28px;
     }
 
@@ -47,6 +73,7 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: #cbd5e1;
+      flex-shrink: 0;
     }
 
     .rhb-pill {
@@ -59,10 +86,144 @@
       font-size: 11px;
     }
 
-    #status {
-      font-size: 11.5px;
+    #tunnel-banner {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: rgba(251, 191, 36, 0.14);
+      border: 1px solid rgba(251, 191, 36, 0.45);
+      color: #fde68a;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      flex-shrink: 0;
+    }
+    #tunnel-banner.active {
+      display: inline-flex;
+    }
+
+    /* --- Overhead Transit Line & Progress Bar --- */
+    #route-tracker {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      height: 38px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .route-bar-wrap {
+      position: relative;
+      width: 100%;
+      height: 14px;
+      display: flex;
+      align-items: center;
+    }
+
+    #route-track-base {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #273344;
+      border-radius: 2px;
+    }
+
+    #route-progress-fill {
+      position: absolute;
+      left: 0;
+      width: 0%;
+      height: 4px;
+      background: linear-gradient(90deg, #dc2626, #f87171);
+      border-radius: 2px;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.55);
+    }
+
+    #route-train-dot {
+      position: absolute;
+      left: 0%;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #facc15;
+      border: 2px solid #090d11;
+      box-shadow: 0 0 8px rgba(250, 204, 21, 0.9);
+      transform: translateX(-50%);
+      z-index: 3;
+    }
+
+    #route-stations {
+      position: relative;
+      width: 100%;
+      height: 18px;
+    }
+
+    .station-stop {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .station-stop.is-first {
+      transform: translateX(0%);
+      align-items: flex-start;
+    }
+
+    .station-stop.is-last {
+      transform: translateX(-100%);
+      align-items: flex-end;
+    }
+
+    .station-pip {
+      position: absolute;
+      top: -11px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 2px solid #94a3b8;
+      z-index: 2;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .station-stop.halt .station-pip {
+      width: 7px;
+      height: 7px;
+      top: -10px;
+    }
+
+    .station-stop.passed .station-pip {
+      background: #dc2626;
+      border-color: #fca5a5;
+    }
+
+    .station-name {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
       color: #94a3b8;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      margin-top: 2px;
+      transition: color 0.2s ease;
+    }
+
+    .station-stop.halt .station-name {
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .station-stop.passed .station-name {
+      color: #e2e8f0;
     }
 
     /* Left & right angled A-pillars */
@@ -88,9 +249,9 @@
     }
 
     #weatherSelect option {
-  background: #161d26;
-  color: #f8fafc;
-}    
+      background: #161d26;
+      color: #f8fafc;
+    }
 
     /* Subtle windshield wiper parked at bottom center-right */
     #wiper-blade {
@@ -449,15 +610,27 @@
   </style>
 </head>
 <body>
+  <div id="tunnel-exit-light"></div>
+
   <!-- Cab Windshield & Overhead Cowling -->
   <div id="cab-frame">
     <div id="cab-roof">
-      
       <div class="cab-badge">
         <span class="rhb-pill">RhB</span>
         <span>Bernina Express · Poschiavo — Cavaglia</span>
       </div>
-      <div id="status">Loading Mapterhorn elevation tiles...</div>
+
+      <!-- Schematic Transit Line & Train Progress Bar -->
+      <div id="route-tracker">
+        <div class="route-bar-wrap">
+          <div id="route-track-base"></div>
+          <div id="route-progress-fill"></div>
+          <div id="route-train-dot"></div>
+        </div>
+        <div id="route-stations"></div>
+      </div>
+
+      <div id="tunnel-banner">🚇 <span id="tunnelNameLabel">TUNNEL</span></div>
     </div>
     <div class="cab-pillar left"></div>
     <div class="cab-pillar right"></div>
@@ -527,29 +700,29 @@
       </div>
     </div>
 
-    <!-- Right Console: Prominent Reverse, Sound On/Off, Pause -->
     <!-- Right Console: Prominent Reverse, Sound On/Off, Pause, Weather -->
-<div class="desk-panel">
-  <div class="panel-label">
-    <span>Reverser &amp; Cab Systems</span>
-    <span>1000V DC</span>
-  </div>
-  <div class="right-controls">
-    <button id="reverseBtn" title="Reverse train direction">
-      <span id="reverseText">⇄ Reverse (FWD)</span>
-      <span class="dir-lamp" id="reverseLamp"></span>
-    </button>
-    <div class="secondary-row" style="grid-template-columns: 1fr 1fr 1fr;">
-      <button id="soundBtn" class="cab-btn active">🔊 Sound: ON</button>
-      <button id="togglePauseBtn" class="cab-btn">⏸ Pause</button>
-      <select id="weatherSelect" class="cab-btn" style="text-align:center;">
-        <option value="clear">☀️ Clear</option>
-        <option value="rain">🌧️ Rain</option>
-        <option value="snow">❄️ Snow</option>
-      </select>
+    <div class="desk-panel">
+      <div class="panel-label">
+        <span>Reverser &amp; Cab Systems</span>
+        <span>1000V DC</span>
+      </div>
+      <div class="right-controls">
+        <button id="reverseBtn" title="Reverse train direction">
+          <span id="reverseText">⇄ Reverse (FWD)</span>
+          <span class="dir-lamp" id="reverseLamp"></span>
+        </button>
+        <div class="secondary-row" style="grid-template-columns: 1fr 1fr 1fr;">
+          <button id="soundBtn" class="cab-btn active">🔊 Sound: ON</button>
+          <button id="togglePauseBtn" class="cab-btn">⏸ Pause</button>
+          <select id="weatherSelect" class="cab-btn" style="text-align:center;">
+            <option value="clear">☀️ Clear</option>
+            <option value="rain">🌧️ Rain</option>
+            <option value="snow">❄️ Snow</option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
   <script type="importmap">
@@ -585,7 +758,15 @@
     };
     const ZOOM = 13;
 
-    const statusEl = document.getElementById('status');
+    const routeProgressFillEl = document.getElementById('route-progress-fill');
+    const routeTrainDotEl = document.getElementById('route-train-dot');
+    const routeStationsEl = document.getElementById('route-stations');
+    const tunnelBannerEl = document.getElementById('tunnel-banner');
+    const tunnelNameLabelEl = document.getElementById('tunnelNameLabel');
+    const tunnelExitLightEl = document.getElementById('tunnel-exit-light');
+    const stationStops = [];
+    let tunnelSpans = [];
+
     const speedReadoutEl = document.getElementById('speedReadout');
     const targetSpeedReadoutEl = document.getElementById('targetSpeedReadout');
     const altimeterReadoutEl = document.getElementById('altimeterReadout');
@@ -597,57 +778,109 @@
     const altBarEl = document.getElementById('altBar');
     const routeBarEl = document.getElementById('routeBar');
 
+    function renderTransitLine() {
+      routeStationsEl.innerHTML = '';
+      stationStops.sort((a, b) => a.t - b.t);
+
+      stationStops.forEach((st, idx) => {
+        const stopEl = document.createElement('div');
+        stopEl.className = 'station-stop' + (st.isHalt ? ' halt' : '');
+        if (idx === 0) stopEl.classList.add('is-first');
+        else if (idx === stationStops.length - 1) stopEl.classList.add('is-last');
+
+        stopEl.style.left = `${(st.t * 100).toFixed(2)}%`;
+
+        const pipEl = document.createElement('div');
+        pipEl.className = 'station-pip';
+
+        const nameEl = document.createElement('span');
+        nameEl.className = 'station-name';
+        nameEl.textContent = st.name.slice(0, 4);
+
+        stopEl.appendChild(pipEl);
+        stopEl.appendChild(nameEl);
+        routeStationsEl.appendChild(stopEl);
+        st.el = stopEl;
+      });
+    }
+
+    function updateTransitProgress(currentT) {
+      const pct = THREE.MathUtils.clamp(currentT * 100, 0, 100);
+      routeProgressFillEl.style.width = `${pct}%`;
+      routeTrainDotEl.style.left = `${pct}%`;
+
+      for (const st of stationStops) {
+        if (!st.el) continue;
+        const isPassed = direction === 1 ? currentT >= st.t - 0.005 : currentT <= st.t + 0.005;
+        st.el.classList.toggle('passed', isPassed);
+      }
+    }
+
+    function getActiveTunnelAtT(currentT) {
+      for (const span of tunnelSpans) {
+        if (currentT >= span.tStart && currentT <= span.tEnd) {
+          return span;
+        }
+      }
+      return null;
+    }
+
     let activeEvent = null;
 
     const ROUTE_EVENTS = [
-  { id: 'ufo-1', at: 0.05, create: () => new UfoFlybyEvent({ duration: 11, scale: 1.15, side: 1 }) },
-  { id: 'boulder-1', at: 0.07, create: () => new RollingBoulderEvent({ radius: 4.2, duration: 12, side: -1 }) }, 
-  { id: 'birds-1', at: 0.09, create: () => new BirdStrikeEvent({ duration: 10, count: 22, side: -1, spread: 8})},   
-  { id: 'birds-2', at: 0.102, create: () => new BirdStrikeEvent({ duration: 10, count: 22, side: -1, spread: 8})},            
-  { id: 'boulder-2', at: 0.18, create: () => new RollingBoulderEvent({ radius: 4.2, duration: 12, side: -1 }) },
-  { id: 'boulder-3', at: 0.28, create: () => new RollingBoulderEvent({ radius: 4.8, duration: 12, side: 1 }) },
-  { id: 'ufo-2', at: 0.33, create: () => new UfoFlybyEvent({ duration: 11, scale: 1.15, side: -1 }) },      
-  { id: 'ufo-3', at: 0.60, create: () => new UfoFlybyEvent({ duration: 10, scale: 1.0, side: 1 }) },
-  {
-  id: 'cloud-1',
-  at: 0.104,
-  create: () =>
-    new LowCloudBankEvent({
-      duration: 14,
-      puffCount: 148,
-      bankWidth: 230,
-      bankDepth: 100,
-      heightOffset: 14,
-      driftSpeed: 7.5,
-      side: 1,
-      maxOpacity: 0.44
-    })
-},
-{
-  id: 'cloud-2',
-  at: 0.72,
-  create: () =>
-    new LowCloudBankEvent({
-      duration: 15,
-      puffCount: 52,
-      bankWidth: 250,
-      bankDepth: 110,
-      heightOffset: 18,
-      driftSpeed: 6.5,
-      side: -1,
-      maxOpacity: 0.36
-    })
-}      
-];
+      { id: 'ufo-1', at: 0.05, create: () => new UfoFlybyEvent({ duration: 11, scale: 1.15, side: 1 }) },
+      { id: 'boulder-1', at: 0.07, create: () => new RollingBoulderEvent({ radius: 4.2, duration: 12, side: -1 }) }, 
+      { id: 'birds-1', at: 0.09, create: () => new BirdStrikeEvent({ duration: 10, count: 22, side: -1, spread: 8})},   
+      { id: 'birds-2', at: 0.102, create: () => new BirdStrikeEvent({ duration: 10, count: 22, side: -1, spread: 8})},            
+      { id: 'boulder-2', at: 0.18, create: () => new RollingBoulderEvent({ radius: 4.2, duration: 12, side: -1 }) },
+      { id: 'boulder-3', at: 0.28, create: () => new RollingBoulderEvent({ radius: 4.8, duration: 12, side: 1 }) },
+      { id: 'ufo-2', at: 0.33, create: () => new UfoFlybyEvent({ duration: 11, scale: 1.15, side: -1 }) },      
+      { id: 'ufo-3', at: 0.60, create: () => new UfoFlybyEvent({ duration: 10, scale: 1.0, side: 1 }) },
+      {
+        id: 'cloud-1',
+        at: 0.104,
+        create: () =>
+          new LowCloudBankEvent({
+            duration: 14,
+            puffCount: 148,
+            bankWidth: 230,
+            bankDepth: 100,
+            heightOffset: 14,
+            driftSpeed: 7.5,
+            side: 1,
+            maxOpacity: 0.44
+          })
+      },
+      {
+        id: 'cloud-2',
+        at: 0.72,
+        create: () =>
+          new LowCloudBankEvent({
+            duration: 15,
+            puffCount: 52,
+            bankWidth: 250,
+            bankDepth: 110,
+            heightOffset: 18,
+            driftSpeed: 6.5,
+            side: -1,
+            maxOpacity: 0.36
+          })
+      }      
+    ];
       
-const firedEventIds = new Set();
-      
-    let ufoTriggeredThisPass = false;  
+    const firedEventIds = new Set();
 
     // --- Three.js Setup ---
+    const DAY_SKY_HEX = 0x9ec5e6;
+    const TUNNEL_SKY_HEX = 0x030406;
+    const DAY_SUN_INTENSITY = 2.0;
+    const TUNNEL_SUN_INTENSITY = 0.0;
+    const DAY_HEMI_INTENSITY = 0.95;
+    const TUNNEL_HEMI_INTENSITY = 0.0;
+
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x9ec5e6);
-    scene.fog = new THREE.FogExp2(0x9ec5e6, 0.00011);
+    scene.background = new THREE.Color(DAY_SKY_HEX);
+    scene.fog = new THREE.FogExp2(DAY_SKY_HEX, 0.00011);
 
     const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 1, 25000);
     camera.position.set(0, 3200, 3500);
@@ -662,18 +895,19 @@ const firedEventIds = new Set();
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enabled = false;
 
-    scene.add(new THREE.HemisphereLight(0xdbeafe, 0x3f4e3c, 0.95));
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x3f4e3c, DAY_HEMI_INTENSITY);
+    scene.add(hemiLight);
 
     const SUN_OFFSET = new THREE.Vector3(1400, 1900, 950);
     const SHADOW_EXTENT = 180;
     const SHADOW_MAP_SIZE = 2048;
 
-    const sun = new THREE.DirectionalLight(0xfffbeb, 2.0);
+    const sun = new THREE.DirectionalLight(0xfffbeb, DAY_SUN_INTENSITY);
     const weather = new WeatherEffects(scene, camera, { sunLight: sun });
 
     document.getElementById('weatherSelect').addEventListener('change', (e) => {
-  weather.setWeather(e.target.value, 0.75);
-});  
+      weather.setWeather(e.target.value, 0.75);
+    });  
 
     sun.position.copy(SUN_OFFSET);
     sun.castShadow = true;
@@ -691,6 +925,11 @@ const firedEventIds = new Set();
 
     const _sunFocus = new THREE.Vector3();
     const _sunForward = new THREE.Vector3();
+    const _daySkyColor = new THREE.Color(DAY_SKY_HEX);
+    const _tunnelSkyColor = new THREE.Color(TUNNEL_SKY_HEX);
+    const _exitWorldPos = new THREE.Vector3();
+    const _exitProjected = new THREE.Vector3();
+    let tunnelEnvBlend = 0;
 
     function updateSunShadowFocus() {
       camera.getWorldDirection(_sunForward);
@@ -703,6 +942,74 @@ const firedEventIds = new Set();
       sun.target.position.copy(_sunFocus);
       sun.position.copy(_sunFocus).add(SUN_OFFSET);
       sun.target.updateMatrixWorld();
+    }
+
+    function updateTunnelAtmosphere(dt, activeTunnel, currentT) {
+      const targetBlend = activeTunnel ? 1 : 0;
+      tunnelEnvBlend = THREE.MathUtils.damp(tunnelEnvBlend, targetBlend, 14.0, dt);
+
+      if (scene.background instanceof THREE.Color) {
+        scene.background.copy(_daySkyColor).lerp(_tunnelSkyColor, tunnelEnvBlend);
+      }
+      if (scene.fog && scene.fog.color) {
+        scene.fog.color.copy(_daySkyColor).lerp(_tunnelSkyColor, tunnelEnvBlend);
+        scene.fog.density = THREE.MathUtils.lerp(0.00011, 0.018, tunnelEnvBlend);
+      }
+      sun.intensity = THREE.MathUtils.lerp(DAY_SUN_INTENSITY, TUNNEL_SUN_INTENSITY, tunnelEnvBlend);
+      hemiLight.intensity = THREE.MathUtils.lerp(DAY_HEMI_INTENSITY, TUNNEL_HEMI_INTENSITY, tunnelEnvBlend);
+
+      const label = activeTunnel?.name || 'TUNNEL';
+      if (activeTunnel) {
+        tunnelNameLabelEl.textContent = label;
+        tunnelBannerEl.classList.add('active');
+      } else {
+        tunnelBannerEl.classList.remove('active');
+      }
+
+      // Project the tunnel exit opening into screen space ("light at the end of the tunnel")
+      if (activeTunnel && trainCurve && tunnelEnvBlend > 0.15) {
+        const exitT = direction === 1 ? activeTunnel.tEnd : activeTunnel.tStart;
+        const spanLen = Math.max(0.0001, activeTunnel.tEnd - activeTunnel.tStart);
+        const distToExitFrac = THREE.MathUtils.clamp(
+          direction === 1
+            ? (activeTunnel.tEnd - currentT) / spanLen
+            : (currentT - activeTunnel.tStart) / spanLen,
+          0,
+          1
+        );
+
+        const exitPt = trainCurve.getPointAt(THREE.MathUtils.clamp(exitT, 0, 1));
+        _exitWorldPos.set(exitPt.x, exitPt.y + 2.2, exitPt.z);
+        _exitProjected.copy(_exitWorldPos).project(camera);
+
+        const inFront = _exitProjected.z > -1 && _exitProjected.z < 1;
+        const sx = (0.5 + _exitProjected.x * 0.5) * window.innerWidth;
+        const sy = (0.5 - _exitProjected.y * 0.5) * window.innerHeight;
+        const onScreen =
+          inFront &&
+          sx > -120 &&
+          sx < window.innerWidth + 120 &&
+          sy > -120 &&
+          sy < window.innerHeight + 120;
+
+        if (onScreen) {
+          // Grows larger and brighter as you approach the exit portal
+          const proximity = 1 - THREE.MathUtils.smoothstep(distToExitFrac, 0.0, 0.65);
+          const scale = THREE.MathUtils.lerp(0.22, 2.35, proximity);
+          const opacity = THREE.MathUtils.clamp(
+            tunnelEnvBlend * THREE.MathUtils.lerp(0.12, 0.96, proximity),
+            0,
+            0.96
+          );
+          tunnelExitLightEl.style.left = `${sx.toFixed(1)}px`;
+          tunnelExitLightEl.style.top = `${sy.toFixed(1)}px`;
+          tunnelExitLightEl.style.opacity = opacity.toFixed(3);
+          tunnelExitLightEl.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
+          return;
+        }
+      }
+
+      tunnelExitLightEl.style.opacity = '0';
     }
 
     // --- Coordinate Helpers ---
@@ -1153,6 +1460,9 @@ const firedEventIds = new Set();
     const stationGroup = new THREE.Group();
     scene.add(stationGroup);
 
+    const tunnelGroup = new THREE.Group();
+    scene.add(tunnelGroup);
+
     // --- OpenStreetMap building footprints ---
     const buildingGroup = new THREE.Group();
     scene.add(buildingGroup);
@@ -1341,12 +1651,11 @@ const firedEventIds = new Set();
     }
 
     async function loadBuildingsFromUrl() {
-      statusEl.textContent = 'Loading Alpine building footprints...';
       const response = await fetch(BUILDINGS_URL);
       if (!response.ok) throw new Error(`HTTP ${response.status} fetching building footprints`);
       const geojson = await response.json();
       const features = geojson.type === 'FeatureCollection' ? geojson.features : [geojson];
-      let added = 0, roofCount = 0;
+      let added = 0;
       const wallsByMaterial = buildingMaterials.map(() => []);
       const roofsByMaterial = roofMaterials.map(() => []);
       const MAX_BUILDINGS = 12000;
@@ -1378,7 +1687,6 @@ const firedEventIds = new Set();
           wallsByMaterial[palette.wallIndex].push(made.wallGeometry);
           if (made.roofGeometry) {
             roofsByMaterial[palette.roofIndex].push(made.roofGeometry);
-            roofCount++;
           }
           added++;
         }
@@ -1407,13 +1715,12 @@ const firedEventIds = new Set();
         }
       }
 
-      statusEl.textContent += ` · ${added.toLocaleString()} buildings`;
       return added;
     }
 
     function distMeters(a, b) {
-      const dx = (a[0] - b[0]) * METERS_PER_DEG_LON;
-      const dy = (a[1] - b[1]) * METERS_PER_DEG_LAT;
+      const dx = (a.lon - b.lon) * METERS_PER_DEG_LON;
+      const dy = (a.lat - b.lat) * METERS_PER_DEG_LAT;
       return Math.hypot(dx, dy);
     }
 
@@ -1421,11 +1728,18 @@ const firedEventIds = new Set();
       const remaining = [];
       for (const f of features) {
         if (!f.geometry) continue;
+        const props = f.properties || {};
+        const isTunnel = props.tunnel === 'yes';
+        const tunnelName = props['tunnel:name'] || props.name || 'Tunnel';
+
+        const toTaggedCoords = (coordList) =>
+          coordList.map(([lon, lat]) => ({ lon, lat, isTunnel, tunnelName }));
+
         if (f.geometry.type === 'LineString' && f.geometry.coordinates.length > 1) {
-          remaining.push(f.geometry.coordinates.slice());
+          remaining.push(toTaggedCoords(f.geometry.coordinates));
         } else if (f.geometry.type === 'MultiLineString') {
           for (const part of f.geometry.coordinates) {
-            if (part.length > 1) remaining.push(part.slice());
+            if (part.length > 1) remaining.push(toTaggedCoords(part));
           }
         }
       }
@@ -1436,13 +1750,13 @@ const firedEventIds = new Set();
 
       const totalSegments = remaining.length;
       remaining.sort((a, b) => {
-        const maxLatA = Math.max(a[0][1], a[a.length - 1][1]);
-        const maxLatB = Math.max(b[0][1], b[b.length - 1][1]);
+        const maxLatA = Math.max(a[0].lat, a[a.length - 1].lat);
+        const maxLatB = Math.max(b[0].lat, b[b.length - 1].lat);
         return maxLatB - maxLatA;
       });
 
       let chain = remaining.shift();
-      if (chain[0][1] < chain[chain.length - 1][1]) chain.reverse();
+      if (chain[0].lat < chain[chain.length - 1].lat) chain.reverse();
 
       const MAX_JOIN_GAP_METRES = 120;
 
@@ -1506,21 +1820,58 @@ const firedEventIds = new Set();
 
     function buildTrackFromGeoJSON(geojson) {
       trackGroup.clear();
+      tunnelGroup.clear();
+      tunnelSpans = [];
+
       const features = geojson.type === 'FeatureCollection' ? geojson.features : [geojson];
-      const { coords, segmentCount, joinedCount, disconnectedCount } = stitchLineStrings(features);
+      const { coords } = stitchLineStrings(features);
 
       coords.reverse();
 
       if (coords.length < 4) {
-        statusEl.textContent = 'Could not find enough connected railway track points.';
+        console.warn('Could not find enough connected railway track points.');
         return;
       }
 
-      const rawPoints = coords.map(([lon, lat]) => {
+      const rawPoints = coords.map(({ lon, lat }) => {
         const { x, z } = lonLatToLocal(lon, lat);
         const y = getElevationAtLonLat(lon, lat);
-        return new THREE.Vector3(x, y + 0.85, z);
+        return new THREE.Vector3(x, y, z);
       });
+
+      const rawRuns = [];
+      let i = 0;
+      while (i < coords.length) {
+        if (!coords[i].isTunnel) {
+          i++;
+          continue;
+        }
+        const startIdx = i;
+        const name = coords[startIdx].tunnelName || 'Tunnel';
+        while (i + 1 < coords.length && coords[i + 1].isTunnel) {
+          i++;
+        }
+        const endIdx = i;
+        rawRuns.push({ startIdx, endIdx, name });
+        i++;
+      }
+
+      for (const run of rawRuns) {
+        const entryIdx = Math.max(0, run.startIdx - 1);
+        const exitIdx = Math.min(rawPoints.length - 1, run.endIdx + 1);
+        const yStart = rawPoints[entryIdx].y;
+        const yEnd = rawPoints[exitIdx].y;
+        const spanLen = Math.max(1, run.endIdx - run.startIdx);
+
+        for (let k = run.startIdx; k <= run.endIdx; k++) {
+          const frac = (k - run.startIdx) / spanLen;
+          rawPoints[k].y = THREE.MathUtils.lerp(yStart, yEnd, frac);
+        }
+      }
+
+      for (const pt of rawPoints) {
+        pt.y += 0.85;
+      }
 
       const densePoints = densifyTrackPoints(rawPoints, 8);
       trainCurve = new THREE.CatmullRomCurve3(
@@ -1530,8 +1881,6 @@ const firedEventIds = new Set();
         0.5
       );
 
-      const routeLengthMetres = trainCurve.getLength();
-      const lengthKm = (routeLengthMetres / 1000).toFixed(1);
       const sampled = trainCurve.getSpacedPoints(600);
       routeCoordsLonLat = sampled.map((pt) => localToLonLat(pt.x, pt.z));
       syncMinimapRoute();
@@ -1550,23 +1899,6 @@ const firedEventIds = new Set();
       const sleeperScale = new THREE.Vector3(1, 1, 1);
       const instanceMatrix = new THREE.Matrix4();
 
-      const ballastGeometry = new THREE.BoxGeometry(3.0, 0.24, sampleSpacing + 0.12);
-      const ballastMaterial = new THREE.MeshStandardMaterial({
-        color: 0x77736b, roughness: 1.0, metalness: 0.0
-      });
-      const ballast = new THREE.InstancedMesh(ballastGeometry, ballastMaterial, sampleCount + 1);
-      ballast.receiveShadow = true;
-      ballast.frustumCulled = false;
-
-      const sleeperGeometry = new THREE.BoxGeometry(2.55, 0.16, 0.24);
-      const sleeperMaterial = new THREE.MeshStandardMaterial({
-        color: 0x514b43, roughness: 0.96, metalness: 0.02
-      });
-      const sleepers = new THREE.InstancedMesh(sleeperGeometry, sleeperMaterial, sleeperCount + 1);
-      sleepers.castShadow = true;
-      sleepers.receiveShadow = true;
-      sleepers.frustumCulled = false;
-
       function routeFrame(t) {
         const point = trainCurve.getPointAt(THREE.MathUtils.clamp(t, 0, 1));
         const tangent = trainCurve.getTangentAt(THREE.MathUtils.clamp(t, 0, 1)).normalize();
@@ -1576,20 +1908,95 @@ const firedEventIds = new Set();
         return { point, tangent, lateral, vertical };
       }
 
-      function addStation(name, lon, lat, isHalt = false) {
-        const target = lonLatToLocal(lon, lat);
+      function findClosestCurveT(localPt) {
         let bestT = 0;
         let bestDistanceSq = Infinity;
         const checks = Math.max(1200, Math.ceil(routeLength / 3));
-        for (let i = 0; i <= checks; i++) {
-          const t = i / checks;
+        for (let c = 0; c <= checks; c++) {
+          const t = c / checks;
           const p = trainCurve.getPointAt(t);
-          const d2 = (p.x - target.x) ** 2 + (p.z - target.z) ** 2;
+          const d2 = (p.x - localPt.x) ** 2 + (p.z - localPt.z) ** 2;
           if (d2 < bestDistanceSq) {
             bestDistanceSq = d2;
             bestT = t;
           }
         }
+        return bestT;
+      }
+
+      const portalStoneMat = new THREE.MeshStandardMaterial({ color: 0x4b525c, roughness: 0.92 });
+      const portalDarkMat = new THREE.MeshStandardMaterial({ color: 0x05070a, roughness: 1.0 });
+
+      function createPortalMesh(tangent) {
+        const portal = new THREE.Group();
+        const yaw = Math.atan2(tangent.x, tangent.z);
+        portal.rotation.y = yaw;
+
+        const pillarW = 1.1;
+        const archH = 5.4;
+        const depth = 2.2;
+        const spanW = 5.6;
+
+        const leftPillar = new THREE.Mesh(
+          new THREE.BoxGeometry(pillarW, archH, depth),
+          portalStoneMat
+        );
+        leftPillar.position.set(-spanW / 2 + pillarW / 2, archH / 2 - 0.85, 0);
+        leftPillar.castShadow = true;
+        leftPillar.receiveShadow = true;
+
+        const rightPillar = new THREE.Mesh(
+          new THREE.BoxGeometry(pillarW, archH, depth),
+          portalStoneMat
+        );
+        rightPillar.position.set(spanW / 2 - pillarW / 2, archH / 2 - 0.85, 0);
+        rightPillar.castShadow = true;
+        rightPillar.receiveShadow = true;
+
+        const lintel = new THREE.Mesh(
+          new THREE.BoxGeometry(spanW + 0.6, 1.1, depth + 0.3),
+          portalStoneMat
+        );
+        lintel.position.set(0, archH - 0.35, 0);
+        lintel.castShadow = true;
+        lintel.receiveShadow = true;
+
+        const backing = new THREE.Mesh(
+          new THREE.BoxGeometry(spanW - pillarW * 1.4, archH - 0.6, 0.4),
+          portalDarkMat
+        );
+        backing.position.set(0, (archH - 0.6) / 2 - 0.85, 0);
+
+        portal.add(leftPillar, rightPillar, lintel, backing);
+        return portal;
+      }
+
+      for (const run of rawRuns) {
+        const startLocal = rawPoints[run.startIdx];
+        const endLocal = rawPoints[run.endIdx];
+        const tA = findClosestCurveT(startLocal);
+        const tB = findClosestCurveT(endLocal);
+        const tStart = Math.min(tA, tB);
+        const tEnd = Math.max(tA, tB);
+
+        const entryFrame = routeFrame(tStart);
+        const entryPortal = createPortalMesh(entryFrame.tangent);
+        entryPortal.position.copy(entryFrame.point);
+        tunnelGroup.add(entryPortal);
+
+        const exitFrame = routeFrame(tEnd);
+        const exitPortal = createPortalMesh(exitFrame.tangent);
+        exitPortal.position.copy(exitFrame.point);
+        tunnelGroup.add(exitPortal);
+
+        tunnelSpans.push({ name: run.name, tStart, tEnd });
+      }
+
+      function addStation(name, lon, lat, isHalt = false) {
+        const target = lonLatToLocal(lon, lat);
+        const bestT = findClosestCurveT(target);
+
+        stationStops.push({ name, t: bestT, isHalt, el: null });
 
         const { point, tangent, lateral } = routeFrame(bestT);
 
@@ -1688,10 +2095,30 @@ const firedEventIds = new Set();
       }
 
       stationGroup.clear();
+      stationStops.length = 0;
       addStation('POSCHIAVO', 10.0545, 46.32465, false);
       addStation('PRIVILASCO', 10.0574, 46.3347, true);
       addStation('CADERA', 10.0566, 46.3518, true);
       addStation('CAVAGLIA', 10.046274, 46.3642466, false);
+      renderTransitLine();
+      updateTransitProgress(0);
+
+      const ballastGeometry = new THREE.BoxGeometry(3.0, 0.24, sampleSpacing + 0.12);
+      const ballastMaterial = new THREE.MeshStandardMaterial({
+        color: 0x77736b, roughness: 1.0, metalness: 0.0
+      });
+      const ballast = new THREE.InstancedMesh(ballastGeometry, ballastMaterial, sampleCount + 1);
+      ballast.receiveShadow = true;
+      ballast.frustumCulled = false;
+
+      const sleeperGeometry = new THREE.BoxGeometry(2.55, 0.16, 0.24);
+      const sleeperMaterial = new THREE.MeshStandardMaterial({
+        color: 0x514b43, roughness: 0.96, metalness: 0.02
+      });
+      const sleepers = new THREE.InstancedMesh(sleeperGeometry, sleeperMaterial, sleeperCount + 1);
+      sleepers.castShadow = true;
+      sleepers.receiveShadow = true;
+      sleepers.frustumCulled = false;
 
       for (let i = 0; i <= sampleCount; i++) {
         const t = i / sampleCount;
@@ -1752,16 +2179,9 @@ const firedEventIds = new Set();
       progress = 0;
       suspensionDistance = 0;
       cameraBank = 0;
-
-      let message = `${joinedCount}/${segmentCount} sections · ${lengthKm} km`;
-      if (disconnectedCount > 0) {
-        message += ` (${disconnectedCount} stray)`;
-      }
-      statusEl.textContent = message;
     }
 
     async function loadGeoJSONFromUrl() {
-      statusEl.textContent = 'Fetching Bernina railway data...';
       const res = await fetch(GEOJSON_URL);
       if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${GEOJSON_URL}`);
       const data = await res.json();
@@ -1901,7 +2321,7 @@ const firedEventIds = new Set();
         this.thumpGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.075);
       },
 
-      update(speedKmh, isPaused, distanceMeters) {
+      update(speedKmh, isPaused, distanceMeters, inTunnel = false) {
         if (!this.initialized || !this.ctx || this.ctx.state !== 'running') return;
 
         const now = this.ctx.currentTime;
@@ -1909,24 +2329,24 @@ const firedEventIds = new Set();
         const speedRatio = THREE.MathUtils.clamp(activeSpeed / 120, 0, 1);
 
         const humFreq = 58 + speedRatio * 95;
-        const whineFreq = 260 + speedRatio * 740;
-        const motorLevel = isPaused ? 0.01 : 0.06 + speedRatio * 0.14;
+        const whineFreq = (260 + speedRatio * 740) * (inTunnel ? 0.72 : 1.0);
+        const motorLevel = isPaused ? 0.01 : (0.06 + speedRatio * 0.14) * (inTunnel ? 0.85 : 1.0);
 
         this.humOsc.frequency.setTargetAtTime(humFreq, now, 0.08);
         this.whineOsc.frequency.setTargetAtTime(whineFreq, now, 0.08);
         this.whineFilter.frequency.setTargetAtTime(whineFreq * 1.15, now, 0.08);
         this.motorGain.gain.setTargetAtTime(motorLevel, now, 0.08);
 
-        const rumbleCutoff = 120 + speedRatio * 520;
-        const rumbleLevel = isPaused ? 0.0 : 0.08 + speedRatio * 0.34;
+        const rumbleCutoff = (120 + speedRatio * 520) * (inTunnel ? 0.78 : 1.0);
+        const rumbleLevel = isPaused ? 0.0 : (0.08 + speedRatio * 0.34) * (inTunnel ? 1.25 : 1.0);
         this.rumbleFilter.frequency.setTargetAtTime(rumbleCutoff, now, 0.08);
-        this.rumbleGain.gain.setTargetAtTime(rumbleLevel, now, 0.08);
+        this.rumbleGain.gain.setTargetAtTime(THREE.MathUtils.clamp(rumbleLevel, 0, 0.55), now, 0.08);
 
         const JOINT_SPACING = 14;
         const jointPhase = Math.floor(distanceMeters / JOINT_SPACING);
         if (!isPaused && activeSpeed > 3 && jointPhase !== this.lastJointPhase) {
           this.lastJointPhase = jointPhase;
-          this.triggerJointThump(speedRatio);
+          this.triggerJointThump(speedRatio * (inTunnel ? 1.2 : 1.0));
         }
       }
     };
@@ -1949,7 +2369,6 @@ const firedEventIds = new Set();
     const leverHandle = document.getElementById('lever-handle');
 
     function updateLeverVisuals() {
-      // Map leverNormalized (+1 top, 0 center, -1 bottom) to % position inside housing
       const pct = THREE.MathUtils.clamp(50 - leverNormalized * 38, 12, 88);
       leverHandle.style.top = `${pct}%`;
 
@@ -1979,9 +2398,8 @@ const firedEventIds = new Set();
 
     function setLeverFromPointer(clientY) {
       const rect = leverHousing.getBoundingClientRect();
-      const relY = (clientY - rect.top) / rect.height; // 0 top .. 1 bottom
+      const relY = (clientY - rect.top) / rect.height;
       const raw = THREE.MathUtils.clamp((0.5 - relY) / 0.38, -1, 1);
-      // Snap gently to center detent
       leverNormalized = Math.abs(raw) < 0.1 ? 0 : raw;
       updateLeverVisuals();
     }
@@ -2001,12 +2419,10 @@ const firedEventIds = new Set();
       if (!isDraggingLever) return;
       isDraggingLever = false;
       leverHousing.releasePointerCapture(e.pointerId);
-      // Return lever to neutral Hold detent on release so target speed locks in
       leverNormalized = 0;
       updateLeverVisuals();
     });
 
-    // Step buttons for increasing speed / braking
     document.getElementById('accelBtn').addEventListener('click', () => {
       targetSpeedKmh = THREE.MathUtils.clamp(targetSpeedKmh + 10, MIN_SPEED_KMH, MAX_SPEED_KMH);
       leverNormalized = 0.65;
@@ -2037,7 +2453,6 @@ const firedEventIds = new Set();
       updateLeverVisuals();
     });
 
-    // Keyboard shortcuts: W / ArrowUp = Power, S / ArrowDown = Brake, Space = Pause
     window.addEventListener('keydown', (e) => {
       if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') {
         targetSpeedKmh = THREE.MathUtils.clamp(targetSpeedKmh + 5, MIN_SPEED_KMH, MAX_SPEED_KMH);
@@ -2060,7 +2475,6 @@ const firedEventIds = new Set();
       }
     });
 
-    // Reverse button
     const reverseBtn = document.getElementById('reverseBtn');
     const reverseTextEl = document.getElementById('reverseText');
     reverseBtn.addEventListener('click', () => {
@@ -2071,7 +2485,6 @@ const firedEventIds = new Set();
       dirReadoutEl.textContent = isRev ? 'SOUTHBOUND ↓' : 'NORTHBOUND ↑';
     });
 
-    // Sound On/Off button
     const soundBtn = document.getElementById('soundBtn');
     soundBtn.addEventListener('click', () => {
       railAudio.setEnabled(!railAudio.enabled);
@@ -2079,7 +2492,6 @@ const firedEventIds = new Set();
       soundBtn.textContent = railAudio.enabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
     });
 
-    // Pause / Resume button
     document.getElementById('togglePauseBtn').addEventListener('click', (e) => {
       paused = !paused;
       controls.enabled = paused;
@@ -2092,7 +2504,6 @@ const firedEventIds = new Set();
       e.target.textContent = paused ? '▶ Resume' : '⏸ Pause';
     });
 
-    // Unlock Web Audio on first user interaction anywhere on the page
     window.addEventListener('pointerdown', () => railAudio.init(), { once: true });
     window.addEventListener('keydown', () => railAudio.init(), { once: true });
 
@@ -2112,8 +2523,9 @@ const firedEventIds = new Set();
       requestAnimationFrame(animate);
       const dt = Math.min(clock.getDelta(), 0.05);
 
+      let activeTunnel = null;
+
       if (trainCurve && !paused) {
-        // Continuous target speed adjustment when lever is held in Power or Brake
         if (Math.abs(leverNormalized) > 0.12) {
           const rateKmhPerSec = leverNormalized > 0 ? 28 : 38;
           targetSpeedKmh = THREE.MathUtils.clamp(
@@ -2142,11 +2554,12 @@ const firedEventIds = new Set();
           suspensionDistance += speedMetresPerSecond * dt;
         }
 
+        activeTunnel = getActiveTunnelAtT(progress);
+
         const pos = trainCurve.getPointAt(progress);
         const lookT = wrapProgress(progress + lastLookAhead * direction);
         const lookPt = trainCurve.getPointAt(lookT);
 
-        // Compute track gradient (%)
         const horizDist = Math.hypot(lookPt.x - pos.x, lookPt.z - pos.z);
         const gradePct = horizDist > 0.1 ? ((lookPt.y - pos.y) / horizDist) * 100 : 0;
 
@@ -2187,7 +2600,6 @@ const firedEventIds = new Set();
         );
         camera.rotateZ(cameraBank);
 
-        // Update Cab Gauges (Speed, Altimeter, Gradient, Progress)
         const elevMeters = Math.round(pos.y);
         speedReadoutEl.textContent = Math.round(currentSpeedKmh);
         altimeterReadoutEl.textContent = elevMeters;
@@ -2198,6 +2610,7 @@ const firedEventIds = new Set();
         const altNorm = THREE.MathUtils.clamp((elevMeters - 1000) / 750, 0, 1);
         altBarEl.style.width = `${altNorm * 100}%`;
         routeBarEl.style.width = `${progress * 100}%`;
+        updateTransitProgress(progress);
 
         if (now - lastMinimapUpdate > 80) {
           lastMinimapUpdate = now;
@@ -2205,8 +2618,11 @@ const firedEventIds = new Set();
           updateMinimapPosition(lon, lat, progress);
         }
       } else if (paused) {
+        if (trainCurve) activeTunnel = getActiveTunnelAtT(progress);
         controls.update();
       }
+
+      updateTunnelAtmosphere(dt, activeTunnel, progress);
 
       if (progress < 0.02) {
         firedEventIds.clear();
@@ -2221,13 +2637,13 @@ const firedEventIds = new Set();
           }
           activeEvent = item.create();
           activeEvent.start({
-  scene,
-  camera,
-  getGroundHeight,
-  progress,
-  speedKmh: currentSpeedKmh,
-  direction
-});
+            scene,
+            camera,
+            getGroundHeight,
+            progress,
+            speedKmh: currentSpeedKmh,
+            direction
+          });
           break;
         }
       }
@@ -2245,7 +2661,7 @@ const firedEventIds = new Set();
         }
       }
 
-      railAudio.update(currentSpeedKmh, paused, suspensionDistance);
+      railAudio.update(currentSpeedKmh, paused, suspensionDistance, Boolean(activeTunnel));
       updateSunShadowFocus();
       renderer.render(scene, camera);
       weather.update(dt, { speedKmh: currentSpeedKmh, direction });
@@ -2266,11 +2682,9 @@ const firedEventIds = new Set();
         await loadBuildingsFromUrl();
       } catch (buildingError) {
         console.warn('Building footprints could not be loaded:', buildingError);
-        statusEl.textContent += ' · no buildings';
       }
     } catch (err) {
-      statusEl.textContent = 'Startup error: ' + err.message;
-      console.error(err);
+      console.error('Startup error:', err);
     }
 
     window.triggerUfo = (side) => {
@@ -2281,11 +2695,11 @@ const firedEventIds = new Set();
       activeEvent.start({ scene, camera });
     };
 
-      window.triggerBoulder = (side = -1) => {
-  if (activeEvent) activeEvent.dispose();
-  activeEvent = new RollingBoulderEvent({ radius: 4.5, duration: 12, side });
-  activeEvent.start({ scene, camera, getGroundHeight });
-};
+    window.triggerBoulder = (side = -1) => {
+      if (activeEvent) activeEvent.dispose();
+      activeEvent = new RollingBoulderEvent({ radius: 4.5, duration: 12, side });
+      activeEvent.start({ scene, camera, getGroundHeight });
+    };
       
     animate();
   </script>
